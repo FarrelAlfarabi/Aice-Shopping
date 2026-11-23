@@ -1,6 +1,6 @@
 # Master plan: Aice quick commerce demo
 
-**Version:** 0.2 (sprint mode)
+**Version:** 0.3 (sprint mode)
 **Last updated:** 2026-11-23
 **Owner:** Farrel
 **Status:** Plan only. No code written. Repo was empty. No app building guidebook found.
@@ -19,6 +19,7 @@ Aice signs the real project. Later versions add other brands and real integratio
 
 **Success metrics:**
 - The full happy path runs start to finish on a real phone with no crash, no dead button. Target: yes/no, checked by a script and by hand.
+- The same path also works when Supabase is switched off (fallback). Target: yes/no.
 - Demo link opens on iPhone Safari and Android Chrome. Target: yes/no.
 - Time from tapping the link to first screen. Target: **baseline unknown**, see OQ-6.
 - Aice signs the real project. Target: **baseline unknown**, outside our control, see OQ-1.
@@ -31,21 +32,23 @@ No other targets are set. None are invented.
 
 ### Real now (actually works)
 - Screen navigation and all the clicking.
+- Reading the sample catalog, stores, banners, vouchers and scripted AI answers **from Supabase** (read only), with an automatic fallback to a copy bundled in the app (see TD-2).
 - Cart maths: totals, voucher discount, multi-buy discount, delivery fee, free delivery over a threshold, minimum order.
-- Search over the local sample catalog, with a sort and a simple filter.
-- Tests (TDD) for the cart maths, voucher and multi-buy rules, fee rules, order status steps, late-delivery rule, search, and the scripted AI answers.
+- Search over the catalog, with a sort and a simple filter.
+- Tests (TDD) for the cart maths, voucher and multi-buy rules, fee rules, order status steps, late-delivery rule, search, the scripted AI answers, and the fallback switch.
 - Web build on a public link.
 
 ### Mocked (looks real, is not)
-- Products, prices, photos: **sample data**, labeled "Contoh" in the UI.
+- Products, prices, photos: **sample data**, labeled "Contoh" in the UI. Photos are drawn placeholders.
 - Stores, addresses, distances, open hours: **fictional sample stores**, not real Aice outlets.
 - Address picker: a fixed list plus a typed text box. No real map, no GPS.
 - Payments (e-wallet, bank transfer, QRIS): fake screens. No money moves.
 - Order tracking and ETA countdown: a timer that fakes the steps. No courier is named.
 - "Tanya AI" helper: scripted answers. No AI model.
 - Late delivery guarantee and report a problem: the flow ends on a confirmation screen. No refund happens.
-- Login, profile, notifications, order history: fixed sample data on the device.
-- No real customers, no real data, no backend (see TD-2).
+- Login, profile, notifications, order history: fixed sample data.
+- Cart and orders live on the device only. They are **not** written to Supabase (see TD-2, OQ-13).
+- Supabase holds sample data only. No real customers, no real data.
 
 ### The 9 screen groups (all mocked, in this demo)
 1. Onboarding: address, then 3 to 4 sample stores with open hours and distance.
@@ -90,8 +93,9 @@ Source: `ASTRO_feature_inventory_for_AICE.pdf` in Farrel's Drive. Astro IDs in b
 | 25 | Order tracking [Section 8, not seen on screen] | Status steps and ETA countdown. Astro does tracking via chat, so this is our design, not a copy. | In scope, our design |
 | 26 | In-app support chat [Section 8] | Not built. "Tanya AI" covers help in the demo. | Cut |
 | 27 | Install-app banner [H10] | Not built. The demo is the web link itself. | Cut |
-| 28 | Phone number login gate at add to cart [Section 6] | Not built by default. The demo opens straight into a guest session. Optional fake phone screen only if time is left. | Optional, cut first |
-| 29 | Referral, loyalty coins, wallet balance, sponsored brand zone, FAQ accordion, info pages, service-area form [Sections 7, 8] | Not built. Later phase. | Later |
+| 28 | Phone number login gate at add to cart [Section 6] | Not built by default. Farrel asked why (see OQ-14). Optional fake phone screen. | Pending Farrel |
+| 29 | Referral, loyalty coins, wallet balance [Sections 7, 8] | Not built by default. Farrel asked why (see OQ-14). | Pending Farrel |
+| 30 | Sponsored brand zone, FAQ accordion, info pages, service-area form [H8, H9, Section 7] | Not built. Later phase. | Later |
 
 ### New for Aice, taken from the inventory's section 9B (not in Astro)
 - **Cold chain message and melt guarantee**: in scope (screen groups 7 and 8).
@@ -103,7 +107,7 @@ Cart, checkout, payment, order tracking, order history, profile, address picker 
 
 ### Later phases (not built now)
 - Phase 2: real Aice catalog, real stores, real images (needs Aice and trademark clearance).
-- Phase 3: backend, real login, real payment gateway, real order flow to stores.
+- Phase 3: real login, real payment gateway, real orders flowing to stores, orders stored in the database.
 - Phase 4: other brands. Brand and Store are separate data concepts from day one, but only Aice is shown.
 
 ### Out of scope, always for the demo
@@ -120,21 +124,22 @@ Real payment, real customer data, claiming a partnership, claiming official Aice
 
 ## 4. Milestones (sprint mode)
 
-**Deadline: unknown.** Farrel said on 2026-11-23: "no date yet". Hours available are also unknown. The blocks below assume about **2 to 3 focused working days**. If the real time is shorter, cut using the cut order. See OQ-1.
+**Deadline: unknown.** Farrel said on 2026-11-23: "no date yet". Hours available are also unknown. The blocks below assume about **2.5 to 3 focused working days** (up from 2 to 3 because Supabase adds work). If the real time is shorter, cut using the cut order. See OQ-1.
 
 Each block is test first: write the failing test, make it pass, then build the screen.
 
 | Block | Work | Done when |
 |---|---|---|
 | B0 (1h) | Set up Flutter project, theme, Indonesian text, test setup, Vercel deploy of an empty app. | Empty app opens on a phone from a Vercel link. |
-| B1 (2h) | Data models: Brand, Store, Product, Variant, Cart, Order. Sample data. Tests for cart maths, voucher, multi-buy, fee, threshold, minimum order. | Logic tests pass. |
+| B0b (2h) | Supabase: project, tables (Brand, Store, Product, Variant, Banner, Voucher, AI script), sample data, read-only row security, publishable key only. Data layer with 2 versions behind one interface: Supabase and bundled copy. Tests for the fallback switch. | App reads products from Supabase on the Vercel link, and still shows them when Supabase is blocked. |
+| B1 (2h) | Models and cart logic. Tests for cart maths, voucher, multi-buy, fee, threshold, minimum order. | Logic tests pass. |
 | B2 (3h) | Onboarding + Home + Product page. | Can reach a product from the first screen. |
 | B3 (3h) | Cart + time slot + checkout with 3 fake payments. | Can place a fake order. |
 | B4 (3h) | Order tracking, ETA countdown, frozen message. | Tracking runs after checkout. |
 | B5 (2h) | Search, filter, scripted "Tanya AI". | 10 or so scripted questions answer well. |
 | B6 (2h) | Late delivery guarantee + report a problem flow. | Flow ends on a confirmation screen. |
 | B7 (2h) | History, saved addresses, profile, notifications. | All reachable, all sample data. |
-| B8 (2h) | Polish, phone test, speed check, rehearsal, demo script. | Full run twice with no fault. |
+| B8 (2h) | Polish, phone test, speed check, Supabase-off test, rehearsal, demo script. | Full run twice with no fault, once with Supabase blocked. |
 
 **Hard feature freeze:** start of B8. After that, only bug fixes. No new screens.
 
@@ -148,7 +153,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 7. Order history (keep a single sample past order)
 8. Bank transfer and QRIS screens (keep e-wallet only)
 
-**Never cut:** onboarding, home, product, cart, checkout, order tracking, report a problem. These are the story the meeting needs.
+**Never cut:** onboarding, home, product, cart, checkout, order tracking, report a problem, the fallback switch. These are the story the meeting needs.
 
 ---
 
@@ -157,16 +162,18 @@ Each block is test first: write the failing test, make it pass, then build the s
 | ID | Decision | Trade-off |
 |---|---|---|
 | TD-1 | Flutter, mobile first, web build. | One code base and the phone-app feel. Web load is heavier than plain HTML. |
-| TD-2 | **Local mock data. No Supabase for now.** | Faster and nothing can break in the meeting. No shared data. Add Supabase only when a real backend is needed. |
-| TD-3 | Brand and Store are separate models. Only Aice shown. | A bit more code now. Saves a rewrite later. |
+| TD-2 | **Supabase holds the sample catalog, stores, banners, vouchers and AI script. Read only for the app. Cart and orders stay on the device. The app falls back to a bundled copy of the same data if Supabase is slow or fails.** | Shows Aice a real backend shape and lets us change data without a new build. Adds setup time and a new way to fail live (see R-9). The fallback removes that failure from the meeting. Tests run against an in-memory version, so they do not need the network. |
+| TD-3 | Brand and Store are separate models and tables. Only Aice shown. | A bit more work now. Saves a rewrite later. |
 | TD-4 | State: Riverpod or plain Provider. Pick one in B0 and stay. | Small choice, do not debate it. |
-| TD-5 | TDD for logic (cart, voucher, multi-buy, fee, status steps, late rule, search, AI script). Widget tests for the main flow. | Slower start. Fewer bugs in the meeting. Pixel looks are checked by hand, not by tests. |
+| TD-5 | TDD for logic (cart, voucher, multi-buy, fee, status steps, late rule, search, AI script, fallback). Widget tests for the main flow. | Slower start. Fewer bugs in the meeting. Pixel looks are checked by hand, not by tests. |
 | TD-6 | Deploy the built web output to Vercel (build in CI or locally, then deploy). | Vercel's own build step does not have Flutter by default. Needs one extra setup step. See R-3. |
-| TD-7 | Product pictures: simple drawn placeholders, no real Aice photos or logos. | Looks less real. Avoids trademark trouble. See OQ-3. |
+| TD-7 | Product pictures: simple drawn placeholders, no real Aice photos or logos. **Confirmed by Farrel.** | Looks less real. Avoids trademark trouble. See OQ-3. |
 | TD-8 | Colors: Aice-like blue and white, as a theme. Exact brand colors unconfirmed. | Close enough for a demo. Not an exact match. |
 | TD-9 | UI language: Indonesian. This plan: English. | Code and docs stay plain English. |
 | TD-10 | Footer text in the app: "Demo konsep. Bukan aplikasi resmi Aice." | Slightly less polished. Protects against a partnership claim. |
-| TD-11 | Guest session by default, no login screen. | Skips a screen that adds little in a meeting. Real app would need phone login. |
+| TD-11 | Guest session by default, no login screen. **Pending Farrel's answer (OQ-14).** | Skips a screen that adds little in a meeting. Real app would need phone login. |
+| TD-12 | Supabase security: row security on every table, select-only policies for the public key, only the publishable key in the app, no secret keys in the repo or the web build. | A public web build exposes its key to anyone. Read-only sample data makes that harmless. |
+| TD-13 | Work tracking: no local folders. Use GitHub Issues only if tracking is needed. Not set up yet. | Farrel's rule. Nothing to set up until he wants tickets. |
 
 ---
 
@@ -179,23 +186,27 @@ Each block is test first: write the failing test, make it pass, then build the s
 - A-4: Aice names and product types can be used for a private meeting demo. Not confirmed, see OQ-3.
 - A-5: Flutter is not yet confirmed in this environment. B0 must confirm or install it.
 - A-6: Product categories follow the brief (cones, tubs, sticks, yoghurt, drinks, bundles), not the inventory's list. See D-4.
+- A-7: A Supabase project can be used or created for this demo. Not confirmed, see OQ-13.
 
 ### Open questions
 
 | ID | Question | Owner | Blocks next milestone? |
 |---|---|---|---|
-| OQ-1 | Meeting date: **"no date yet"** (Farrel, 2026-11-23). How many hours can be spent? Still unanswered. | Farrel | No for B0 and B1. Yes before B3, because it decides the cut line. |
+| OQ-1 | Meeting date: **"no date yet"** (Farrel, 2026-11-23, said twice). How many hours can be spent? Still unanswered. Plan keeps the 2.5 to 3 day assumption. | Farrel | No for B0 to B1. Yes before B3, because it decides the cut line. |
 | ~~OQ-2~~ | ~~Will Astro screenshots be uploaded?~~ **Answered 2026-11-23:** a feature inventory PDF in Drive. Plan updated. Screenshots inside it were not viewed. | Farrel | Closed |
-| OQ-3 | Trademark: can Aice names, logo, product photos be shown in a private meeting? Are we the brand or a reseller? Who checks? | Farrel | No. Plan uses drawn placeholders until answered. |
+| OQ-3 | Trademark: can Aice names, logo, product photos be shown in a private meeting? Are we the brand or a reseller? Who checks? | Farrel | No. Placeholders are confirmed for now. |
 | OQ-4 | Does an "app building guidebook" exist? Where is it? It is not in the repo. | Farrel | No, but if it exists, it can change TD-4 and TD-5. |
 | OQ-5 | Who will hold the demo: Farrel on his phone, or Aice people tapping on their own phones? | Farrel | No. Affects how much error handling is needed. |
-| OQ-6 | What device and network will the meeting use? Flutter web can be slow on weak Wi-Fi. | Farrel | No. Needed by B8. |
+| OQ-6 | What device and network will the meeting use? Flutter web can be slow on weak Wi-Fi, and Supabase adds a network call. | Farrel | No. Needed by B8. |
 | OQ-7 | Vercel project and domain: use an existing Vercel account? Custom domain or the default `.vercel.app` link? | Farrel | No. Needed by B0 deploy. |
 | OQ-8 | Sample store names and areas: pick real city area names (fictional stores) or generic? Which city? | Farrel | No. |
 | OQ-9 | What does the real project need beyond the customer app (store app, courier app, admin)? Unknown. | Farrel and Aice | No. Needed for the long-term plan only. |
 | OQ-10 | Real Aice product range and categories. Brief and inventory differ (see D-4). Real halal and BPOM numbers are not ours to invent. | Farrel and Aice | No. Demo uses sample data. |
 | OQ-11 | Aice's real late-delivery and melt rules. Astro's rule (10 minutes late, fee refund; claim within 24 hours) is used only as a sample. | Farrel and Aice | No. |
 | OQ-12 | Who would deliver in the real project (own riders, courier apps, partner shops) and in which cities? The inventory says this decides cost, speed and melt risk. The demo names no courier. | Farrel and Aice | No. Needed for the long-term plan. |
+| OQ-13 | Supabase: use an existing project of yours, or may Claude create a new one (the free plan may be enough; a paid one costs money)? Should orders also be saved to Supabase, or stay on the device? Plan says on the device. | Farrel | **Yes** for B0b. |
+| OQ-14 | Login, referral, coins, wallet: Farrel asked why they were left out. Which of them does he want in the demo, if any? | Farrel | No. Each one added pushes out something from the cut list. |
+| OQ-15 | Do you want tickets (GitHub Issues) at all? A ticket is one small task card, for example "build the cart screen". | Farrel | No. |
 
 ---
 
@@ -203,14 +214,16 @@ Each block is test first: write the failing test, make it pass, then build the s
 
 | ID | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| R-1 | Scope too large for the time. 9 screen groups plus tests plus deploy. | High | High | Fixed cut order, hard freeze at B8, never-cut list. Ask OQ-1. |
+| R-1 | Scope too large for the time. 9 screen groups plus tests plus Supabase plus deploy. | High | High | Fixed cut order, hard freeze at B8, never-cut list. Ask OQ-1. |
 | R-2 | The demo looks fine but the Aice team expects "real". Expectations unclear. | Medium | High | Label sample data in the UI. Say in the meeting what is mocked. Keep a one-page "what is real and mocked" list. |
 | R-3 | Flutter web on Vercel: no Flutter in Vercel's build, slow first load on a phone. | Medium | High | Build outside Vercel and deploy the output. Test on a real phone in B0, not at the end. Open the link once before the meeting to warm it up. |
 | R-4 | Trademark or partnership claim problem. | Low | High | No Aice logos or photos. Footer disclaimer. Check before any use beyond the meeting. |
 | R-5 | Copying Astro too closely. The inventory itself says copy features, not the look, name, mascot or artwork. | Low | Medium | Own wording, own visuals, own colors. |
-| R-6 | Meeting network is bad. | Medium | High | Keep a screen recording of the full flow as a backup. |
+| R-6 | Meeting network is bad. | Medium | High | Keep a screen recording of the full flow as a backup. The bundled data copy keeps the app usable even if the network call fails. |
 | R-7 | Tests slow the build and the deadline slips. | Medium | Medium | Test only logic and the main flow. Skip pixel tests. |
 | R-8 | Small basket problem: Aice items are cheap, so a minimum order and delivery fee can look bad. The Aice team may ask about it. | Medium | Medium | Demo shows multi-buy discount, bundles and free delivery over a threshold. The numbers are sample, so say so. Real numbers need Aice order value data. |
+| R-9 | **Supabase fails during the demo.** Causes: bad network, wrong or expired key, a row security rule that blocks reads, a free project that was paused for being idle, or a slow first call. Result without a fallback: an empty home screen in front of Aice. | Medium | High | (1) Fallback: if a Supabase call fails or takes longer than about 3 seconds, the app uses the bundled copy and shows no error. (2) Select-only row security, tested from the public key before every deploy. (3) Open the demo link and read from Supabase the day before and an hour before the meeting to wake a paused project. (4) Bundled copy and Supabase seed come from one source file, so they cannot drift apart. (5) Test the full flow with Supabase blocked in B8. |
+| R-10 | Public web build shows the Supabase key to anyone. | Medium | Low | Publishable key only, read-only rules, sample data only, no secrets in the repo. |
 
 ---
 
@@ -223,14 +236,16 @@ Each block is test first: write the failing test, make it pass, then build the s
 | 2026-11-23 | Stack: Flutter with web build on Vercel. | Stated in the brief. | Farrel |
 | 2026-11-23 | Use TDD. | Stated in the brief. | Farrel |
 | 2026-11-23 | UI in Indonesian. | Stated in the brief. | Farrel |
-| 2026-11-23 | Local mock data, no Supabase (TD-2). **Pending Farrel's confirmation.** Brief said "Supabase or local". | Nothing needs a shared database. One less thing to break in a meeting. | Claude (proposal) |
-| 2026-11-23 | Drawn placeholder images, no Aice logos or photos (TD-7). **Pending confirmation.** | Trademark not checked yet. | Claude (proposal) |
 | 2026-11-23 | Sprint mode chosen. | Demo with a near deadline. | Claude (proposal) |
-| 2026-11-23 | Meeting date: "no date yet". Plan keeps the 2 to 3 day assumption. | Farrel's answer to OQ-1. | Farrel |
-| 2026-11-23 | Astro feature source is Farrel's inventory PDF. The 29-row copy list in section 2 comes from it. | Farrel supplied it in place of screenshots. | Farrel (source), Claude (list) |
+| 2026-11-23 | Meeting date: "no date yet". Plan keeps the 2 to 3 day assumption (now 2.5 to 3 with Supabase). | Farrel's answer to OQ-1. | Farrel |
+| 2026-11-23 | Astro feature source is Farrel's inventory PDF. The copy list in section 2 comes from it. | Farrel supplied it in place of screenshots. | Farrel (source), Claude (list) |
 | 2026-11-23 | Multi-buy discount is real, tested logic. Guarantee renamed "Garansi Tidak Meleleh". **Pending confirmation.** | Inventory calls multi-buy the main basket builder and melt the top worry for ice cream. | Claude (proposal) |
-| 2026-11-23 | No login screen in the demo (TD-11). Fake phone login is optional and first to cut. **Pending confirmation.** | Not in the brief's scope, little value in a meeting. | Claude (proposal) |
 | 2026-11-23 | Mix pack builder is an optional extra, only after B6. **Pending confirmation.** | Not in the brief. Targets the small basket problem. | Claude (proposal) |
+| 2026-11-23 | **Use Supabase** for sample data (replaces "local mock data", TD-2). | Farrel's decision. | Farrel |
+| 2026-11-23 | Keep a bundled local copy as automatic fallback. Cart and orders stay on the device. **Pending Farrel's answer on orders (OQ-13).** | Supabase adds a real way to fail in the meeting. The copy removes it. | Claude (proposal) |
+| 2026-11-23 | **Use drawn placeholders** for Aice logos and photos (TD-7). | Farrel's decision. | Farrel |
+| 2026-11-23 | No local folders for tracking work. Use GitHub Issues if tickets are wanted (TD-13). | Farrel's decision. | Farrel |
+| 2026-11-23 | Login, referral, coins, wallet are not built by default. Farrel asked why. Waiting for his choice (OQ-14). | Not in the brief's 9 screen groups. | Claude (proposal) |
 
 ---
 
@@ -240,8 +255,8 @@ Each block is test first: write the failing test, make it pass, then build the s
 |---|---|---|---|
 | D-1 | Brief: "Follow my app building guidebook if it is in the repo." | The repo is empty. No guidebook found. | Farrel to say where it is (OQ-4). Plan adopts it if found. |
 | D-2 | Brief: "read any Astro screenshots I upload." Inventory PDF has screenshots with captions. | Only the PDF text was read. The images were not viewed. Cart, checkout, tracking, history, profile and address picker are not shown in Astro screenshots at all. | Our versions of those screens are our own design. Farrel can upload the images if he wants Claude to check the visuals. |
-| D-3 | Brief: "Supabase or local mock data." | Plan picks local mock data. | Farrel to confirm or override. |
+| ~~D-3~~ | ~~Brief: "Supabase or local mock data." Plan picked local.~~ | **Resolved 2026-11-23:** Farrel chose Supabase. Plan follows (TD-2). | Closed |
 | D-4 | Brief categories: cones, tubs, sticks, yoghurt, drinks, bundles. Inventory suggests: stick, cone, cup, mochi, family tub, new flavors, bundles. | Plan uses the brief's 6 categories. | Farrel to say if mochi, cups or new flavors should be added (OQ-10). |
 | D-5 | Brief: "simple ask AI helper like Astro's AI-RO." The inventory does not mention AI-RO. | Plan builds a scripted "Tanya AI" with no reference to how AI-RO really works. | Farrel to share AI-RO details if he wants a closer match. |
 | D-6 | Brief: "late delivery guarantee." Inventory: Astro refunds the delivery fee if more than 10 minutes late, no refund when delivery was free. | Plan uses that as a sample rule, not Aice's rule. | Real rule needed from Aice (OQ-11). |
-| D-7 | Inventory phase list marks login, referral, loyalty, wallet as MVP or V2. | Plan skips login, referral, loyalty, wallet in the demo. They are outside the brief's 9 screen groups. | Farrel to confirm (decision log: TD-11). |
+| D-7 | Inventory phase list marks login, referral, loyalty, wallet as MVP or V2. | Plan skips them by default. They are outside the brief's 9 screen groups. | Farrel to choose (OQ-14). |
