@@ -1,6 +1,6 @@
 # Master plan: Aice quick commerce demo
 
-**Version:** 0.3 (sprint mode)
+**Version:** 0.4 (sprint mode)
 **Last updated:** 2026-11-23
 **Owner:** Farrel
 **Status:** Plan only. No code written. Repo was empty. No app building guidebook found.
@@ -46,7 +46,7 @@ No other targets are set. None are invented.
 - Order tracking and ETA countdown: a timer that fakes the steps. No courier is named.
 - "Tanya AI" helper: scripted answers. No AI model.
 - Late delivery guarantee and report a problem: the flow ends on a confirmation screen. No refund happens.
-- Login, profile, notifications, order history: fixed sample data.
+- Profile, notifications, order history: fixed sample data. There is no login.
 - Cart and orders live on the device only. They are **not** written to Supabase (see TD-2, OQ-13).
 - Supabase holds sample data only. No real customers, no real data.
 
@@ -93,8 +93,8 @@ Source: `ASTRO_feature_inventory_for_AICE.pdf` in Farrel's Drive. Astro IDs in b
 | 25 | Order tracking [Section 8, not seen on screen] | Status steps and ETA countdown. Astro does tracking via chat, so this is our design, not a copy. | In scope, our design |
 | 26 | In-app support chat [Section 8] | Not built. "Tanya AI" covers help in the demo. | Cut |
 | 27 | Install-app banner [H10] | Not built. The demo is the web link itself. | Cut |
-| 28 | Phone number login gate at add to cart [Section 6] | Not built by default. Farrel asked why (see OQ-14). Optional fake phone screen. | Pending Farrel |
-| 29 | Referral, loyalty coins, wallet balance [Sections 7, 8] | Not built by default. Farrel asked why (see OQ-14). | Pending Farrel |
+| 28 | Phone number login gate at add to cart [Section 6] | **Not built.** Farrel decided: no login for now. | Out for now |
+| 29 | Referral, loyalty coins, wallet balance [Sections 7, 8] | **Not built.** Farrel decided: not for now. | Out for now |
 | 30 | Sponsored brand zone, FAQ accordion, info pages, service-area form [H8, H9, Section 7] | Not built. Later phase. | Later |
 
 ### New for Aice, taken from the inventory's section 9B (not in Astro)
@@ -108,6 +108,7 @@ Cart, checkout, payment, order tracking, order history, profile, address picker 
 ### Later phases (not built now)
 - Phase 2: real Aice catalog, real stores, real images (needs Aice and trademark clearance).
 - Phase 3: real login, real payment gateway, real orders flowing to stores, orders stored in the database.
+- Later: referral, loyalty coins and wallet, if Aice wants them.
 - Phase 4: other brands. Brand and Store are separate data concepts from day one, but only Aice is shown.
 
 ### Out of scope, always for the demo
@@ -116,7 +117,7 @@ Real payment, real customer data, claiming a partnership, claiming official Aice
 ---
 
 ## 3. Users and roles
-- **Customer** (the only role built). Browses, orders, tracks, reports problems.
+- **Customer** (the only role built). Browses, orders, tracks, reports problems. No login: the demo opens as a guest.
 - **Meeting audience**: the Aice team. They watch Farrel use it, or tap it themselves.
 - Store staff, admin, courier, brand owner: **not built.** Later phases. Roles unknown, see OQ-9.
 
@@ -144,7 +145,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 **Hard feature freeze:** start of B8. After that, only bug fixes. No new screens.
 
 **Cut order (cut from the top first):**
-1. Optional mix pack builder and optional fake phone login
+1. Optional mix pack builder
 2. Notifications screen
 3. Saved addresses management (keep a fixed list)
 4. Profile screen
@@ -171,7 +172,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 | TD-8 | Colors: Aice-like blue and white, as a theme. Exact brand colors unconfirmed. | Close enough for a demo. Not an exact match. |
 | TD-9 | UI language: Indonesian. This plan: English. | Code and docs stay plain English. |
 | TD-10 | Footer text in the app: "Demo konsep. Bukan aplikasi resmi Aice." | Slightly less polished. Protects against a partnership claim. |
-| TD-11 | Guest session by default, no login screen. **Pending Farrel's answer (OQ-14).** | Skips a screen that adds little in a meeting. Real app would need phone login. |
+| TD-11 | Guest session, no login, referral, coins or wallet. **Confirmed by Farrel.** | Fewer screens, less to break. A real app needs phone login later. |
 | TD-12 | Supabase security: row security on every table, select-only policies for the public key, only the publishable key in the app, no secret keys in the repo or the web build. | A public web build exposes its key to anyone. Read-only sample data makes that harmless. |
 | TD-13 | Work tracking: no local folders. Use GitHub Issues only if tracking is needed. Not set up yet. | Farrel's rule. Nothing to set up until he wants tickets. |
 
@@ -205,7 +206,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 | OQ-11 | Aice's real late-delivery and melt rules. Astro's rule (10 minutes late, fee refund; claim within 24 hours) is used only as a sample. | Farrel and Aice | No. |
 | OQ-12 | Who would deliver in the real project (own riders, courier apps, partner shops) and in which cities? The inventory says this decides cost, speed and melt risk. The demo names no courier. | Farrel and Aice | No. Needed for the long-term plan. |
 | OQ-13 | Supabase: use an existing project of yours, or may Claude create a new one (the free plan may be enough; a paid one costs money)? Should orders also be saved to Supabase, or stay on the device? Plan says on the device. | Farrel | **Yes** for B0b. |
-| OQ-14 | Login, referral, coins, wallet: Farrel asked why they were left out. Which of them does he want in the demo, if any? | Farrel | No. Each one added pushes out something from the cut list. |
+| ~~OQ-14~~ | ~~Login, referral, coins, wallet: which does Farrel want?~~ **Answered 2026-11-23:** none for now. | Farrel | Closed |
 | OQ-15 | Do you want tickets (GitHub Issues) at all? A ticket is one small task card, for example "build the cart screen". | Farrel | No. |
 
 ---
@@ -245,7 +246,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 | 2026-11-23 | Keep a bundled local copy as automatic fallback. Cart and orders stay on the device. **Pending Farrel's answer on orders (OQ-13).** | Supabase adds a real way to fail in the meeting. The copy removes it. | Claude (proposal) |
 | 2026-11-23 | **Use drawn placeholders** for Aice logos and photos (TD-7). | Farrel's decision. | Farrel |
 | 2026-11-23 | No local folders for tracking work. Use GitHub Issues if tickets are wanted (TD-13). | Farrel's decision. | Farrel |
-| 2026-11-23 | Login, referral, coins, wallet are not built by default. Farrel asked why. Waiting for his choice (OQ-14). | Not in the brief's 9 screen groups. | Claude (proposal) |
+| 2026-11-23 | **No login, referral, coins or wallet for now** (TD-11). Closes OQ-14. | Farrel's decision. | Farrel |
 
 ---
 
@@ -259,4 +260,4 @@ Each block is test first: write the failing test, make it pass, then build the s
 | D-4 | Brief categories: cones, tubs, sticks, yoghurt, drinks, bundles. Inventory suggests: stick, cone, cup, mochi, family tub, new flavors, bundles. | Plan uses the brief's 6 categories. | Farrel to say if mochi, cups or new flavors should be added (OQ-10). |
 | D-5 | Brief: "simple ask AI helper like Astro's AI-RO." The inventory does not mention AI-RO. | Plan builds a scripted "Tanya AI" with no reference to how AI-RO really works. | Farrel to share AI-RO details if he wants a closer match. |
 | D-6 | Brief: "late delivery guarantee." Inventory: Astro refunds the delivery fee if more than 10 minutes late, no refund when delivery was free. | Plan uses that as a sample rule, not Aice's rule. | Real rule needed from Aice (OQ-11). |
-| D-7 | Inventory phase list marks login, referral, loyalty, wallet as MVP or V2. | Plan skips them by default. They are outside the brief's 9 screen groups. | Farrel to choose (OQ-14). |
+| ~~D-7~~ | ~~Inventory marks login, referral, loyalty, wallet as MVP or V2.~~ | **Resolved 2026-11-23:** Farrel decided to skip them for now. | Closed |
