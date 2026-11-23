@@ -2,6 +2,16 @@
 
 Newest entry first. Source of truth for scope is `master-plan.md`.
 
+## 2026-11-23 (night, plan review)
+- master-plan.md v0.5 after a critical review. Main findings:
+  - Time: blocks add up to about 25h plus 3h buffer, so about 4 focused days. 2 days does not fit even the never-cut list. Time check table added to section 4.
+  - Build order: report a problem (never cut) now comes before search and Tanya AI (cuttable).
+  - Cut order: decoration (collection tiles, Produk Serupa) goes earlier, Tanya AI goes last.
+  - Missing pieces added: order placed screen, delivered state, empty and error states, demo controls (speed, make late, reset), phone frame on laptop.
+  - New tech decisions TD-14 to TD-18 (one seed file, pick data source once, demo clock, Rupiah format, phone frame). New risks R-11 to R-14.
+  - New UI preview block before B0. The preview is next.
+- Still no code. OQ-13 (Supabase project) is the only blocker for B0b.
+
 ## 2026-11-23 (evening, update 2)
 - Farrel: no login, referral, coins or wallet for now.
 - master-plan.md v0.4: TD-11 confirmed, OQ-14 and D-7 closed, features 28 and 29 marked out for now.

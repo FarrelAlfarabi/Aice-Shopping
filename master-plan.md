@@ -1,6 +1,6 @@
 # Master plan: Aice quick commerce demo
 
-**Version:** 0.4 (sprint mode)
+**Version:** 0.5 (sprint mode, reviewed)
 **Last updated:** 2026-11-23
 **Owner:** Farrel
 **Status:** Plan only. No code written. Repo was empty. No app building guidebook found.
@@ -20,6 +20,7 @@ Aice signs the real project. Later versions add other brands and real integratio
 **Success metrics:**
 - The full happy path runs start to finish on a real phone with no crash, no dead button. Target: yes/no, checked by a script and by hand.
 - The same path also works when Supabase is switched off (fallback). Target: yes/no.
+- The full story (address to melt report) can be shown in **5 minutes or less**, using the demo speed control (see Demo controls). Target: yes/no, timed in rehearsal.
 - Demo link opens on iPhone Safari and Android Chrome. Target: yes/no.
 - Time from tapping the link to first screen. Target: **baseline unknown**, see OQ-6.
 - Aice signs the real project. Target: **baseline unknown**, outside our control, see OQ-1.
@@ -37,6 +38,7 @@ No other targets are set. None are invented.
 - Search over the catalog, with a sort and a simple filter.
 - Tests (TDD) for the cart maths, voucher and multi-buy rules, fee rules, order status steps, late-delivery rule, search, the scripted AI answers, and the fallback switch.
 - Web build on a public link.
+- **Live data change (the "Supabase moment")**: change a price or banner in the Supabase dashboard, reload the app, the change shows. This is the only way the Aice team can *see* that a real backend exists. Without it, Supabase is cost with no visible payoff. Part of the demo script (B8).
 
 ### Mocked (looks real, is not)
 - Products, prices, photos: **sample data**, labeled "Contoh" in the UI. Photos are drawn placeholders.
@@ -56,10 +58,29 @@ No other targets are set. None are invented.
 3. Search and "Tanya AI" scripted helper.
 4. Product page: picture, price, pack variants, add to cart.
 5. Cart: voucher field, delivery fee (free above a threshold), delivery time slot.
-6. Checkout: 3 fake payment options.
-7. Order tracking: status steps, ETA countdown, "tetap beku" (stays frozen) message.
+6. Checkout: 3 fake payment options, a short fake "processing" screen, then an **order placed** screen that leads into tracking. (Added in v0.5: the plan jumped from payment straight to tracking.)
+7. Order tracking: status steps, ETA countdown, "tetap beku" (stays frozen) message, and a **delivered** end state with a "Laporkan masalah" (report a problem) button. This button is the main way into group 8, because order history may be cut.
 8. Late delivery guarantee and report a problem (melted or wrong item, replacement or refund request).
 9. Order history, saved addresses, profile, notifications.
+
+### States every screen needs (added in v0.5, missing before)
+A clickable demo breaks most often on the screen nobody designed. These are small, but each one is a place the Aice team can tap and hit a blank or a crash.
+- **Loading**: first load of Flutter web plus the Supabase call (up to the 3 second timeout). Show a branded splash, then skeleton cards. Never a white screen.
+- **Empty cart**: message and a button back to Home.
+- **Below minimum order**: checkout button disabled, with "Tambah RpX lagi" (add X more).
+- **Free delivery progress**: "RpX lagi untuk gratis ongkir" line in the cart. Cheap to build, and it answers the small basket question (R-8).
+- **Wrong voucher code**: inline error. **Voucher not met** (basket too small): inline message.
+- **Sold out**: product page shows "Habis", add button disabled.
+- **Search with no results**: message plus popular chips.
+- **Store closed**: not shown in the demo (see TD-16).
+
+### Demo controls (added in v0.5, never cut)
+Hidden panel, opened by a long press on the logo. Not visible to the audience.
+- **Speed**: tracking runs in about 60 to 90 seconds, not 15 real minutes. Nobody waits 15 minutes in a meeting.
+- **Make this order late**: forces the ETA to pass, so the late delivery guarantee can be shown on purpose, not by luck.
+- **Reset demo**: clears the device cart, orders and chosen address, so a second run (or a second person) starts clean.
+- **Data source** label: shows "Supabase" or "Lokal" so Farrel knows which one is live before he starts.
+- **Wide screen**: on a laptop the app sits in a centered phone-width frame, not stretched across the screen (A-1).
 
 ### Astro features we copy (from the Astro feature inventory, checked by its author on 23 Nov 2026)
 Source: `ASTRO_feature_inventory_for_AICE.pdf` in Farrel's Drive. Astro IDs in brackets.
@@ -125,36 +146,46 @@ Real payment, real customer data, claiming a partnership, claiming official Aice
 
 ## 4. Milestones (sprint mode)
 
-**Deadline: unknown.** Farrel said on 2026-11-23: "no date yet". Hours available are also unknown. The blocks below assume about **2.5 to 3 focused working days** (up from 2 to 3 because Supabase adds work). If the real time is shorter, cut using the cut order. See OQ-1.
+**Deadline: unknown.** Farrel said on 2026-11-23: "no date yet". Working assumption: the meeting is **2 to 3 days away**, with about 7 focused hours a day (A-8). See OQ-1.
 
-Each block is test first: write the failing test, make it pass, then build the screen.
+**Honest time check (v0.5).** The blocks below add up to about **25 hours of work plus 3 hours of buffer, so about 4 focused days** for everything. That does not fit 2 to 3 days. So the cut order is not a "maybe", it is the plan:
+
+| Time you really have | What gets built |
+|---|---|
+| 4 days (about 28h) | Everything below, no cuts. |
+| 3 days (about 21h) | Cut items 1 to 6 of the cut order (saves about 4h). Keep Tanya AI and all 3 payment screens. That leaves about 21h with almost no buffer, so it is tight. |
+| 2 days (about 14h) | **Does not fit, even with every cut** (about 20h left). To fit, also: widget tests only for the main path (keep all logic tests), report a problem as one screen, B8 shortened to one full rehearsal. Expect rough edges. Better: get one more day. |
+
+Each block is test first for logic: write the failing test, make it pass, then build the screen. Build order puts the never-cut story first, so whatever time runs out, the cut items are the ones left unbuilt.
 
 | Block | Work | Done when |
 |---|---|---|
-| B0 (1h) | Set up Flutter project, theme, Indonesian text, test setup, Vercel deploy of an empty app. | Empty app opens on a phone from a Vercel link. |
-| B0b (2h) | Supabase: project, tables (Brand, Store, Product, Variant, Banner, Voucher, AI script), sample data, read-only row security, publishable key only. Data layer with 2 versions behind one interface: Supabase and bundled copy. Tests for the fallback switch. | App reads products from Supabase on the Vercel link, and still shows them when Supabase is blocked. |
-| B1 (2h) | Models and cart logic. Tests for cart maths, voucher, multi-buy, fee, threshold, minimum order. | Logic tests pass. |
-| B2 (3h) | Onboarding + Home + Product page. | Can reach a product from the first screen. |
-| B3 (3h) | Cart + time slot + checkout with 3 fake payments. | Can place a fake order. |
-| B4 (3h) | Order tracking, ETA countdown, frozen message. | Tracking runs after checkout. |
-| B5 (2h) | Search, filter, scripted "Tanya AI". | 10 or so scripted questions answer well. |
-| B6 (2h) | Late delivery guarantee + report a problem flow. | Flow ends on a confirmation screen. |
+| UI (1h, now) | UI preview: 2 or 3 visual directions as HTML mockups of Home, Product, Cart, Tracking. Farrel picks one. Lock colors, font, corner radius, card style, spacing. The preview is a look reference only. It is rebuilt in Flutter, so do not polish the HTML. | One direction picked, tokens written into this plan. |
+| B0 (1.5h) | Set up Flutter project (install Flutter if missing, A-5), theme from the picked direction, Indonesian text, Rupiah format, test setup, Vercel deploy of an empty app. **Measure first load on a real phone over mobile data.** | Empty app opens on a phone from a Vercel link. First load time written down (OQ-6). |
+| B0b (2h) | Supabase: project, tables (Brand, Store, Product, Variant, Banner, Voucher, AI script), sample data from one seed file (TD-14), read-only row security, publishable key only. Data layer with 2 versions behind one interface: Supabase and bundled copy. Tests for the fallback switch. | App reads products from Supabase on the Vercel link, and still shows them when Supabase is blocked. |
+| B1 (2h) | Models and cart logic. Tests for cart maths, voucher, multi-buy, fee, threshold, minimum order, Rupiah format. | Logic tests pass. |
+| B2 (3h) | Onboarding + Home + Product page, with loading and sold out states. | Can reach a product from the first screen. |
+| B3 (3.5h) | Cart (empty, below minimum, free delivery progress, voucher errors) + time slot + checkout with 3 fake payments + processing + order placed screen. | Can place a fake order and land on order placed. |
+| B4 (3.5h) | Order tracking, ETA countdown, frozen message, delivered state. **Demo controls** (speed, make late, reset, data source label). | Tracking runs after checkout in about 60 to 90 seconds. Reset gives a clean start. |
+| B5 (2h) | Late delivery guarantee + report a problem flow (moved up from B6: it is never cut, search and AI are). | Flow ends on a confirmation screen. Reachable from the delivered state. |
+| B6 (2h) | Search, filter, scripted "Tanya AI" (moved down from B5). | 10 or so scripted questions answer well. No-results state works. |
 | B7 (2h) | History, saved addresses, profile, notifications. | All reachable, all sample data. |
-| B8 (2h) | Polish, phone test, speed check, Supabase-off test, rehearsal, demo script. | Full run twice with no fault, once with Supabase blocked. |
+| B8 (2.5h) | Polish, phone test, speed check, Supabase-off test, rehearse the Supabase moment, demo script, one-page "what is real and what is mocked" sheet (R-2). | Full run twice with no fault, once with Supabase blocked, under 5 minutes. |
+| Buffer (3h) | Unplanned bugs, Flutter web surprises. | Not planned work. Do not fill it with features. |
 
-**Hard feature freeze:** start of B8. After that, only bug fixes. No new screens.
+**Hard feature freeze:** start of B8, and no later than the evening before the meeting. After that, only bug fixes. No new screens.
 
-**Cut order (cut from the top first):**
+**Cut order (cut from the top first).** Changed in v0.5: decoration goes before screens, and Tanya AI goes last because the brief asks for it by name and it is the most memorable moment in the demo.
 1. Optional mix pack builder
 2. Notifications screen
-3. Saved addresses management (keep a fixed list)
-4. Profile screen
-5. "Tanya AI" helper (keep plain search)
-6. Collection tiles and "Produk Serupa" row
-7. Order history (keep a single sample past order)
-8. Bank transfer and QRIS screens (keep e-wallet only)
+3. Collection tiles and "Produk Serupa" row (pure decoration, moved up from 6)
+4. Saved addresses management (keep a fixed list)
+5. Profile screen
+6. Order history (keep a single sample past order)
+7. Bank transfer and QRIS screens (keep e-wallet only)
+8. "Tanya AI" helper (keep plain search; moved down from 5)
 
-**Never cut:** onboarding, home, product, cart, checkout, order tracking, report a problem, the fallback switch. These are the story the meeting needs.
+**Never cut:** onboarding, home, product, cart, checkout, order placed, order tracking, report a problem, the fallback switch, demo controls, loading states. These are the story the meeting needs.
 
 ---
 
@@ -175,6 +206,11 @@ Each block is test first: write the failing test, make it pass, then build the s
 | TD-11 | Guest session, no login, referral, coins or wallet. **Confirmed by Farrel.** | Fewer screens, less to break. A real app needs phone login later. |
 | TD-12 | Supabase security: row security on every table, select-only policies for the public key, only the publishable key in the app, no secret keys in the repo or the web build. | A public web build exposes its key to anyone. Read-only sample data makes that harmless. |
 | TD-13 | Work tracking: no local folders. Use GitHub Issues only if tracking is needed. Not set up yet. | Farrel's rule. Nothing to set up until he wants tickets. |
+| TD-14 | **One seed file** (JSON in the repo) is the single source for both the Supabase seed and the bundled fallback copy. A small script turns it into the SQL seed. Product IDs are the same in both. | Makes R-9 point (4) real instead of a promise. If the two copies drift, a cart made on one source breaks on the other. |
+| TD-15 | **Pick the data source once, at app start.** If Supabase answers within about 3 seconds, use it for the whole session. If not, use the bundled copy for the whole session. Never mix in one session. | Mixing sources mid-session can change prices or IDs under a full cart. |
+| TD-16 | **Demo clock.** Stores always show as open in the demo. Open hours are display text only. Time slots are counted from "now". Tracking time is sped up (Demo controls). | If open hours used the real clock, a meeting at 9 PM would show every store closed. |
+| TD-17 | Rupiah shown as "Rp5.000" (dot for thousands, no decimals). One formatter, tested. | A wrong number format looks foreign to an Indonesian audience at first glance. |
+| TD-18 | Wide screens: app centered in a phone-width frame. | Laptop demo (A-1) would otherwise stretch cards across the screen. |
 
 ---
 
@@ -188,12 +224,14 @@ Each block is test first: write the failing test, make it pass, then build the s
 - A-5: Flutter is not yet confirmed in this environment. B0 must confirm or install it.
 - A-6: Product categories follow the brief (cones, tubs, sticks, yoghurt, drinks, bundles), not the inventory's list. See D-4.
 - A-7: A Supabase project can be used or created for this demo. Not confirmed, see OQ-13.
+- A-8: A "focused day" is about 7 hours of real build time. If Farrel's days are shorter, the time check in section 4 gets worse, not better.
+- A-9: The Aice team gives the demo about 5 to 10 minutes of attention, not 30. The flow is designed to be shown in 5 minutes.
 
 ### Open questions
 
 | ID | Question | Owner | Blocks next milestone? |
 |---|---|---|---|
-| OQ-1 | Meeting date: **"no date yet"** (Farrel, 2026-11-23, said twice). How many hours can be spent? Still unanswered. Plan keeps the 2.5 to 3 day assumption. | Farrel | No for B0 to B1. Yes before B3, because it decides the cut line. |
+| OQ-1 | Meeting date: **"no date yet"** (Farrel, 2026-11-23, said twice). How many hours a day can be spent? Plan assumes 2 to 3 days at about 7 hours. The full plan needs about 4 (section 4 time check). | Farrel | No for B0 to B1. **Yes before B3**, because it picks the row in the time check table. |
 | ~~OQ-2~~ | ~~Will Astro screenshots be uploaded?~~ **Answered 2026-11-23:** a feature inventory PDF in Drive. Plan updated. Screenshots inside it were not viewed. | Farrel | Closed |
 | OQ-3 | Trademark: can Aice names, logo, product photos be shown in a private meeting? Are we the brand or a reseller? Who checks? | Farrel | No. Placeholders are confirmed for now. |
 | OQ-4 | Does an "app building guidebook" exist? Where is it? It is not in the repo. | Farrel | No, but if it exists, it can change TD-4 and TD-5. |
@@ -205,7 +243,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 | OQ-10 | Real Aice product range and categories. Brief and inventory differ (see D-4). Real halal and BPOM numbers are not ours to invent. | Farrel and Aice | No. Demo uses sample data. |
 | OQ-11 | Aice's real late-delivery and melt rules. Astro's rule (10 minutes late, fee refund; claim within 24 hours) is used only as a sample. | Farrel and Aice | No. |
 | OQ-12 | Who would deliver in the real project (own riders, courier apps, partner shops) and in which cities? The inventory says this decides cost, speed and melt risk. The demo names no courier. | Farrel and Aice | No. Needed for the long-term plan. |
-| OQ-13 | Supabase: use an existing project of yours, or may Claude create a new one (the free plan may be enough; a paid one costs money)? Should orders also be saved to Supabase, or stay on the device? Plan says on the device. | Farrel | **Yes** for B0b. |
+| OQ-13 | Supabase: use an existing project of yours, or may Claude create a new one (the free plan may be enough; a paid one costs money)? Should orders also be saved to Supabase, or stay on the device? Plan says on the device. **Default if no answer by B0b: Claude asks once for the go to create a new free project; orders stay on the device.** | Farrel | **Yes** for B0b. Only real blocker today. |
 | ~~OQ-14~~ | ~~Login, referral, coins, wallet: which does Farrel want?~~ **Answered 2026-11-23:** none for now. | Farrel | Closed |
 | OQ-15 | Do you want tickets (GitHub Issues) at all? A ticket is one small task card, for example "build the cart screen". | Farrel | No. |
 
@@ -215,7 +253,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 
 | ID | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| R-1 | Scope too large for the time. 9 screen groups plus tests plus Supabase plus deploy. | High | High | Fixed cut order, hard freeze at B8, never-cut list. Ask OQ-1. |
+| R-1 | Scope too large for the time. 9 screen groups plus tests plus Supabase plus deploy add up to about 4 focused days (section 4). On 2 days even the never-cut list does not fit. | **High (certain at 2 days)** | High | Time check table, build order puts never-cut first, fixed cut order, hard freeze at B8. Ask OQ-1. |
 | R-2 | The demo looks fine but the Aice team expects "real". Expectations unclear. | Medium | High | Label sample data in the UI. Say in the meeting what is mocked. Keep a one-page "what is real and mocked" list. |
 | R-3 | Flutter web on Vercel: no Flutter in Vercel's build, slow first load on a phone. | Medium | High | Build outside Vercel and deploy the output. Test on a real phone in B0, not at the end. Open the link once before the meeting to warm it up. |
 | R-4 | Trademark or partnership claim problem. | Low | High | No Aice logos or photos. Footer disclaimer. Check before any use beyond the meeting. |
@@ -225,6 +263,10 @@ Each block is test first: write the failing test, make it pass, then build the s
 | R-8 | Small basket problem: Aice items are cheap, so a minimum order and delivery fee can look bad. The Aice team may ask about it. | Medium | Medium | Demo shows multi-buy discount, bundles and free delivery over a threshold. The numbers are sample, so say so. Real numbers need Aice order value data. |
 | R-9 | **Supabase fails during the demo.** Causes: bad network, wrong or expired key, a row security rule that blocks reads, a free project that was paused for being idle, or a slow first call. Result without a fallback: an empty home screen in front of Aice. | Medium | High | (1) Fallback: if a Supabase call fails or takes longer than about 3 seconds, the app uses the bundled copy and shows no error. (2) Select-only row security, tested from the public key before every deploy. (3) Open the demo link and read from Supabase the day before and an hour before the meeting to wake a paused project. (4) Bundled copy and Supabase seed come from one source file, so they cannot drift apart. (5) Test the full flow with Supabase blocked in B8. |
 | R-10 | Public web build shows the Supabase key to anyone. | Medium | Low | Publishable key only, read-only rules, sample data only, no secrets in the repo. |
+| R-11 | Real clock breaks the demo: stores show "closed" at night, time slots look odd, 15 minute tracking is too long to watch. | High (if not handled) | High | Demo clock (TD-16) and speed control. |
+| R-12 | Second run in the meeting starts with the old cart and old order, because they live on the device. | High (if not handled) | Medium | Reset demo control. Run reset before handing the phone over. |
+| R-13 | The guarantee screen never appears, because the fake order is never late. | High (if not handled) | Medium | "Make this order late" control. |
+| R-14 | Supabase is built but the Aice team never sees it, so 2 hours of work have no visible payoff. | Medium | Low | The Supabase moment in the demo script (section 2). |
 
 ---
 
@@ -247,6 +289,7 @@ Each block is test first: write the failing test, make it pass, then build the s
 | 2026-11-23 | **Use drawn placeholders** for Aice logos and photos (TD-7). | Farrel's decision. | Farrel |
 | 2026-11-23 | No local folders for tracking work. Use GitHub Issues if tickets are wanted (TD-13). | Farrel's decision. | Farrel |
 | 2026-11-23 | **No login, referral, coins or wallet for now** (TD-11). Closes OQ-14. | Farrel's decision. | Farrel |
+| 2026-11-23 | v0.5 review: honest time check (about 4 days for everything), new UI preview block, report a problem built before search and AI, cut order changed (decoration first, Tanya AI last), demo controls, screen states, order placed screen, TD-14 to TD-18, R-11 to R-14. **Pending Farrel's review.** | Gaps found in the v0.4 review. | Claude (proposal) |
 
 ---
 
