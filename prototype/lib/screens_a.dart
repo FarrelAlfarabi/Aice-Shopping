@@ -2,12 +2,33 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'data.dart';
 import 'format.dart';
+import 'intro.dart';
 import 'screens_b.dart';
 import 'state.dart';
 import 'ui.dart';
 
 /// Which bottom tab is showing: 0 Beranda, 1 Keranjang, 2 Pesanan, 3 Profil.
 final ValueNotifier<int> tabIndex = ValueNotifier<int>(0);
+
+/// Snackbar after an add-to-cart, with a button that opens the cart tab.
+void addedToCart(BuildContext context, String msg) {
+  final nav = Navigator.of(context);
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(
+      content: Text(msg),
+      duration: const Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      action: SnackBarAction(
+        label: 'Lihat keranjang',
+        textColor: C.acc,
+        onPressed: () {
+          nav.popUntil((r) => r.isFirst);
+          tabIndex.value = 1;
+        },
+      ),
+    ));
+}
 
 class Root extends StatefulWidget {
   const Root({super.key});
@@ -36,7 +57,7 @@ class _RootState extends State<Root> {
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
     if (!loaded) return const Splash();
-    if (!s.onboarded) return const Onboarding();
+    if (!s.introSeen) return const IntroScreen();
     return const Shell();
   }
 }
@@ -67,18 +88,20 @@ class Splash extends StatelessWidget {
       );
 }
 
-class Onboarding extends StatefulWidget {
-  const Onboarding({super.key});
+/// Picker for delivery address and store. Opened from Home or at checkout.
+class AddressScreen extends StatefulWidget {
+  const AddressScreen({super.key});
   @override
-  State<Onboarding> createState() => _OnboardingState();
+  State<AddressScreen> createState() => _AddressScreenState();
 }
 
-class _OnboardingState extends State<Onboarding> {
+class _AddressScreenState extends State<AddressScreen> {
   late final TextEditingController ctl;
   @override
   void initState() {
     super.initState();
-    ctl = TextEditingController(text: savedAddresses.first);
+    final st = context.getInheritedWidgetOfExactType<AppScope>()!.notifier!;
+    ctl = TextEditingController(text: st.address);
   }
 
   @override
@@ -91,33 +114,11 @@ class _OnboardingState extends State<Onboarding> {
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
     return Scaffold(
+      appBar: AppBar(title: const Text('Alamat dan toko')),
       body: SafeArea(
         child: Column(children: [
           Expanded(
             child: ListView(padding: const EdgeInsets.all(16), children: [
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                    color: C.pri, borderRadius: BorderRadius.circular(20)),
-                child: Row(children: [
-                  const Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Es krim dingin, sampai tetap beku.',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w800)),
-                          SizedBox(height: 6),
-                          Text('Pilih alamat dan toko terdekat.',
-                              style: TextStyle(color: Colors.white70)),
-                        ]),
-                  ),
-                  const Icon(Icons.icecream, size: 64, color: Colors.white),
-                ]),
-              ),
-              const SizedBox(height: 18),
               const Text('Alamat pengiriman', style: tH3),
               const SizedBox(height: 8),
               TextField(
@@ -153,12 +154,20 @@ class _OnboardingState extends State<Onboarding> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: BigButton('Lanjut', onPressed: s.finishOnboarding),
+            child: BigButton('Simpan',
+                onPressed: s.hasAddress ? () => Navigator.of(context).pop(true) : null),
           ),
         ]),
       ),
     );
   }
+}
+
+/// Opens the address and store picker. Returns true when the person saved.
+Future<bool> openAddress(BuildContext context) async {
+  final ok = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const AddressScreen()));
+  return ok ?? false;
 }
 
 class Shell extends StatelessWidget {
@@ -263,7 +272,7 @@ class _HomeTabState extends State<HomeTab> {
           onTap: () => openProduct(context, items[i]),
           onAdd: () {
             s.add(items[i]);
-            toast(context, '${items[i].name} ditambahkan');
+            addedToCart(context, '${items[i].name} ditambahkan');
           },
         ),
       ),
@@ -288,16 +297,20 @@ class _HomeTabState extends State<HomeTab> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               // Long press the wordmark to open the hidden demo controls.
-              GestureDetector(
+              Flexible(
+                child: GestureDetector(
                 onLongPress: () => showDemoControls(context),
                 child: const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
                   child: Text('es krim shop (contoh)',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: 13)),
                 ),
+              ),
               ),
               const Spacer(),
               Container(
@@ -309,16 +322,32 @@ class _HomeTabState extends State<HomeTab> {
                         color: C.accInk, fontWeight: FontWeight.w800, fontSize: 11)),
               ),
             ]),
-            Row(children: [
-              const Icon(Icons.place, color: Colors.white70, size: 16),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(s.address,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white)),
+            InkWell(
+              key: const ValueKey('address-bar'),
+              onTap: () => openAddress(context),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(children: [
+                  const Icon(Icons.place, color: Colors.white70, size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(s.hasAddress ? s.address : 'Atur alamat pengiriman',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight:
+                                s.hasAddress ? FontWeight.w400 : FontWeight.w800,
+                            decoration: s.hasAddress
+                                ? null
+                                : TextDecoration.underline,
+                            decorationColor: Colors.white)),
+                  ),
+                  const Icon(Icons.keyboard_arrow_down,
+                      color: Colors.white70, size: 20),
+                ]),
               ),
-            ]),
+            ),
             const SizedBox(height: 10),
             const Text('Tiba dalam 15 Menit',
                 style: TextStyle(
@@ -402,7 +431,13 @@ class _HomeTabState extends State<HomeTab> {
                                     height: 1.2)),
                           ]),
                     ),
-                    Icon(iconFor(sl.$2), size: 56, color: Colors.white),
+                    DecoratedBox(
+                      decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.fromBorderSide(
+                              BorderSide(color: Colors.white, width: 3))),
+                      child: CategoryPhoto(sl.$2, size: 72, circle: true),
+                    ),
                   ]),
                 ),
               );
@@ -429,23 +464,26 @@ class _HomeTabState extends State<HomeTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
           child: SizedBox(
-            height: 150,
+            height: 164,
             child: Row(children: [
               Expanded(
                   flex: 6,
                   child: _tile('Paket Pesta', 'bundle', const Color(0xFFFFE6A8),
-                      () => openSearch(context, category: 'bundle'), big: true)),
+                      () => openSearch(context, category: 'bundle'),
+                      big: true, file: 'bundle-keluarga.jpg')),
               const SizedBox(width: 10),
               Expanded(
                 flex: 5,
                 child: Column(children: [
                   Expanded(
                       child: _tile('Cemilan Anak', 'stick', const Color(0xFFD8ECFF),
-                          () => openSearch(context, category: 'stick'))),
+                          () => openSearch(context, category: 'stick'),
+                          file: 'cone-cokelat.jpg')),
                   const SizedBox(height: 10),
                   Expanded(
                       child: _tile('Hemat Berdua', 'cup', const Color(0xFFDDF5E9),
-                          () => openSearch(context, category: 'cup'))),
+                          () => openSearch(context, category: 'cup'),
+                          file: 'cone-matcha.jpg')),
                 ]),
               ),
             ]),
@@ -478,7 +516,7 @@ class _HomeTabState extends State<HomeTab> {
                       child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(iconFor(e.key), color: C.pri, size: 30),
+                            CategoryPhoto(e.key, size: 52),
                             const SizedBox(height: 6),
                             Text(e.value,
                                 style: const TextStyle(
@@ -513,7 +551,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Widget _tile(String t, String cat, Color bg, VoidCallback onTap,
-          {bool big = false}) =>
+          {bool big = false, String? file}) =>
       Material(
         color: bg,
         borderRadius: BorderRadius.circular(16),
@@ -523,10 +561,13 @@ class _HomeTabState extends State<HomeTab> {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Stack(children: [
-              Text(t, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Padding(
+                padding: EdgeInsets.only(right: big ? 0 : 52),
+                child: Text(t, style: const TextStyle(fontWeight: FontWeight.w800)),
+              ),
               Align(
                   alignment: Alignment.bottomRight,
-                  child: Icon(iconFor(cat), size: big ? 56 : 32, color: C.ink)),
+                  child: CategoryPhoto(cat, size: big ? 84 : 48, file: file)),
             ]),
           ),
         ),
@@ -699,7 +740,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           onTap: () => openProduct(context, res[i]),
                           onAdd: () {
                             s.add(res[i]);
-                            toast(context, '${res[i].name} ditambahkan');
+                            addedToCart(context, '${res[i].name} ditambahkan');
                           },
                         ),
                       ),
@@ -826,7 +867,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   MaterialPageRoute(builder: (_) => ProductScreen(similar[i]))),
               onAdd: () {
                 s.add(similar[i]);
-                toast(context, '${similar[i].name} ditambahkan');
+                addedToCart(context, '${similar[i].name} ditambahkan');
               },
             ),
           ),
@@ -852,7 +893,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         trailing: rp(p.price * units),
                         onPressed: () {
                       s.add(p, units);
-                      toast(context, '$units ${p.name} ditambahkan');
+                      addedToCart(context, '$units ${p.name} ditambahkan');
                     }),
                   ),
                 ]),

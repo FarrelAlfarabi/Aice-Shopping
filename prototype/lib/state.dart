@@ -38,10 +38,10 @@ class Order {
 class AppState extends ChangeNotifier {
   // Choices
   Store store = stores.first;
-  String address = savedAddresses.first;
+  String address = ''; // empty until the person sets it
   String slot = 'Sekarang';
   String payment = 'E-wallet';
-  bool onboarded = false;
+  bool introSeen = false;
 
   // Cart (device only)
   final Map<String, int> _qty = {};
@@ -68,6 +68,8 @@ class AppState extends ChangeNotifier {
   int get itemCount => _qty.values.fold(0, (a, b) => a + b);
   bool get cartEmpty => itemCount == 0;
 
+  bool get hasAddress => address.trim().isNotEmpty;
+
   Voucher? get voucher => voucherStatus == VoucherStatus.ok ? _voucher : null;
   Pricing get pricing => computePricing(lines, voucher);
 
@@ -81,8 +83,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void finishOnboarding() {
-    onboarded = true;
+  void finishIntro() {
+    introSeen = true;
     notifyListeners();
   }
 
@@ -185,11 +187,11 @@ class AppState extends ChangeNotifier {
       ..clear()
       ..add(_sampleOrder());
     store = stores.first;
-    address = savedAddresses.first;
+    address = '';
     slot = 'Sekarang';
     payment = 'E-wallet';
     makeLate = false;
-    onboarded = false;
+    introSeen = false;
     notifyListeners();
   }
 }
