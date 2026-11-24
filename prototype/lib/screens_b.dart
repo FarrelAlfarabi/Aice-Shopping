@@ -269,9 +269,18 @@ class CheckoutScreen extends StatelessWidget {
         Panel(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('Dikirim ke', style: tMuted),
-            Text(s.address, style: tBold),
+            Text(s.hasAddress ? s.address : 'Alamat belum diatur',
+                key: const ValueKey('checkout-address'),
+                style: s.hasAddress ? tBold : tBold.copyWith(color: C.danger)),
             const SizedBox(height: 6),
             Text('${s.store.name} · ${s.slot}', style: tMuted),
+            const SizedBox(height: 6),
+            TextButton(
+              key: const ValueKey('checkout-set-address'),
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
+              onPressed: () => openAddress(context),
+              child: Text(s.hasAddress ? 'Ubah alamat atau toko' : 'Atur alamat'),
+            ),
           ]),
         ),
         const SizedBox(height: 14),
@@ -303,8 +312,13 @@ class CheckoutScreen extends StatelessWidget {
               trailing: rp(p.total),
               onPressed: s.cartEmpty
                   ? null
-                  : () => Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const ProcessingScreen()))),
+                  : () async {
+                      // No address yet: ask for it first, then go on.
+                      if (!s.hasAddress && !await openAddress(context)) return;
+                      if (!context.mounted) return;
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (_) => const ProcessingScreen()));
+                    }),
         ),
       ),
     );

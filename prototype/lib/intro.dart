@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import 'logo.dart';
 import 'state.dart';
 import 'ui.dart';
 
-/// One slide of the welcome screen: a drawn placeholder plus two lines of text.
+/// One slide of the welcome screen: two lines of text under the logo.
 class IntroSlide {
-  final IconData icon;
-  final IconData badge;
   final String title;
   final String body;
-  const IntroSlide(this.icon, this.badge, this.title, this.body);
+  const IntroSlide(this.title, this.body);
 }
 
 const introSlides = [
-  IntroSlide(Icons.icecream, Icons.ac_unit, 'Es krim, tetap beku.',
+  IntroSlide('Es krim, tetap beku.',
       'Pesan es krim favoritmu dari toko terdekat.'),
-  IntroSlide(Icons.local_shipping_outlined, Icons.ac_unit,
-      'Diantar dalam kotak dingin', 'Sampai di pintu rumah tanpa meleleh.'),
-  IntroSlide(Icons.location_on_outlined, Icons.check, 'Pantau pesananmu',
+  IntroSlide('Diantar dalam kotak dingin',
+      'Sampai di pintu rumah tanpa meleleh.'),
+  IntroSlide('Pantau pesananmu',
       'Lihat posisi pesanan dari toko sampai tiba.'),
 ];
 
@@ -44,7 +43,9 @@ class _IntroScreenState extends State<IntroScreen> {
       backgroundColor: C.bg,
       body: SafeArea(
         child: Column(children: [
-          Expanded(
+          const Expanded(child: Center(child: BrandLogo(size: 150))),
+          SizedBox(
+            height: 120,
             child: PageView.builder(
               controller: controller,
               itemCount: introSlides.length,
@@ -86,37 +87,6 @@ class _SlideView extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          // Drawn placeholder brand mark, no real logo.
-          SizedBox(
-            width: 190,
-            height: 190,
-            child: Stack(alignment: Alignment.center, children: [
-              Container(
-                  decoration:
-                      const BoxDecoration(color: C.tint, shape: BoxShape.circle)),
-              Container(
-                width: 130,
-                height: 130,
-                decoration:
-                    const BoxDecoration(color: C.pri, shape: BoxShape.circle),
-                child: Icon(slide.icon, size: 68, color: Colors.white),
-              ),
-              Positioned(
-                right: 16,
-                bottom: 22,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                      color: C.acc,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: C.bg, width: 3)),
-                  child: Icon(slide.badge, size: 24, color: C.accInk),
-                ),
-              ),
-            ]),
-          ),
-          const SizedBox(height: 32),
           Text(slide.title,
               textAlign: TextAlign.center,
               style: const TextStyle(

@@ -38,7 +38,6 @@ class _RootState extends State<Root> {
     final s = AppScope.of(context);
     if (!loaded) return const Splash();
     if (!s.introSeen) return const IntroScreen();
-    if (!s.onboarded) return const Onboarding();
     return const Shell();
   }
 }
@@ -69,18 +68,20 @@ class Splash extends StatelessWidget {
       );
 }
 
-class Onboarding extends StatefulWidget {
-  const Onboarding({super.key});
+/// Picker for delivery address and store. Opened from Home or at checkout.
+class AddressScreen extends StatefulWidget {
+  const AddressScreen({super.key});
   @override
-  State<Onboarding> createState() => _OnboardingState();
+  State<AddressScreen> createState() => _AddressScreenState();
 }
 
-class _OnboardingState extends State<Onboarding> {
+class _AddressScreenState extends State<AddressScreen> {
   late final TextEditingController ctl;
   @override
   void initState() {
     super.initState();
-    ctl = TextEditingController(text: savedAddresses.first);
+    final st = context.getInheritedWidgetOfExactType<AppScope>()!.notifier!;
+    ctl = TextEditingController(text: st.address);
   }
 
   @override
@@ -93,33 +94,11 @@ class _OnboardingState extends State<Onboarding> {
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
     return Scaffold(
+      appBar: AppBar(title: const Text('Alamat dan toko')),
       body: SafeArea(
         child: Column(children: [
           Expanded(
             child: ListView(padding: const EdgeInsets.all(16), children: [
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                    color: C.pri, borderRadius: BorderRadius.circular(20)),
-                child: Row(children: [
-                  const Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Es krim dingin, sampai tetap beku.',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w800)),
-                          SizedBox(height: 6),
-                          Text('Pilih alamat dan toko terdekat.',
-                              style: TextStyle(color: Colors.white70)),
-                        ]),
-                  ),
-                  const Icon(Icons.icecream, size: 64, color: Colors.white),
-                ]),
-              ),
-              const SizedBox(height: 18),
               const Text('Alamat pengiriman', style: tH3),
               const SizedBox(height: 8),
               TextField(
@@ -155,12 +134,20 @@ class _OnboardingState extends State<Onboarding> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: BigButton('Lanjut', onPressed: s.finishOnboarding),
+            child: BigButton('Simpan',
+                onPressed: s.hasAddress ? () => Navigator.of(context).pop(true) : null),
           ),
         ]),
       ),
     );
   }
+}
+
+/// Opens the address and store picker. Returns true when the person saved.
+Future<bool> openAddress(BuildContext context) async {
+  final ok = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const AddressScreen()));
+  return ok ?? false;
 }
 
 class Shell extends StatelessWidget {
@@ -290,16 +277,20 @@ class _HomeTabState extends State<HomeTab> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               // Long press the wordmark to open the hidden demo controls.
-              GestureDetector(
+              Flexible(
+                child: GestureDetector(
                 onLongPress: () => showDemoControls(context),
                 child: const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
                   child: Text('es krim shop (contoh)',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: 13)),
                 ),
+              ),
               ),
               const Spacer(),
               Container(
@@ -311,16 +302,32 @@ class _HomeTabState extends State<HomeTab> {
                         color: C.accInk, fontWeight: FontWeight.w800, fontSize: 11)),
               ),
             ]),
-            Row(children: [
-              const Icon(Icons.place, color: Colors.white70, size: 16),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(s.address,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white)),
+            InkWell(
+              key: const ValueKey('address-bar'),
+              onTap: () => openAddress(context),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(children: [
+                  const Icon(Icons.place, color: Colors.white70, size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(s.hasAddress ? s.address : 'Atur alamat pengiriman',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight:
+                                s.hasAddress ? FontWeight.w400 : FontWeight.w800,
+                            decoration: s.hasAddress
+                                ? null
+                                : TextDecoration.underline,
+                            decorationColor: Colors.white)),
+                  ),
+                  const Icon(Icons.keyboard_arrow_down,
+                      color: Colors.white70, size: 20),
+                ]),
               ),
-            ]),
+            ),
             const SizedBox(height: 10),
             const Text('Tiba dalam 15 Menit',
                 style: TextStyle(
