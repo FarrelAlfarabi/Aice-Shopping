@@ -41,6 +41,7 @@ class AppState extends ChangeNotifier {
   String address = savedAddresses.first;
   String slot = 'Sekarang';
   String payment = 'E-wallet';
+  bool introSeen = false;
   bool onboarded = false;
 
   // Cart (device only)
@@ -78,6 +79,11 @@ class AppState extends ChangeNotifier {
 
   void setAddress(String a) {
     address = a;
+    notifyListeners();
+  }
+
+  void finishIntro() {
+    introSeen = true;
     notifyListeners();
   }
 
@@ -189,6 +195,7 @@ class AppState extends ChangeNotifier {
     slot = 'Sekarang';
     payment = 'E-wallet';
     makeLate = false;
+    introSeen = false;
     onboarded = false;
     notifyListeners();
   }

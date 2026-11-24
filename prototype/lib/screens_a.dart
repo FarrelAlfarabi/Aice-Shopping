@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'data.dart';
 import 'format.dart';
+import 'intro.dart';
 import 'screens_b.dart';
 import 'state.dart';
 import 'ui.dart';
@@ -36,6 +37,7 @@ class _RootState extends State<Root> {
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
     if (!loaded) return const Splash();
+    if (!s.introSeen) return const IntroScreen();
     if (!s.onboarded) return const Onboarding();
     return const Shell();
   }
