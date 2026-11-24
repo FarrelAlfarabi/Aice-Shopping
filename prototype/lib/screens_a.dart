@@ -10,6 +10,26 @@ import 'ui.dart';
 /// Which bottom tab is showing: 0 Beranda, 1 Keranjang, 2 Pesanan, 3 Profil.
 final ValueNotifier<int> tabIndex = ValueNotifier<int>(0);
 
+/// Snackbar after an add-to-cart, with a button that opens the cart tab.
+void addedToCart(BuildContext context, String msg) {
+  final nav = Navigator.of(context);
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(
+      content: Text(msg),
+      duration: const Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      action: SnackBarAction(
+        label: 'Lihat keranjang',
+        textColor: C.acc,
+        onPressed: () {
+          nav.popUntil((r) => r.isFirst);
+          tabIndex.value = 1;
+        },
+      ),
+    ));
+}
+
 class Root extends StatefulWidget {
   const Root({super.key});
   @override
@@ -252,7 +272,7 @@ class _HomeTabState extends State<HomeTab> {
           onTap: () => openProduct(context, items[i]),
           onAdd: () {
             s.add(items[i]);
-            toast(context, '${items[i].name} ditambahkan');
+            addedToCart(context, '${items[i].name} ditambahkan');
           },
         ),
       ),
@@ -411,7 +431,13 @@ class _HomeTabState extends State<HomeTab> {
                                     height: 1.2)),
                           ]),
                     ),
-                    Icon(iconFor(sl.$2), size: 56, color: Colors.white),
+                    DecoratedBox(
+                      decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.fromBorderSide(
+                              BorderSide(color: Colors.white, width: 3))),
+                      child: CategoryPhoto(sl.$2, size: 72, circle: true),
+                    ),
                   ]),
                 ),
               );
@@ -438,23 +464,26 @@ class _HomeTabState extends State<HomeTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
           child: SizedBox(
-            height: 150,
+            height: 164,
             child: Row(children: [
               Expanded(
                   flex: 6,
                   child: _tile('Paket Pesta', 'bundle', const Color(0xFFFFE6A8),
-                      () => openSearch(context, category: 'bundle'), big: true)),
+                      () => openSearch(context, category: 'bundle'),
+                      big: true, file: 'bundle-keluarga.jpg')),
               const SizedBox(width: 10),
               Expanded(
                 flex: 5,
                 child: Column(children: [
                   Expanded(
                       child: _tile('Cemilan Anak', 'stick', const Color(0xFFD8ECFF),
-                          () => openSearch(context, category: 'stick'))),
+                          () => openSearch(context, category: 'stick'),
+                          file: 'cone-cokelat.jpg')),
                   const SizedBox(height: 10),
                   Expanded(
                       child: _tile('Hemat Berdua', 'cup', const Color(0xFFDDF5E9),
-                          () => openSearch(context, category: 'cup'))),
+                          () => openSearch(context, category: 'cup'),
+                          file: 'cone-matcha.jpg')),
                 ]),
               ),
             ]),
@@ -487,7 +516,7 @@ class _HomeTabState extends State<HomeTab> {
                       child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(iconFor(e.key), color: C.pri, size: 30),
+                            CategoryPhoto(e.key, size: 52),
                             const SizedBox(height: 6),
                             Text(e.value,
                                 style: const TextStyle(
@@ -522,7 +551,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Widget _tile(String t, String cat, Color bg, VoidCallback onTap,
-          {bool big = false}) =>
+          {bool big = false, String? file}) =>
       Material(
         color: bg,
         borderRadius: BorderRadius.circular(16),
@@ -532,10 +561,13 @@ class _HomeTabState extends State<HomeTab> {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Stack(children: [
-              Text(t, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Padding(
+                padding: EdgeInsets.only(right: big ? 0 : 52),
+                child: Text(t, style: const TextStyle(fontWeight: FontWeight.w800)),
+              ),
               Align(
                   alignment: Alignment.bottomRight,
-                  child: Icon(iconFor(cat), size: big ? 56 : 32, color: C.ink)),
+                  child: CategoryPhoto(cat, size: big ? 84 : 48, file: file)),
             ]),
           ),
         ),
@@ -708,7 +740,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           onTap: () => openProduct(context, res[i]),
                           onAdd: () {
                             s.add(res[i]);
-                            toast(context, '${res[i].name} ditambahkan');
+                            addedToCart(context, '${res[i].name} ditambahkan');
                           },
                         ),
                       ),
@@ -835,7 +867,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   MaterialPageRoute(builder: (_) => ProductScreen(similar[i]))),
               onAdd: () {
                 s.add(similar[i]);
-                toast(context, '${similar[i].name} ditambahkan');
+                addedToCart(context, '${similar[i].name} ditambahkan');
               },
             ),
           ),
@@ -861,7 +893,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         trailing: rp(p.price * units),
                         onPressed: () {
                       s.add(p, units);
-                      toast(context, '$units ${p.name} ditambahkan');
+                      addedToCart(context, '$units ${p.name} ditambahkan');
                     }),
                   ),
                 ]),

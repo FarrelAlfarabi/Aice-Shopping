@@ -82,6 +82,37 @@ IconData iconFor(String category) {
   }
 }
 
+/// Small rounded photo for a product category (Home tiles, banners). Uses the
+/// same bundled placeholder photos as products, with an icon as the fallback.
+class CategoryPhoto extends StatelessWidget {
+  final String category;
+  final String? file; // optional specific photo under assets/products
+  final double size;
+  final bool circle;
+  const CategoryPhoto(this.category,
+      {super.key, required this.size, this.file, this.circle = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = file ?? ProductImage._photoByCategory[category]!;
+    final img = Image.asset(
+      'assets/products/$name',
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      cacheWidth: (size * 3).round(), // keep decoded size small
+      errorBuilder: (_, __, ___) => Container(
+          width: size,
+          height: size,
+          color: C.tint,
+          child: Icon(iconFor(category), size: size * 0.5, color: C.pri)),
+    );
+    return circle
+        ? ClipOval(child: img)
+        : ClipRRect(borderRadius: BorderRadius.circular(size * 0.22), child: img);
+  }
+}
+
 /// Shows a product photo from assets/products when the file exists, and a
 /// drawn placeholder when it does not. Dropping a photo into that folder is
 /// all it takes to swap one in.

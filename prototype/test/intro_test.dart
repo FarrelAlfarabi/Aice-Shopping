@@ -5,6 +5,7 @@ import 'package:aice_shopping/screens_a.dart';
 import 'package:aice_shopping/screens_b.dart';
 import 'package:aice_shopping/main.dart';
 import 'package:aice_shopping/state.dart';
+import 'package:aice_shopping/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -70,4 +71,31 @@ void main() {
     expect(find.byType(AddressScreen), findsOneWidget);
     expect(find.byType(ProcessingScreen), findsNothing);
   });
+
+  testWidgets('adding to cart shows a snackbar that opens the cart',
+      (tester) async {
+    final st = AppState()..finishIntro();
+    await tester.pumpWidget(AppScope(state: st, child: const AiceApp2()));
+    await tester.pump(const Duration(milliseconds: 1200));
+    await tester.pumpAndSettle();
+    // Product page path: open a product and tap Tambah.
+    Navigator.of(tester.element(find.byType(Shell)))
+        .push(MaterialPageRoute(builder: (_) => ProductScreen(productById('cone-vanila'))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('Tambah').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Lihat keranjang'), findsOneWidget);
+    await tester.tap(find.text('Lihat keranjang'));
+    await tester.pumpAndSettle();
+    expect(tabIndex.value, 1);
+    tabIndex.value = 0;
+  });
+}
+
+class AiceApp2 extends StatelessWidget {
+  const AiceApp2({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      MaterialApp(theme: buildTheme(), home: const Root());
 }
