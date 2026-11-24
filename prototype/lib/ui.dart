@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'data.dart';
 import 'format.dart';
+import 'motion.dart';
+import 'state.dart';
 
 /// Design tokens from the picked direction "A Segar".
 class C {
@@ -82,77 +84,106 @@ IconData iconFor(String category) {
   }
 }
 
-/// Small rounded photo for a product category (Home tiles, banners). Uses the
-/// same bundled placeholder photos as products, with an icon as the fallback.
-class CategoryPhoto extends StatelessWidget {
-  final String category;
-  final String? file; // optional specific photo under assets/products
-  final double size;
-  final bool circle;
-  const CategoryPhoto(this.category,
-      {super.key, required this.size, this.file, this.circle = false});
+/// Photo file for each category, used when a product has no photo of its own.
+const photoByCategory = {
+  'cone': 'cone-vanila.webp',
+  'stick': 'stik-cokelat.webp',
+  'tub': 'tub-stroberi.webp',
+  'cup': 'cup-blueberry.webp',
+  'drink': 'drink-cokelat.webp',
+  'bundle': 'bundle-keluarga.webp',
+};
+
+/// Soft pastel behind each photo. The photos have a pure white background, so
+/// multiplying them onto this colour makes the background melt into the tile
+/// and only the product shows (the Astro look, without cut-out files).
+const _tileByPhoto = {
+  'cone-vanila.webp': Color(0xFFFFE5EC),
+  'cone-cokelat.webp': Color(0xFFF5E7D9),
+  'cone-matcha.webp': Color(0xFFE2F4E0),
+  'stik-cokelat.webp': Color(0xFFF7EADB),
+  'tub-stroberi.webp': Color(0xFFFFE3EA),
+  'cup-blueberry.webp': Color(0xFFE9E5FF),
+  'drink-cokelat.webp': Color(0xFFF2E8DE),
+  'bundle-keluarga.webp': Color(0xFFFFF0D4),
+};
+
+Color tileColor(String file) => _tileByPhoto[file] ?? C.tint;
+
+String photoFor(Product p) => p.photo ?? photoByCategory[p.category]!;
+
+/// Every product photo, so the app can load them all once at start.
+List<String> get allPhotos => _tileByPhoto.keys.toList();
+
+/// A product photo sitting on its pastel tile. Fades in the first time it
+/// loads; after [precachePhotos] it shows at once.
+class Photo extends StatelessWidget {
+  final String file;
+  final Color? bg;
+  final bool grey;
+  final double padding;
+  final String? label;
+  const Photo(this.file,
+      {super.key, this.bg, this.grey = false, this.padding = 0, this.label});
 
   @override
   Widget build(BuildContext context) {
-    final name = file ?? ProductImage._photoByCategory[category]!;
-    final img = Image.asset(
-      'assets/products/$name',
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-      cacheWidth: (size * 3).round(), // keep decoded size small
-      errorBuilder: (_, __, ___) => Container(
-          width: size,
-          height: size,
-          color: C.tint,
-          child: Icon(iconFor(category), size: size * 0.5, color: C.pri)),
+    final tile = grey ? const Color(0xFFEDEFF3) : (bg ?? tileColor(file));
+    Widget img = Image.asset(
+      'assets/products/$file',
+      fit: BoxFit.contain,
+      color: tile,
+      colorBlendMode: BlendMode.multiply,
+      semanticLabel: label,
+      excludeFromSemantics: label == null,
+      gaplessPlayback: true,
+      frameBuilder: (_, child, frame, sync) => sync
+          ? child
+          : AnimatedOpacity(
+              opacity: frame == null ? 0 : 1,
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOut,
+              child: child),
+      errorBuilder: (_, __, ___) => const Center(
+          child: Icon(Icons.icecream_outlined, color: C.pri, size: 36)),
     );
-    return circle
-        ? ClipOval(child: img)
-        : ClipRRect(borderRadius: BorderRadius.circular(size * 0.22), child: img);
+    if (grey) {
+      img = ColorFiltered(
+          colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+          child: Opacity(opacity: 0.55, child: img));
+    }
+    return ColoredBox(
+      color: tile,
+      child: Padding(padding: EdgeInsets.all(padding), child: img),
+    );
   }
 }
 
-/// Shows a product photo from assets/products when the file exists, and a
-/// drawn placeholder when it does not. Dropping a photo into that folder is
-/// all it takes to swap one in.
+/// Loads all product photos into memory so tiles never pop in.
+Future<void> precachePhotos(BuildContext context) => Future.wait([
+      for (final f in allPhotos)
+        precacheImage(AssetImage('assets/products/$f'), context)
+            .catchError((_) {}),
+    ]);
+
+/// Square product photo with rounded corners. Pass [heroTag] to fly the
+/// photo into the product page.
 class ProductImage extends StatelessWidget {
   final Product product;
   final double? size;
   final double radius;
-  const ProductImage(this.product, {super.key, this.size, this.radius = 14});
-
-  static const _photoByCategory = {
-    'cone': 'cone-vanila.jpg',
-    'stick': 'stik-cokelat.jpg',
-    'tub': 'tub-stroberi.jpg',
-    'cup': 'cup-blueberry.jpg',
-    'drink': 'drink-cokelat.jpg',
-    'bundle': 'bundle-keluarga.jpg',
-  };
+  final Object? heroTag;
+  const ProductImage(this.product,
+      {super.key, this.size, this.radius = 14, this.heroTag});
 
   @override
   Widget build(BuildContext context) {
-    final file = product.photo ?? _photoByCategory[product.category]!;
-    final fallback = Container(
-      color: C.tint,
-      alignment: Alignment.center,
-      child: Icon(iconFor(product.category),
-          size: (size ?? 80) * 0.5, color: C.pri),
+    Widget box = ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: Photo(photoFor(product),
+          grey: product.soldOut, label: product.name),
     );
-    Widget img = Image.asset(
-      'assets/products/$file',
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => fallback,
-      semanticLabel: product.name,
-    );
-    if (product.soldOut) {
-      img = ColorFiltered(
-        colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-        child: Opacity(opacity: 0.6, child: img),
-      );
-    }
-    final box = ClipRRect(borderRadius: BorderRadius.circular(radius), child: img);
+    if (heroTag != null) box = Hero(tag: heroTag!, child: box);
     if (size != null) return SizedBox(width: size, height: size, child: box);
     return AspectRatio(aspectRatio: 1, child: box);
   }
@@ -161,19 +192,22 @@ class ProductImage extends StatelessWidget {
 class Ribbon extends StatelessWidget {
   final String text;
   final bool sold;
-  const Ribbon(this.text, {super.key, this.sold = false});
+  final Color? color;
+  final Color? ink;
+  const Ribbon(this.text,
+      {super.key, this.sold = false, this.color, this.ink});
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: sold ? C.line : C.acc,
+          color: sold ? C.line : (color ?? C.acc),
           borderRadius: BorderRadius.circular(99),
         ),
         child: Text(text,
             style: TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w800,
-              color: sold ? C.ink : C.accInk,
+              color: sold ? C.ink : (ink ?? C.accInk),
             )),
       );
 }
@@ -188,7 +222,10 @@ class PriceRow extends StatelessWidget {
         spacing: 6,
         children: [
           Text(rp(p.price),
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: size)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: size,
+                  color: p.oldPrice != null ? C.danger : C.ink)),
           if (p.oldPrice != null)
             Text(rp(p.oldPrice!),
                 style: const TextStyle(
@@ -200,74 +237,148 @@ class PriceRow extends StatelessWidget {
       );
 }
 
+/// Product card: photo tile with a quick-add button on the photo. After the
+/// first add the button grows into a  − 1 +  stepper, like Astro.
 class ProductCard extends StatelessWidget {
   final Product p;
   final VoidCallback onTap;
   final VoidCallback onAdd;
   final double? width;
+  final Object? heroTag;
   const ProductCard(
       {super.key,
       required this.p,
       required this.onTap,
       required this.onAdd,
-      this.width});
+      this.width,
+      this.heroTag});
 
   @override
   Widget build(BuildContext context) {
+    final s = AppScope.of(context);
+    final qty = s.qtyOf(p.id);
     final label = p.ribbon ?? (p.percentOff != null ? '-${p.percentOff}%' : null);
     return SizedBox(
       width: width,
-      child: Material(
-        color: C.surface,
-        borderRadius: BorderRadius.circular(rCard),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(rCard),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(rCard),
-              border: Border.all(color: C.line),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(children: [
-                  ProductImage(p),
-                  if (label != null)
-                    Positioned(
-                        top: 6, left: 6, child: Ribbon(label, sold: p.soldOut)),
-                ]),
-                const SizedBox(height: 8),
-                Text(p.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 12.5, height: 1.25)),
-                Text(p.size, style: const TextStyle(fontSize: 11, color: C.muted)),
-                const SizedBox(height: 4),
-                Row(children: [
-                  Expanded(child: PriceRow(p)),
-                  if (p.soldOut)
-                    const Text('Habis',
-                        style: TextStyle(fontSize: 11, color: C.muted))
-                  else
-                    SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: IconButton.filled(
-                        onPressed: onAdd,
-                        tooltip: 'Tambah ${p.name}',
-                        style: IconButton.styleFrom(
-                            backgroundColor: C.pri, foregroundColor: Colors.white),
-                        icon: const Icon(Icons.add, size: 20),
-                      ),
-                    ),
-                ]),
-              ],
-            ),
+      child: Pressable(
+        onTap: onTap,
+        scale: 0.97,
+        semanticLabel: p.name,
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: C.surface,
+            borderRadius: BorderRadius.circular(rCard + 2),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x140B1B33), blurRadius: 14, offset: Offset(0, 4)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(clipBehavior: Clip.none, children: [
+                ProductImage(p, heroTag: heroTag, radius: rCard - 2),
+                if (label != null)
+                  Positioned(
+                      top: 6, left: 6, child: Ribbon(label, sold: p.soldOut)),
+                Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: p.soldOut
+                      ? const SizedBox.shrink()
+                      : _AddControl(
+                          qty: qty,
+                          name: p.name,
+                          onAdd: onAdd,
+                          onMore: () => s.add(p),
+                          onRemove: () => s.remove(p)),
+                ),
+              ]),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(p.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            height: 1.25)),
+                    const SizedBox(height: 2),
+                    Text(p.size,
+                        style: const TextStyle(fontSize: 11.5, color: C.muted)),
+                    const SizedBox(height: 4),
+                    PriceRow(p),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AddControl extends StatelessWidget {
+  final int qty;
+  final String name;
+  final VoidCallback onAdd; // first add: shows the snackbar
+  final VoidCallback onMore; // later adds: quiet, the stepper shows the count
+  final VoidCallback onRemove;
+  const _AddControl(
+      {required this.qty,
+      required this.name,
+      required this.onAdd,
+      required this.onMore,
+      required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget btn(IconData i, VoidCallback f, String tip) => Semantics(
+          button: true,
+          label: tip,
+          child: InkResponse(
+            onTap: f,
+            radius: 22,
+            child: SizedBox(
+                width: 36,
+                height: 36,
+                child: Icon(i, size: 20, color: Colors.white)),
+          ),
+        );
+    return Material(
+      color: C.pri,
+      elevation: 3,
+      shadowColor: const Color(0x550B5FD8),
+      shape: const StadiumBorder(),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        child: qty == 0
+            ? Tooltip(
+                message: 'Tambah $name',
+                child: btn(Icons.add, onAdd, 'Tambah $name'))
+            : Row(mainAxisSize: MainAxisSize.min, children: [
+                btn(Icons.remove, onRemove, 'Kurangi $name'),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+                  child: SizedBox(
+                    key: ValueKey(qty),
+                    width: 20,
+                    child: Text('$qty',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w800)),
+                  ),
+                ),
+                btn(Icons.add, onMore, 'Tambah $name'),
+              ]),
       ),
     );
   }

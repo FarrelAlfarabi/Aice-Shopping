@@ -4,15 +4,18 @@ import 'package:aice_shopping/logo.dart';
 import 'package:aice_shopping/screens_a.dart';
 import 'package:aice_shopping/screens_b.dart';
 import 'package:aice_shopping/main.dart';
+import 'package:aice_shopping/motion.dart';
 import 'package:aice_shopping/state.dart';
 import 'package:aice_shopping/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUpAll(() => loopMotion = false);
+
   testWidgets('intro shows first, Mulai leads straight to Home', (tester) async {
     await tester.pumpWidget(const AiceApp());
-    await tester.pump(const Duration(milliseconds: 1200)); // splash done
+    await tester.pump(const Duration(milliseconds: 400)); // intro fades in
     await tester.pump();
 
     expect(find.byType(IntroScreen), findsOneWidget);
