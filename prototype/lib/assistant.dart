@@ -40,6 +40,11 @@ List<String> _top(Iterable<Product> ps, int n) {
   return [for (final p in l.take(n)) p.id];
 }
 
+List<String> _byIds(List<String> ids) => [
+  for (final id in ids)
+    if (catalog.any((p) => p.id == id && !p.soldOut)) id,
+];
+
 final _rules = <_Rule>[
   _Rule(
     [
@@ -55,10 +60,7 @@ final _rules = <_Rule>[
     () => Reply(
       'Untuk acara ramai, paket lebih hemat. Paket Pesta isi 12 stik cocok untuk sekitar 10 orang, '
       'ditambah satu tub untuk yang mau tambah (contoh).',
-      _top(
-        catalog.where((p) => p.category == 'bundle' || p.category == 'tub'),
-        3,
-      ),
+      _byIds(['bundle-pesta', 'bundle-keluarga', 'tub-stroberi']),
     ),
   ),
   _Rule(
