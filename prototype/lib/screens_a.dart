@@ -269,7 +269,7 @@ class _HomeTabState extends State<HomeTab> {
 
   Widget shelf(BuildContext context, String key, List<Product> items) =>
       SizedBox(
-        height: 252,
+        height: cardExtent(context, 156) + 10,
         child: ListView.separated(
           padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
           scrollDirection: Axis.horizontal,
@@ -557,11 +557,15 @@ class _HomeTabState extends State<HomeTab> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(99)),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text('Lihat promo',
-                            style: TextStyle(
-                                color: sl.colors.first,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 12)),
+                        Flexible(
+                          child: Text('Lihat promo',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: sl.colors.first,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12)),
+                        ),
                         const SizedBox(width: 4),
                         Icon(Icons.arrow_forward,
                             size: 14, color: sl.colors.first),
@@ -583,7 +587,7 @@ class _HomeTabState extends State<HomeTab> {
       required String category,
       bool big = false}) {
     final bg = tileColor(photo);
-    final ps = big ? 132.0 : 78.0;
+    final ps = big ? 132.0 : 64.0;
     return Pressable(
       onTap: () => openSearch(context, category: category),
       semanticLabel: title,
@@ -600,13 +604,17 @@ class _HomeTabState extends State<HomeTab> {
             child: big ? Float(dy: 4, child: Photo(photo)) : Photo(photo),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(14, 12, big ? 14 : ps - 6, 12),
+            padding: EdgeInsets.fromLTRB(12, 10, big ? 12 : ps - 10, 10),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       fontWeight: FontWeight.w800, fontSize: big ? 17 : 14)),
               const SizedBox(height: 2),
               Text(sub,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontSize: 11.5, color: C.muted, fontWeight: FontWeight.w600)),
               if (big) ...[
@@ -707,7 +715,7 @@ class _HomeTabState extends State<HomeTab> {
         const SizedBox(height: 16),
         sec(Column(children: [
           SizedBox(
-            height: 168,
+            height: 60 + MediaQuery.textScalerOf(context).scale(108),
             child: PageView.builder(
               controller: page,
               itemCount: slides.length,
@@ -750,8 +758,7 @@ class _HomeTabState extends State<HomeTab> {
                     onTap: () => openSearch(context, category: e.key),
                     semanticLabel: e.value,
                     child: Column(children: [
-                      AspectRatio(
-                        aspectRatio: 1,
+                      Expanded(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
                           child: Photo(photoByCategory[e.key]!, padding: 6),
@@ -759,6 +766,8 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                       const SizedBox(height: 6),
                       Text(e.value,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 13)),
                     ]),
@@ -774,7 +783,7 @@ class _HomeTabState extends State<HomeTab> {
             const SectionTitle('Koleksi pilihan'),
             const SizedBox(height: 6),
             SizedBox(
-              height: 176,
+              height: MediaQuery.textScalerOf(context).scale(176),
               child: Row(children: [
                 Expanded(
                   flex: 6,
@@ -1011,7 +1020,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   crossAxisCount: 2,
                                   mainAxisSpacing: 12,
                                   crossAxisSpacing: 12,
-                                  mainAxisExtent: w + 86),
+                                  mainAxisExtent: cardExtent(context, w)),
                           itemCount: res.length,
                           itemBuilder: (_, i) {
                             final p = res[i];
@@ -1146,7 +1155,7 @@ class _ProductScreenState extends State<ProductScreen> {
         const Text('Produk Serupa', style: tH3),
         const SizedBox(height: 8),
         SizedBox(
-          height: 252,
+          height: cardExtent(context, 156) + 8,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,

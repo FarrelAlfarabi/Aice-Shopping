@@ -24,6 +24,10 @@ class C {
 
 const double rCard = 16;
 
+/// Height a [ProductCard] needs at [width], growing with the phone's text size.
+double cardExtent(BuildContext context, double width) =>
+    width + MediaQuery.textScalerOf(context).scale(80) + 12;
+
 ThemeData buildTheme() {
   final base = ColorScheme.fromSeed(seedColor: C.pri, primary: C.pri);
   return ThemeData(
@@ -233,12 +237,11 @@ class Ribbon extends StatelessWidget {
 class PriceRow extends StatelessWidget {
   final Product p;
   final double size;
-  const PriceRow(this.p, {super.key, this.size = 14});
+  final bool oneLine;
+  const PriceRow(this.p, {super.key, this.size = 14, this.oneLine = false});
   @override
-  Widget build(BuildContext context) => Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 6,
-        children: [
+  Widget build(BuildContext context) {
+    final parts = <Widget>[
           Text(rp(p.price),
               style: TextStyle(
                   fontWeight: FontWeight.w800,
@@ -251,8 +254,20 @@ class PriceRow extends StatelessWidget {
                   color: C.muted,
                   decoration: TextDecoration.lineThrough,
                 )),
-        ],
-      );
+    ];
+    if (oneLine) {
+      return Row(mainAxisSize: MainAxisSize.min, children: [
+        for (var i = 0; i < parts.length; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          parts[i],
+        ]
+      ]);
+    }
+    return Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
+        children: parts);
+  }
 }
 
 /// Product card: photo tile with a quick-add button on the photo. After the
@@ -330,7 +345,12 @@ class ProductCard extends StatelessWidget {
                     Text(p.size,
                         style: const TextStyle(fontSize: 11.5, color: C.muted)),
                     const SizedBox(height: 4),
-                    PriceRow(p),
+                    // One line always: shrinks instead of wrapping on small
+                    // phones or large text, so the card height stays known.
+                    FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: PriceRow(p, oneLine: true)),
                   ],
                 ),
               ),

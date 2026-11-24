@@ -6,7 +6,8 @@ Newest entry first. Source of truth for scope is `master-plan.md`.
 - Farrel: more listings in every category, then merge to main.
 - Catalog grew from 13 to 30 sample products: cone 8, stik 4, tub 5, yoghurt 3, minuman 4, paket 5. New photos are colour variants of the existing ones (taro, mangga, mint, stroberi, matcha, dark) and bundle collages. All still "contoh".
 - Home gained "Rasa baru" and "Minuman dingin" shelves.
-- Tests: 17 of 17 pass.
+- Bigma guidebook (base v1.1 + Aice edition) applied: config.dart with sampleData and enabledBrands {'aice'}, Brand separate from Store, guard tests (flags, banned claims, photo files), 360 px + large text layout test (fixed real overflows), no service worker (--pwa-strategy=none), README with glossary, LICENSE all rights reserved.
+- Tests: 23 of 23 pass.
 
 ## 2026-11-24 (UI refresh: photo buttons, motion, faster load)
 - Farrel: UI felt static and slow; use Astro's photo-on-button style as the reference.

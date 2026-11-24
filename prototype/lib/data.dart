@@ -1,4 +1,15 @@
+import 'config.dart';
+
 /// Sample catalog. All names, prices and stores are made up and shown as "contoh".
+
+/// A brand that sells through the app. Only brands in [enabledBrands] show.
+class Brand {
+  final String id;
+  final String name;
+  const Brand(this.id, this.name);
+}
+
+const brands = <Brand>[Brand('aice', 'Aice')];
 class Product {
   final String id;
   final String name;
@@ -10,6 +21,8 @@ class Product {
   final bool soldOut;
   final String? photo; // file name under assets/products, optional
   final int rank; // lower = more popular
+  final String brandId;
+  final bool sample; // sample data, shown as "Contoh"
 
   const Product(
     this.id,
@@ -22,6 +35,8 @@ class Product {
     this.soldOut = false,
     this.photo,
     this.rank = 99,
+    this.brandId = 'aice',
+    this.sample = sampleData,
   });
 
   bool get multiBuy => category == 'cone';
@@ -38,7 +53,8 @@ const categories = <String, String>{
   'bundle': 'Paket',
 };
 
-const catalog = <Product>[
+/// Every sample product, for all brands.
+const allProducts = <Product>[
   // Cone
   Product('cone-vanila', 'Cone Vanila Susu', 'cone', '80 ml', 5000,
       ribbon: 'Best Seller', photo: 'cone-vanila.webp', rank: 1),
@@ -109,13 +125,24 @@ const catalog = <Product>[
       oldPrice: 27500, photo: 'paket-yoghurt.webp', rank: 29),
 ];
 
+/// Products the app shows: only brands that are switched on.
+final List<Product> catalog = [
+  for (final p in allProducts)
+    if (enabledBrands.contains(p.brandId)) p,
+];
+
 Product productById(String id) => catalog.firstWhere((p) => p.id == id);
 
+/// A store (outlet). Separate from [Brand]: a store sells products of the
+/// brands it lists.
 class Store {
   final String name;
   final String distance;
   final String hours;
-  const Store(this.name, this.distance, this.hours);
+  final Set<String> brandIds;
+  final bool sample;
+  const Store(this.name, this.distance, this.hours,
+      {this.brandIds = const {'aice'}, this.sample = sampleData});
 }
 
 const stores = <Store>[
