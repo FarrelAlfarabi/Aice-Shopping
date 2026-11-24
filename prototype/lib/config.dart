@@ -1,0 +1,10 @@
+// Switches and demo settings in one place (guidebook 2.3 and Aice 5.3).
+// Tests in test/guard_test.dart pin these values.
+
+/// Every product, store, price and promo in this demo is sample data
+/// ("Contoh"). Nothing is a real Aice catalog.
+const bool sampleData = true;
+
+/// Brands shown in the app. Brand and Store are separate concepts so other
+/// brands can be added later; for the demo only Aice is switched on.
+const Set<String> enabledBrands = {'aice'};
