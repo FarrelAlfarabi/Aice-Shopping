@@ -820,6 +820,18 @@ class _HomeTabState extends State<HomeTab> {
         ])),
         const SizedBox(height: 6),
         sec(Column(children: [
+          const Padding(padding: pad, child: SectionTitle('Rasa baru')),
+          shelf(context, 'new',
+              catalog.where((p) => p.ribbon == 'New').toList()),
+        ])),
+        const SizedBox(height: 6),
+        sec(Column(children: [
+          const Padding(
+              padding: pad, child: SectionTitle('Minuman dingin')),
+          shelf(context, 'drink',
+              catalog.where((p) => p.category == 'drink').toList()),
+        ])),
+        sec(Column(children: [
           const Padding(
               padding: pad, child: SectionTitle('Beli 3 Diskon 10% (cone)')),
           shelf(context, 'cone', cones),

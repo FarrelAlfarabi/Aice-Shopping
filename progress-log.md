@@ -2,6 +2,12 @@
 
 Newest entry first. Source of truth for scope is `master-plan.md`.
 
+## 2026-11-24 (more listings)
+- Farrel: more listings in every category, then merge to main.
+- Catalog grew from 13 to 30 sample products: cone 8, stik 4, tub 5, yoghurt 3, minuman 4, paket 5. New photos are colour variants of the existing ones (taro, mangga, mint, stroberi, matcha, dark) and bundle collages. All still "contoh".
+- Home gained "Rasa baru" and "Minuman dingin" shelves.
+- Tests: 17 of 17 pass.
+
 ## 2026-11-24 (UI refresh: photo buttons, motion, faster load)
 - Farrel: UI felt static and slow; use Astro's photo-on-button style as the reference.
 - Photos: 8 JPGs (530 KB, 800px) replaced by WebPs (74 KB, 400px). Backgrounds cleaned to pure white so they melt into pastel tiles (multiply blend), no cut-out files needed.
