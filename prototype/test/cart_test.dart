@@ -32,19 +32,17 @@ void main() {
     return st;
   }
 
-  testWidgets('under the minimum: button is tappable and explains why',
+  testWidgets('under the minimum: small order fee, checkout still opens',
       (tester) async {
     final st = await openCart(tester, cones: 1);
-    expect(st.pricing.canCheckout, isFalse);
-    final button = tester.widget<FilledButton>(find.byType(FilledButton).last);
-    expect(button.onPressed, isNotNull, reason: 'no greyed-out dead button');
+    expect(st.pricing.belowMinOrder, isTrue);
     expect(find.byKey(const Key('min-order-note')), findsOneWidget);
-
+    await tester.drag(find.byType(ListView), const Offset(0, -900));
+    await tester.pumpAndSettle();
+    expect(find.text('Biaya pesanan kecil'), findsOneWidget);
     await tester.tap(find.text('Lanjut bayar'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.textContaining('Minimum order Rp20.000, tambah'), findsOneWidget);
-    expect(find.byType(CheckoutScreen), findsNothing);
+    await tester.pumpAndSettle();
+    expect(find.byType(CheckoutScreen), findsOneWidget);
   });
 
   testWidgets('"Tambah item" goes back to Home', (tester) async {
@@ -61,14 +59,17 @@ void main() {
     await openCart(tester, cones: 1);
     expect(find.textContaining('Gratis ongkir (belanja Rp50.000)'),
         findsOneWidget);
-    expect(find.textContaining('Minimum order Rp20.000'), findsOneWidget);
+    expect(find.textContaining('Belanja di bawah Rp20.000'), findsOneWidget);
   });
 
   testWidgets('at or above the minimum: no warning, goes to checkout',
       (tester) async {
     final st = await openCart(tester, cones: 4);
-    expect(st.pricing.canCheckout, isTrue);
+    expect(st.pricing.belowMinOrder, isFalse);
     expect(find.byKey(const Key('min-order-note')), findsNothing);
+    await tester.drag(find.byType(ListView), const Offset(0, -900));
+    await tester.pumpAndSettle();
+    expect(find.text('Biaya pesanan kecil'), findsNothing);
     await tester.tap(find.text('Lanjut bayar'));
     await tester.pumpAndSettle();
     expect(find.byType(CheckoutScreen), findsOneWidget);

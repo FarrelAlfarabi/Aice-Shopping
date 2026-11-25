@@ -40,21 +40,6 @@ class _CartTabState extends State<CartTab> {
 
   void _addMore() => tabIndex.value = 0;
 
-  /// Under the minimum order: the button still works. It tells the user why
-  /// they cannot pay yet and offers a way forward (never a dead end).
-  void _explainMinOrder() {
-    final p = AppScope.of(context).pricing;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(
-            'Minimum order ${rp(Pricing.minOrder)}, tambah ${rp(p.toMinOrder)} lagi.'),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-            label: 'Tambah item', textColor: C.acc, onPressed: _addMore),
-      ));
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
@@ -115,13 +100,13 @@ class _CartTabState extends State<CartTab> {
                 ],
               ]),
             ),
-            if (!p.canCheckout) ...[
+            if (p.belowMinOrder) ...[
               const SizedBox(height: 10),
               Panel(
                 color: C.warnBg,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(
-                      'Minimum order ${rp(Pricing.minOrder)}. Tambah ${rp(p.toMinOrder)} lagi untuk lanjut bayar.',
+                      'Belanja di bawah ${rp(Pricing.minOrder)} kena biaya pesanan kecil ${rp(Pricing.smallOrderFee)}. Tambah ${rp(p.toMinOrder)} lagi untuk menghindarinya.',
                       key: const Key('min-order-note'),
                       style: const TextStyle(
                           color: C.warnInk, fontWeight: FontWeight.w700)),
@@ -238,15 +223,10 @@ class _CartTabState extends State<CartTab> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           decoration: const BoxDecoration(
               color: C.surface, border: Border(top: BorderSide(color: C.line))),
-          child: p.canCheckout
-              ? BigButton('Lanjut bayar',
-                  trailing: rp(p.total),
-                  onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const CheckoutScreen())))
-              : BigButton('Lanjut bayar',
-                  trailing: rp(p.total),
-                  secondary: true,
-                  onPressed: _explainMinOrder),
+          child: BigButton('Lanjut bayar',
+              trailing: rp(p.total),
+              onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CheckoutScreen()))),
         ),
       ]),
     );
@@ -279,6 +259,7 @@ class _Summary extends StatelessWidget {
         if (p.voucherDiscount > 0)
           row('Voucher', '-${rp(p.voucherDiscount)}', color: C.good),
         row('Ongkir', p.delivery == 0 ? 'Gratis' : rp(p.delivery)),
+        if (p.smallFee > 0) row('Biaya pesanan kecil', rp(p.smallFee)),
         const Divider(),
         row('Total', rp(p.total), bold: true),
       ]);
