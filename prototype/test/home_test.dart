@@ -1,5 +1,4 @@
 import 'package:aice_shopping/data.dart';
-import 'package:aice_shopping/home_extras.dart';
 import 'package:aice_shopping/motion.dart';
 import 'package:aice_shopping/pricing.dart';
 import 'package:aice_shopping/screens_a.dart';

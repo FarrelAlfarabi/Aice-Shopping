@@ -9,7 +9,6 @@ import 'pricing.dart';
 import 'screens_a.dart';
 import 'screens_c.dart';
 import 'consumer_extras.dart';
-import 'accounts.dart';
 import 'state.dart';
 import 'tracking.dart';
 import 'ui.dart';
@@ -1422,7 +1421,7 @@ class _NavRow extends StatelessWidget {
         children: [
           Badge(
             isLabelVisible: badge > 0,
-            label: Text('$badge'),
+            smallSize: 9,
             child: Icon(icon, color: C.pri),
           ),
           const SizedBox(width: 12),

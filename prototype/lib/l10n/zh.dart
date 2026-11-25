@@ -203,6 +203,8 @@ const Map<String, String> zh = {
   'Klaim garansi': '申请保障',
   'Klaim sudah dikirim': '申请已提交',
   'Kode OTP': '验证码',
+  'Kode QR contoh, bukan kode asli. Tidak ada uang yang berpindah.':
+      '示例二维码，不是真实二维码。不会有资金转移。',
   'Kode QR contoh, langsung terkonfirmasi': '示例二维码，立即确认',
   'Kode contoh terkirim. Tidak ada pesan asli. Isi kode apa saja.':
       '示例验证码已发送，不会发送真实消息。请输入任意验证码。',

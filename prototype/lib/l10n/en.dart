@@ -219,6 +219,8 @@ const Map<String, String> en = {
   'Klaim garansi': 'Claim guarantee',
   'Klaim sudah dikirim': 'Claim sent',
   'Kode OTP': 'OTP code',
+  'Kode QR contoh, bukan kode asli. Tidak ada uang yang berpindah.':
+      'Sample QR code, not a real code. No money moves.',
   'Kode QR contoh, langsung terkonfirmasi': 'Sample QR code, confirmed at once',
   'Kode contoh terkirim. Tidak ada pesan asli. Isi kode apa saja.':
       'Sample code sent. No real message. Enter any code.',

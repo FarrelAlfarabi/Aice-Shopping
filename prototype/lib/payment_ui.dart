@@ -154,7 +154,82 @@ class PayInstructions extends StatelessWidget {
           ),
         );
       case PayFlow.instant:
-        return const SizedBox.shrink();
+        if (o.payment != 'QRIS' || o.status == OrderStatus.delivered) {
+          return const SizedBox.shrink();
+        }
+        return const Panel(
+          key: ValueKey('qris-sample'),
+          child: Column(
+            children: [
+              SampleQr(),
+              SizedBox(height: 6),
+              Text(
+                'Kode QR contoh, bukan kode asli. Tidak ada uang yang berpindah.',
+                style: tMuted,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
     }
   }
+}
+
+/// A made-up pattern that looks like a QR code. It cannot be scanned.
+class SampleQr extends StatelessWidget {
+  const SampleQr({super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 140,
+    height: 140,
+    padding: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: C.line),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: const CustomPaint(painter: _QrPainter()),
+  );
+}
+
+class _QrPainter extends CustomPainter {
+  const _QrPainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    const n = 21;
+    final cell = size.width / n;
+    final p = Paint()..color = const Color(0xFF222222);
+    bool finder(int x, int y) =>
+        (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7);
+    for (var y = 0; y < n; y++) {
+      for (var x = 0; x < n; x++) {
+        if (finder(x, y)) continue;
+        if ((x * 7 + y * 13 + x * y) % 3 == 0) {
+          canvas.drawRect(Rect.fromLTWH(x * cell, y * cell, cell, cell), p);
+        }
+      }
+    }
+    void eye(int ox, int oy) {
+      final w = Paint()..color = Colors.white;
+      canvas.drawRect(
+        Rect.fromLTWH(ox * cell, oy * cell, 7 * cell, 7 * cell),
+        p,
+      );
+      canvas.drawRect(
+        Rect.fromLTWH((ox + 1) * cell, (oy + 1) * cell, 5 * cell, 5 * cell),
+        w,
+      );
+      canvas.drawRect(
+        Rect.fromLTWH((ox + 2) * cell, (oy + 2) * cell, 3 * cell, 3 * cell),
+        p,
+      );
+    }
+
+    eye(0, 0);
+    eye(n - 7, 0);
+    eye(0, n - 7);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }

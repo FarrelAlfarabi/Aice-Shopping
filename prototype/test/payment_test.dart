@@ -48,6 +48,22 @@ void main() {
     });
   }
 
+  testWidgets('QRIS order shows the sample QR', (tester) async {
+    tester.view.physicalSize = const Size(360, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final st = AppState()..finishIntro();
+    final o = (st..setPayment('QRIS')).placeOrder();
+    await tester.pumpWidget(
+      AppScope(
+        state: st,
+        child: MaterialApp(home: Scaffold(body: PayInstructions(o))),
+      ),
+    );
+    expect(find.byKey(const ValueKey('qris-sample')), findsOneWidget);
+    expect(find.byType(SampleQr), findsOneWidget);
+  });
+
   test('COD: prepared at once, paid and points only when marked done', () {
     final s = member('Bayar di tempat (COD)');
     final o = s.placeOrder();
