@@ -118,6 +118,8 @@ void main() {
     await open(tester, const Scaffold(body: HomeTab()));
     await tester.scrollUntilVisible(find.byType(MixPackCard), 300,
         scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(find.byType(MixPackCard));
+    await tester.pumpAndSettle();
     await tester.tap(find.byType(MixPackCard));
     await tester.pumpAndSettle();
     expect(find.byType(MixPackScreen), findsOneWidget);

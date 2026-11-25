@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
 import 'data.dart';
 import 'format.dart';
 import 'motion.dart';
@@ -84,6 +85,8 @@ IconData iconFor(String category) {
       return Icons.local_drink_outlined;
     case 'bundle':
       return Icons.card_giftcard_outlined;
+    case 'frozen':
+      return Icons.set_meal_outlined;
     default:
       return Icons.icecream_outlined;
   }
@@ -97,6 +100,7 @@ const photoByCategory = {
   'cup': 'cup-blueberry.webp',
   'drink': 'drink-cokelat.webp',
   'bundle': 'bundle-keluarga.webp',
+  'frozen': 'frozen-naget.webp',
 };
 
 /// Soft pastel behind each photo. The photos have a pure white background, so
@@ -129,6 +133,10 @@ const _tileByPhoto = {
   'paket-stik.webp': Color(0xFFF7EADB),
   'paket-tub.webp': Color(0xFFFFEFD9),
   'paket-yoghurt.webp': Color(0xFFEDE8FF),
+  'cup-original.webp': Color(0xFFE9F1FF),
+  'frozen-naget.webp': Color(0xFFFFF0D9),
+  'frozen-tahu.webp': Color(0xFFDFF3F5),
+  'frozen-sosis.webp': Color(0xFFFFE6E1),
 };
 
 Color tileColor(String file) => _tileByPhoto[file] ?? C.tint;
@@ -523,7 +531,7 @@ class QtyStepper extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           IconButton(
               onPressed: onMinus,
-              tooltip: 'Kurangi',
+              tooltip: tr('Kurangi'),
               icon: const Icon(Icons.remove, size: 18)),
           SizedBox(
               width: 22,
@@ -532,7 +540,7 @@ class QtyStepper extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w800))),
           IconButton(
               onPressed: onPlus,
-              tooltip: 'Tambah',
+              tooltip: tr('Tambah'),
               icon: const Icon(Icons.add, size: 18)),
         ]),
       );
@@ -590,10 +598,18 @@ class SectionTitle extends StatelessWidget {
   final String title;
   final String? action;
   final VoidCallback? onAction;
-  const SectionTitle(this.title, {super.key, this.action, this.onAction});
+  final String? sub;
+  const SectionTitle(this.title,
+      {super.key, this.action, this.onAction, this.sub});
   @override
   Widget build(BuildContext context) => Row(children: [
-        Expanded(child: Text(title, style: tH3)),
+        Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              Text(title, style: tH3),
+              if (sub != null) Text(sub!, style: tMuted),
+            ])),
         if (action != null)
           TextButton(
               onPressed: onAction,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens_a.dart';
 import 'state.dart';
@@ -18,25 +18,33 @@ class _AiceAppState extends State<AiceApp> {
   @override
   Widget build(BuildContext context) => AppScope(
         state: state,
-        child: MaterialApp(
+        child: Builder(builder: (context) => MaterialApp(
           title: 'Aice Shopping (demo)',
           debugShowCheckedModeBanner: false,
           theme: buildTheme(),
           // Indonesian for built-in text such as the back button tooltip.
-          locale: const Locale('id'),
-          supportedLocales: const [Locale('id')],
+          locale: Locale(AppScope.of(context).lang),
+          supportedLocales: const [Locale('id'), Locale('en'), Locale('zh')],
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
           // On a laptop the app sits in a centered phone-width frame.
-          builder: (context, child) => ColoredBox(
-            color: const Color(0xFFDCE5F2),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 430),
-                child: ClipRect(child: child),
+          // The admin gets a wide frame; the consumer app stays phone width.
+          // Re-keying on the language rebuilds every screen in the new language.
+          builder: (context, child) {
+            final s = AppScope.of(context);
+            final admin = s.introSeen && s.role == AppRole.admin;
+            return ColoredBox(
+              color: const Color(0xFFDCE5F2),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: admin ? 1100 : 430),
+                  child: ClipRect(
+                    child: KeyedSubtree(key: ValueKey(s.lang), child: child!),
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
           home: const Root(),
-        ),
+        )),
       );
 }

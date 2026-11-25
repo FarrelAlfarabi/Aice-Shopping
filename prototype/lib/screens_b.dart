@@ -1,9 +1,12 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
 import 'format.dart';
 import 'pricing.dart';
 import 'screens_a.dart';
 import 'screens_c.dart';
+import 'consumer_extras.dart';
+import 'accounts.dart';
 import 'state.dart';
 import 'tracking.dart';
 import 'ui.dart';
@@ -156,7 +159,7 @@ class _CartTabState extends State<CartTab> {
                 child: TextField(
                   controller: ctl,
                   textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(hintText: 'Masukkan kode'),
+                  decoration: InputDecoration(hintText: tr('Masukkan kode')),
                   onSubmitted: s.applyVoucher,
                 ),
               ),
@@ -258,6 +261,10 @@ class _Summary extends StatelessWidget {
         row('Subtotal', rp(p.subtotal)),
         if (p.multiBuy > 0)
           row('Diskon Beli 3', '-${rp(p.multiBuy)}', color: C.good),
+        if (p.tier > 0)
+          row('Diskon jumlah', '-${rp(p.tier)}', color: C.good),
+        if (p.vip > 0)
+          row('Harga member', '-${rp(p.vip)}', color: C.good),
         if (p.voucherDiscount > 0)
           row('Voucher', '-${rp(p.voucherDiscount)}', color: C.good),
         row('Ongkir', p.delivery == 0 ? 'Gratis' : rp(p.delivery)),
@@ -405,12 +412,30 @@ class OrderPlacedScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text('${o.id} · ${o.storeName}', style: tMuted),
                 const SizedBox(height: 4),
-                Text('Perkiraan tiba $sampleEtaMinutes menit (contoh)',
-                    style: tBold),
+                if (o.status == OrderStatus.pendingPayment) ...[
+                  const Text('Menunggu transfer dikonfirmasi penjual',
+                      style: tBold),
+                  const SizedBox(height: 8),
+                  Panel(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Transfer ${rp(o.pricing.total)} ke:',
+                              style: tMuted),
+                          const Text(sampleBankAccount, style: tBold),
+                          const SizedBox(height: 4),
+                          const Text(
+                              'Di demo ini penjual mengonfirmasi lewat tampilan Admin. Tidak ada uang yang berpindah.',
+                              style: tMuted),
+                        ]),
+                  ),
+                ] else
+                  Text('Perkiraan tiba $sampleEtaMinutes menit (contoh)',
+                      style: tBold),
                 const SizedBox(height: 4),
                 Text('Total ${rp(o.pricing.total)} · ${o.payment}', style: tMuted),
                 const Spacer(),
-                BigButton('Lacak pesanan',
+                BigButton(o.waiting ? 'Lihat status pesanan' : 'Lacak pesanan',
                     onPressed: () => Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => TrackingScreen(o)))),
                 const SizedBox(height: 8),
@@ -453,13 +478,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
   TrackState state() {
     final o = widget.o;
     final elapsed =
-        DateTime.now().difference(o.placedAt).inMilliseconds / 1000.0;
+        DateTime.now().difference(o.trackStart).inMilliseconds / 1000.0;
     return trackAt(elapsed, o.demoSeconds, forceLate: o.late);
   }
 
   @override
   Widget build(BuildContext context) {
     final o = widget.o;
+    AppScope.of(context); // rebuild when the admin changes the status
+    if (o.waiting) return OrderWaitingView(o);
     final st = state();
     const names = [
       'Pesanan diterima',
@@ -692,7 +719,7 @@ class _ReportScreenState extends State<ReportScreen> {
         TextField(
           controller: note,
           maxLines: 3,
-          decoration: const InputDecoration(hintText: 'Ceritakan singkat (opsional)'),
+          decoration: InputDecoration(hintText: tr('Ceritakan singkat (opsional)')),
         ),
         const SizedBox(height: 10),
         const Text('Demo: tidak ada pengembalian dana sungguhan.', style: tMuted),
@@ -756,6 +783,8 @@ class OrdersTab extends StatelessWidget {
     return SafeArea(
       child: ListView(padding: const EdgeInsets.all(16), children: [
         const Text('Pesanan', style: tH2),
+        const Text('Status diperbarui setelah penjual mengonfirmasi transfer.',
+            style: tMuted),
         const SizedBox(height: 12),
         for (final o in s.history)
           Padding(
@@ -791,7 +820,9 @@ class OrdersTab extends StatelessWidget {
                     Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                       Text(rp(o.pricing.total),
                           style: const TextStyle(fontWeight: FontWeight.w800)),
-                      Ribbon(o.sample ? 'Selesai' : 'Lacak'),
+                      Ribbon(statusLabel(o),
+                          color: o.waiting ? C.warnBg : null,
+                          ink: o.waiting ? C.warnInk : null),
                     ]),
                   ]),
                 ),
@@ -814,17 +845,42 @@ class ProfileTab extends StatelessWidget {
       child: ListView(padding: const EdgeInsets.all(16), children: [
         const Text('Profil', style: tH2),
         const SizedBox(height: 12),
-        const Panel(
-          child: Row(children: [
-            CircleAvatar(radius: 24, backgroundColor: C.tint, child: Icon(Icons.person, color: C.pri)),
-            SizedBox(width: 12),
-            Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Tamu (contoh)', style: tBold),
-                      Text('Demo tanpa login', style: tMuted),
-                    ])),
+        Panel(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const CircleAvatar(
+                  radius: 24,
+                  backgroundColor: C.tint,
+                  child: Icon(Icons.person, color: C.pri)),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(s.signedIn ? s.customer.name : 'Tamu (contoh)',
+                        style: tBold),
+                    Text(
+                        s.signedIn
+                            ? '${s.customer.phone}${s.customer.vip ? ' · VIP' : ''}'
+                            : 'Masuk untuk melihat harga spesial & pesananmu.',
+                        style: tMuted),
+                  ])),
+            ]),
+            const SizedBox(height: 12),
+            s.signedIn
+                ? BigButton('Keluar', secondary: true, onPressed: s.signOut)
+                : BigButton('Masuk / Daftar',
+                    onPressed: () => showSignIn(context)),
+          ]),
+        ),
+        const SizedBox(height: 12),
+        Panel(
+          child: Column(children: [
+            _kv('Bahasa', Row(mainAxisSize: MainAxisSize.min, children: const [LangChips()])),
+            const Divider(),
+            _kv('Cara bayar', Text(s.payment, style: tBold)),
+            const Divider(),
+            _kv('Zona waktu', const Text('Asia/Jakarta (UTC+7)', style: tBold)),
           ]),
         ),
         const SizedBox(height: 16),
@@ -846,7 +902,7 @@ class ProfileTab extends StatelessWidget {
                     onTap: () => s.setAddress(a)),
               ),
               IconButton(
-                  tooltip: 'Hapus alamat',
+                  tooltip: tr('Hapus alamat'),
                   onPressed: () => s.removeAddress(a),
                   icon: const Icon(Icons.delete_outline)),
             ]),
@@ -864,6 +920,22 @@ class ProfileTab extends StatelessWidget {
               .push(MaterialPageRoute(builder: (_) => const NoticesScreen())),
         ),
         ListTile(
+          key: const ValueKey('contact-sales-tile'),
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.chat_outlined),
+          title: const Text('Hubungi penjual (WhatsApp)', style: tBold),
+          trailing: const Icon(Icons.open_in_new, size: 18),
+          onTap: () => contactSalesperson(context),
+        ),
+        ListTile(
+          key: const ValueKey('switch-admin'),
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.admin_panel_settings_outlined),
+          title: const Text('Demo: buka tampilan Admin', style: tBold),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => s.setRole(AppRole.admin),
+        ),
+        ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.info_outline),
           title: const Text('Tentang demo ini', style: tBold),
@@ -877,6 +949,14 @@ class ProfileTab extends StatelessWidget {
     );
   }
 }
+
+Widget _kv(String k, Widget v) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        Expanded(child: Text(k, style: tMuted)),
+        v,
+      ]),
+    );
 
 /// Hidden panel for the person running the demo. Opened by a long press on the
 /// wordmark on Home.
@@ -954,7 +1034,7 @@ class _AddAddressDialogState extends State<_AddAddressDialog> {
         content: TextField(
           controller: ctl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Tulis alamat'),
+          decoration: InputDecoration(hintText: tr('Tulis alamat')),
         ),
         actions: [
           TextButton(

@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
+import 'consumer_extras.dart';
 import 'logo.dart';
 import 'state.dart';
 import 'ui.dart';
@@ -43,7 +45,13 @@ class _IntroScreenState extends State<IntroScreen> {
       backgroundColor: C.bg,
       body: SafeArea(
         child: Column(children: [
-          const Expanded(child: Center(child: BrandLogo(size: 150))),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Align(alignment: Alignment.centerRight, child: LangChips()),
+          ),
+          const Expanded(
+              child: Center(
+                  child: FittedBox(child: BrandLogo(size: 150)))),
           SizedBox(
             height: 120,
             child: PageView.builder(
@@ -67,7 +75,27 @@ class _IntroScreenState extends State<IntroScreen> {
               ),
           ]),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              alignment: WrapAlignment.center,
+              children: [
+                const Text('Demo:', style: tMuted),
+                SmallChip('Konsumen',
+                    key: const ValueKey('role-consumer'),
+                    on: s.role == AppRole.consumer,
+                    onTap: () => s.setRole(AppRole.consumer)),
+                SmallChip('Admin',
+                    key: const ValueKey('role-admin'),
+                    on: s.role == AppRole.admin,
+                    onTap: () => s.setRole(AppRole.admin)),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: BigButton('Mulai', onPressed: s.finishIntro),
           ),
           const Padding(

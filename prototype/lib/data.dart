@@ -23,6 +23,8 @@ class Product {
   final int rank; // lower = more popular
   final String brandId;
   final bool sample; // sample data, shown as "Contoh"
+  final String storage; // 'frozen' (-18 °C) or 'chilled' (2-6 °C)
+  final int? shelfLifeDays; // sample shelf life for chilled products
 
   const Product(
     this.id,
@@ -37,8 +39,11 @@ class Product {
     this.rank = 99,
     this.brandId = 'aice',
     this.sample = sampleData,
+    this.storage = 'frozen',
+    this.shelfLifeDays,
   });
 
+  bool get chilled => storage == 'chilled';
   bool get multiBuy => category == 'cone';
   int? get percentOff =>
       oldPrice == null ? null : (((oldPrice! - price) * 100) / oldPrice!).round();
@@ -51,6 +56,7 @@ const categories = <String, String>{
   'cup': 'Yoghurt',
   'drink': 'Minuman',
   'bundle': 'Paket',
+  'frozen': 'Makanan Beku',
 };
 
 /// Every sample product, for all brands.
@@ -98,6 +104,12 @@ const allProducts = <Product>[
       photo: 'cup-stroberi.webp', rank: 18),
   Product('cup-matcha', 'Yoghurt Matcha', 'cup', '100 ml', 9500,
       ribbon: 'New', photo: 'cup-matcha.webp', rank: 22),
+  // Chilled yogurt (sample). Kept cold, not frozen.
+  Product('cup-original', 'Yogurt Original 100ml', 'cup', '100 ml', 6500,
+      photo: 'cup-original.webp',
+      rank: 30,
+      storage: 'chilled',
+      shelfLifeDays: 28),
   // Minuman
   Product('drink-cokelat', 'Susu Cokelat Dingin', 'drink', '200 ml', 8000,
       photo: 'drink-cokelat.webp', rank: 11),
@@ -107,6 +119,13 @@ const allProducts = <Product>[
       photo: 'drink-matcha.webp', rank: 23),
   Product('drink-taro', 'Susu Taro Dingin', 'drink', '200 ml', 9000,
       oldPrice: 10000, photo: 'drink-taro.webp', rank: 24),
+  // Makanan beku (sample). Store at -18 °C.
+  Product('frozen-naget', 'Naget Ayam 250g', 'frozen', '250 g', 28000,
+      photo: 'frozen-naget.webp', rank: 31),
+  Product('frozen-tahu', 'Tahu Ikan Beku 400g', 'frozen', '400 g', 24000,
+      photo: 'frozen-tahu.webp', rank: 32),
+  Product('frozen-sosis', 'Sosis Ayam Beku 300g', 'frozen', '300 g', 26000,
+      photo: 'frozen-sosis.webp', rank: 33),
   // Paket
   Product('bundle-keluarga', 'Paket Keluarga (6 cone)', 'bundle', '6 x 80 ml',
       28500,

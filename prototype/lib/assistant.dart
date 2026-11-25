@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
 import 'data.dart';
 import 'format.dart';
 import 'pricing.dart';
@@ -308,13 +309,13 @@ class _AssistantScreenState extends State<AssistantScreen> {
                       controller: input,
                       textInputAction: TextInputAction.send,
                       onSubmitted: ask,
-                      decoration: const InputDecoration(
-                        hintText: 'Tulis pertanyaan...',
+                      decoration: InputDecoration(
+                        hintText: tr('Tulis pertanyaan...'),
                       ),
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Kirim',
+                    tooltip: tr('Kirim'),
                     onPressed: () => ask(input.text),
                     icon: const Icon(Icons.send_rounded, color: C.pri),
                   ),
@@ -393,7 +394,7 @@ class _Bubble extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Tambah ${p.name}',
+                          tooltip: tr('Tambah ${p.name}'),
                           onPressed: () {
                             s.add(p);
                             addedToCart(context, '${p.name} masuk keranjang');

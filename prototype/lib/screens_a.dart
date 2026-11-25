@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
 import 'data.dart';
 import 'format.dart';
 import 'intro.dart';
@@ -7,6 +8,8 @@ import 'assistant.dart';
 import 'motion.dart';
 import 'screens_b.dart';
 import 'screens_c.dart';
+import 'consumer_extras.dart';
+import 'admin.dart';
 import 'state.dart';
 import 'ui.dart';
 
@@ -24,7 +27,7 @@ void addedToCart(BuildContext context, String msg) {
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
-          label: 'Lihat keranjang',
+          label: tr('Lihat keranjang'),
           textColor: C.acc,
           onPressed: () {
             nav.popUntil((r) => r.isFirst);
@@ -60,7 +63,9 @@ class _RootState extends State<Root> {
     // No fake splash: the HTML page shows the splash while Flutter loads.
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
-      child: s.introSeen ? const Shell() : const IntroScreen(),
+      child: !s.introSeen
+          ? const IntroScreen()
+          : (s.role == AppRole.admin ? const AdminShell() : const Shell()),
     );
   }
 }
@@ -104,8 +109,8 @@ class _AddressScreenState extends State<AddressScreen> {
                   TextField(
                     controller: ctl,
                     onChanged: s.setAddress,
-                    decoration: const InputDecoration(
-                      hintText: 'Tulis alamat',
+                    decoration: InputDecoration(
+                      hintText: tr('Tulis alamat'),
                       prefixIcon: Icon(Icons.place_outlined),
                     ),
                   ),
@@ -184,10 +189,10 @@ class Shell extends StatelessWidget {
           indicatorColor: C.tint,
           onDestinationSelected: (v) => tabIndex.value = v,
           destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Beranda',
+            NavigationDestination(
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home),
+              label: tr('Beranda'),
             ),
             NavigationDestination(
               icon: Badge(
@@ -199,12 +204,12 @@ class Shell extends StatelessWidget {
                 child: const Icon(Icons.shopping_cart_outlined),
               ),
               selectedIcon: const Icon(Icons.shopping_cart),
-              label: 'Keranjang',
+              label: tr('Keranjang'),
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long),
-              label: 'Pesanan',
+            NavigationDestination(
+              icon: const Icon(Icons.receipt_long_outlined),
+              selectedIcon: const Icon(Icons.receipt_long),
+              label: tr('Pesanan'),
             ),
             NavigationDestination(
               icon: Badge(
@@ -213,7 +218,7 @@ class Shell extends StatelessWidget {
                 child: const Icon(Icons.person_outline),
               ),
               selectedIcon: const Icon(Icons.person),
-              label: 'Profil',
+              label: tr('Profil'),
             ),
           ],
         ),
@@ -940,7 +945,10 @@ class _HomeTabState extends State<HomeTab> {
         padding: EdgeInsets.zero,
         children: [
           _header(context),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          if (!AppScope.of(context).signedIn)
+            const Padding(padding: pad, child: WelcomeBanner()),
+          const SizedBox(height: 12),
           sec(
             Column(
               children: [
@@ -1092,6 +1100,20 @@ class _HomeTabState extends State<HomeTab> {
           sec(
             Column(
               children: [
+                const Padding(
+                  padding: pad,
+                  child: SectionTitle(
+                      'Rekomendasi untukmu',
+                      sub: 'Berdasarkan popularitas dan riwayat belanjamu'),
+                ),
+                shelf(context, 'rec', recommendedFor(AppScope.of(context))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          sec(
+            Column(
+              children: [
                 Padding(
                   padding: pad,
                   child: SectionTitle(
@@ -1150,6 +1172,8 @@ class _HomeTabState extends State<HomeTab> {
               children: [
                 const Padding(padding: pad, child: SectionTitle('Paket hemat')),
                 shelf(context, 'bundle', bundles),
+                const SizedBox(height: 8),
+                Padding(padding: pad, child: PromoDeals(bundles)),
               ],
             ),
           ),
@@ -1220,12 +1244,12 @@ class _SearchScreenState extends State<SearchScreen> {
           autofocus: widget.query.isEmpty && widget.category == null,
           onChanged: (v) => setState(() => q = v),
           decoration: InputDecoration(
-            hintText: 'Cari es krim favoritmu',
+            hintText: tr('Cari es krim favoritmu'),
             prefixIcon: const Icon(Icons.search),
             suffixIcon: q.isEmpty
                 ? null
                 : IconButton(
-                    tooltip: 'Hapus',
+                    tooltip: tr('Hapus'),
                     icon: const Icon(Icons.close),
                     onPressed: () => setState(() {
                       ctl.clear();
@@ -1491,12 +1515,14 @@ class _ProductScreenState extends State<ProductScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: const [
-              _Badge('Halal [no. contoh]'),
-              _Badge('BPOM [no. contoh]'),
-              _Badge('Simpan -18°C'),
+            children: [
+              const _Badge('Halal [no. contoh]'),
+              const _Badge('BPOM [no. contoh]'),
+              _Badge(p.chilled ? 'Simpan dingin 2-6°C' : 'Simpan -18°C'),
             ],
           ),
+          const SizedBox(height: 12),
+          ProductInfo(p),
           if (hasPacks && !p.soldOut) ...[
             const SizedBox(height: 14),
             const Text('Pilih isi', style: tH3),
@@ -1541,7 +1567,9 @@ class _ProductScreenState extends State<ProductScreen> {
           const Text('Deskripsi', style: tH3),
           const SizedBox(height: 4),
           Text(
-            '${p.name}, ${p.size}. Contoh deskripsi untuk demo. Simpan di freezer -18°C dan jangan dibekukan ulang setelah meleleh.',
+            p.chilled
+                ? '${p.name}, ${p.size}. Contoh deskripsi untuk demo. Simpan di kulkas 2-6°C dan habiskan sebelum tanggal kedaluwarsa.'
+                : '${p.name}, ${p.size}. Contoh deskripsi untuk demo. Simpan di freezer -18°C dan jangan dibekukan ulang setelah meleleh.',
             style: const TextStyle(color: C.muted, height: 1.4),
           ),
           const SizedBox(height: 18),

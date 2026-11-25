@@ -34,6 +34,55 @@ const vouchers = <Voucher>[
 /// Sample numbers, kept here only (guidebook: promises in one config).
 const mixPackPrices = <int, int>{6: 31000, 8: 41000, 12: 60000};
 
+/// Quantity tiers for the non-cone categories: (minimum units of ONE product,
+/// percent off that product's line). Cones keep their mix and match rule
+/// (see [Pricing.multiBuyQty]). Sample numbers, kept here only.
+const tierRules = <String, List<(int, int)>>{
+  'stick': [(6, 5), (12, 8)],
+  'tub': [(2, 5), (4, 8)],
+  'cup': [(4, 5), (10, 8)],
+  'frozen': [(4, 5), (10, 8)],
+  'drink': [(6, 5), (12, 10)],
+};
+
+/// Extra percent off for VIP demo accounts ("harga member"). Sample number.
+const vipPercent = 5;
+
+/// Units in one carton per category, and the percent off when you buy a whole
+/// carton. Shown as the "Harga 1 karton" line. Sample numbers.
+const cartonUnits = <String, int>{
+  'cone': 12,
+  'stick': 12,
+  'tub': 6,
+  'cup': 12,
+  'drink': 12,
+  'bundle': 4,
+  'frozen': 10,
+};
+const cartonPercent = 8;
+
+int cartonPrice(Product p) =>
+    (p.price * (cartonUnits[p.category] ?? 1) * (100 - cartonPercent)) ~/ 100;
+
+/// Text for the tier line on a product, or null when it has none.
+String? tierText(Product p) {
+  if (p.multiBuy) {
+    return '≥${Pricing.multiBuyQty} cone campur rasa -${Pricing.multiBuyPercent}%';
+  }
+  final t = tierRules[p.category];
+  if (t == null) return null;
+  return [for (final r in t) '≥${r.$1} -${r.$2}%'].join(' · ');
+}
+
+/// Percent off for [qty] units of one non-cone product.
+int tierPercent(String category, int qty) {
+  var best = 0;
+  for (final r in tierRules[category] ?? const <(int, int)>[]) {
+    if (qty >= r.$1) best = r.$2;
+  }
+  return best;
+}
+
 enum VoucherStatus { none, ok, wrong, notMet }
 
 class VoucherResult {
@@ -71,29 +120,37 @@ class Pricing {
   final int multiBuy;
   final int voucherDiscount;
   final int delivery;
+  final int tier; // quantity tier discount (non-cone products)
+  final int vip; // VIP member discount
   const Pricing({
     required this.subtotal,
     required this.multiBuy,
     required this.voucherDiscount,
     required this.delivery,
+    this.tier = 0,
+    this.vip = 0,
   });
 
   bool get belowMinOrder => subtotal > 0 && subtotal < minOrder;
   int get smallFee => belowMinOrder ? smallOrderFee : 0;
-  int get total => subtotal - multiBuy - voucherDiscount + delivery + smallFee;
-  int get afterMultiBuy => subtotal - multiBuy;
+  int get total =>
+      subtotal - multiBuy - tier - vip - voucherDiscount + delivery + smallFee;
+  int get afterMultiBuy => subtotal - multiBuy - tier - vip;
   int get toMinOrder => max(0, minOrder - subtotal);
   int get toFreeDelivery => max(0, freeThreshold - afterMultiBuy);
   double get freeProgress => min(1.0, afterMultiBuy / freeThreshold);
 }
 
 /// Cones mix and match: 3 or more cones together get 10% off the cones.
-Pricing computePricing(Map<Product, int> lines, Voucher? voucher) {
+Pricing computePricing(Map<Product, int> lines, Voucher? voucher,
+    {bool vip = false}) {
   var subtotal = 0;
   var coneTotal = 0;
   var coneQty = 0;
+  var tier = 0;
   lines.forEach((p, q) {
     subtotal += p.price * q;
+    if (!p.multiBuy) tier += (p.price * q * tierPercent(p.category, q)) ~/ 100;
     if (p.multiBuy) {
       coneTotal += p.price * q;
       coneQty += q;
@@ -102,7 +159,8 @@ Pricing computePricing(Map<Product, int> lines, Voucher? voucher) {
   final multiBuy = coneQty >= Pricing.multiBuyQty
       ? (coneTotal * Pricing.multiBuyPercent) ~/ 100
       : 0;
-  final base = subtotal - multiBuy;
+  final vipOff = vip ? ((subtotal - multiBuy - tier) * vipPercent) ~/ 100 : 0;
+  final base = subtotal - multiBuy - tier - vipOff;
 
   var disc = 0;
   var freeShip = false;
@@ -123,5 +181,7 @@ Pricing computePricing(Map<Product, int> lines, Voucher? voucher) {
     multiBuy: multiBuy,
     voucherDiscount: disc,
     delivery: fee,
+    tier: tier,
+    vip: vipOff,
   );
 }

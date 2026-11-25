@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 
 /// Turn off looping animations (floating photos, slow zoom). Tests set this to
 /// false so `pumpAndSettle` can finish. The app also skips loops when the

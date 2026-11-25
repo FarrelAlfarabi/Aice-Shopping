@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'i18n.dart';
 import 'ui.dart';
 
 /// Placeholder brand logo, drawn in code. It is NOT the real Aice logo.
