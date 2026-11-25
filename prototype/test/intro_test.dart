@@ -14,7 +14,9 @@ void main() {
   setUpAll(() => loopMotion = false);
   assistantTests();
 
-  testWidgets('intro shows first, Mulai leads straight to Home', (tester) async {
+  testWidgets('intro shows first, Mulai leads straight to Home', (
+    tester,
+  ) async {
     await tester.pumpWidget(const AiceApp());
     await tester.pump(const Duration(milliseconds: 400)); // intro fades in
     await tester.pump();
@@ -44,9 +46,11 @@ void main() {
   });
 
   testWidgets('slides can be swiped', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: AppScope(state: AppState(), child: const IntroScreen()),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppScope(state: AppState(), child: const IntroScreen()),
+      ),
+    );
     expect(find.text(introSlides[0].title), findsOneWidget);
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
@@ -65,26 +69,32 @@ void main() {
 
   testWidgets('checkout asks for an address when none is set', (tester) async {
     final st = AppState()..add(productById('tub-stroberi'));
-    await tester.pumpWidget(AppScope(
-      state: st,
-      child: const MaterialApp(home: CheckoutScreen()),
-    ));
+    await tester.pumpWidget(
+      AppScope(
+        state: st,
+        child: const MaterialApp(home: CheckoutScreen()),
+      ),
+    );
     expect(find.text('Alamat belum diatur'), findsOneWidget);
-    await tester.tap(find.textContaining('Bayar'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Bayar'));
     await tester.pumpAndSettle();
     expect(find.byType(AddressScreen), findsOneWidget);
     expect(find.byType(ProcessingScreen), findsNothing);
   });
 
-  testWidgets('adding to cart shows a snackbar that opens the cart',
-      (tester) async {
+  testWidgets('adding to cart shows a snackbar that opens the cart', (
+    tester,
+  ) async {
     final st = AppState()..finishIntro();
     await tester.pumpWidget(AppScope(state: st, child: const AiceApp2()));
     await tester.pump(const Duration(milliseconds: 1200));
     await tester.pumpAndSettle();
     // Product page path: open a product and tap Tambah.
-    Navigator.of(tester.element(find.byType(Shell)))
-        .push(MaterialPageRoute(builder: (_) => ProductScreen(productById('cone-vanila'))));
+    Navigator.of(tester.element(find.byType(Shell))).push(
+      MaterialPageRoute(
+        builder: (_) => ProductScreen(productById('cone-vanila')),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.textContaining('Tambah').first);
     await tester.pump();
@@ -106,15 +116,19 @@ class AiceApp2 extends StatelessWidget {
 
 // Tanya AI is scripted: fixed keywords give fixed answers.
 void assistantTests() {
-  testWidgets('Tanya AI answers a party question with products', (tester) async {
+  testWidgets('Tanya AI answers a party question with products', (
+    tester,
+  ) async {
     await tester.pumpWidget(const AiceApp());
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('Mulai'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Tanya AI'));
+    await tester.tap(find.text('Tanya AI').first);
     await tester.pumpAndSettle();
     await tester.enterText(
-        find.byKey(const ValueKey('assistant-input')), 'es krim buat pesta');
+      find.byKey(const ValueKey('assistant-input')),
+      'es krim buat pesta',
+    );
     await tester.testTextInput.receiveAction(TextInputAction.send);
     await tester.pump(const Duration(milliseconds: 800));
     await tester.pumpAndSettle();

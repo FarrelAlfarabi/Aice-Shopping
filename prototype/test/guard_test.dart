@@ -22,15 +22,22 @@ void main() {
 
   test('every category has several listings', () {
     for (final c in categories.keys) {
-      expect(catalog.where((p) => p.category == c).length,
-          greaterThanOrEqualTo(3),
-          reason: c);
+      expect(
+        catalog.where((p) => p.category == c).length,
+        greaterThanOrEqualTo(3),
+        reason: c,
+      );
     }
   });
 
   test('no banned claims in app copy', () {
     // The disclaimer itself is allowed; any other "resmi" is a claim.
-    const allowed = 'bukan aplikasi resmi aice';
+    // The same disclaimer in English and Chinese is allowed too.
+    const allowed = [
+      'bukan aplikasi resmi aice',
+      'not an official aice app',
+      '非 aice 官方应用',
+    ];
     final banned = [
       'resmi',
       'mitra resmi',
@@ -45,7 +52,10 @@ void main() {
       File('web/index.html'),
     ];
     for (final f in files) {
-      final text = f.readAsStringSync().toLowerCase().replaceAll(allowed, '');
+      var text = f.readAsStringSync().toLowerCase();
+      for (final a in allowed) {
+        text = text.replaceAll(a, '');
+      }
       for (final w in banned) {
         // "dana " also matches "kembalikan dana " (refund), which is allowed.
         final hits = RegExp(RegExp.escape(w)).allMatches(text).where((m) {
@@ -62,8 +72,11 @@ void main() {
 
   test('every product photo file exists', () {
     for (final p in catalog.where((p) => p.photo != null)) {
-      expect(File('assets/products/${p.photo}').existsSync(), isTrue,
-          reason: p.photo);
+      expect(
+        File('assets/products/${p.photo}').existsSync(),
+        isTrue,
+        reason: p.photo,
+      );
     }
   });
 }

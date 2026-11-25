@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  url_launcher: ^6.3.2
 
   # Use with the CupertinoIcons class for iOS style icons.
 
@@ -65,3 +66,7 @@ flutter:
           weight: 700
         - asset: assets/fonts/Roboto-Black.ttf
           weight: 900
+    # Only the Chinese characters the app uses (tool/make_zh_font.py).
+    - family: ZhSubset
+      fonts:
+        - asset: assets/fonts/ZhSubset.ttf
