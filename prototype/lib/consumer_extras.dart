@@ -361,7 +361,7 @@ class _SignInSheetState extends State<SignInSheet> {
               style: TextButton.styleFrom(padding: EdgeInsets.zero),
               onPressed: () => contactSalesperson(context),
               icon: const Icon(Icons.chat_outlined, size: 18),
-              label: const Text('Hubungi penjual (WhatsApp)'),
+              label: const Text('Hubungi sales (WhatsApp)'),
             ),
             OutlinedButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -397,7 +397,7 @@ Future<void> contactSalesperson(BuildContext context) async {
   final msg = ScaffoldMessenger.of(context);
   if (!await confirmAction(
     context,
-    title: 'Buka WhatsApp?',
+    title: 'Buka WhatsApp sales?',
     body:
         'Ini hanya tautan contoh ke penjual. Aplikasi tidak mengirim pesan apa pun.',
     yes: 'Buka',
@@ -489,7 +489,7 @@ class OrderWaitingView extends StatelessWidget {
           PayInstructions(o),
           const SizedBox(height: 12),
           BigButton(
-            'Hubungi penjual (WhatsApp)',
+            'Hubungi sales (WhatsApp)',
             secondary: true,
             onPressed: () => contactSalesperson(context),
           ),

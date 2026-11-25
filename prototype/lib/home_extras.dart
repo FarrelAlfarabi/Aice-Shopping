@@ -214,8 +214,8 @@ class MiniCart extends StatelessWidget {
                   ),
                   Text(
                     free
-                        ? 'Gratis ongkir tercapai'
-                        : 'Belanja ${rp(p.toFreeDelivery)} lagi untuk gratis ongkir',
+                        ? 'Gratis ongkir terpenuhi'
+                        : 'Tambah ${rp(p.toFreeDelivery)} lagi untuk gratis ongkir',
                     style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                   if (!free)

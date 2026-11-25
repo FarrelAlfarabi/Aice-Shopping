@@ -1216,7 +1216,7 @@ class ProfileTab extends StatelessWidget {
               ListRow(
                 key: const ValueKey('contact-sales-tile'),
                 icon: Icons.chat_outlined,
-                title: 'Hubungi penjual (WhatsApp)',
+                title: 'Hubungi sales (WhatsApp)',
                 external: true,
                 onTap: () => contactSalesperson(context),
               ),

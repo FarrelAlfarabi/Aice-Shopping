@@ -437,7 +437,7 @@ class _HomeTabState extends State<HomeTab> {
                           Padding(
                             padding: const EdgeInsets.only(left: 22),
                             child: Text(
-                              s.store.name,
+                              '${s.store.name} · ${s.store.distance}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: tMuted,
@@ -474,6 +474,18 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              IconButton(
+                key: const ValueKey('home-bell'),
+                tooltip: tr('Notifikasi'),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NoticesScreen()),
+                ),
+                icon: Badge(
+                  isLabelVisible: s.unreadCount > 0,
+                  label: Text('${s.unreadCount}'),
+                  child: const Icon(Icons.notifications_none, color: C.ink),
                 ),
               ),
             ],
