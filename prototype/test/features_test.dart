@@ -228,24 +228,33 @@ void main() {
   ) async {
     final st = AppState()..finishIntro();
     await open(tester, const Scaffold(body: ProfileTab()), state: st);
+    // Tambah opens the demo map: search a place, then use it.
     await tester.tap(find.text('Tambah'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Jl. Tes Contoh 9');
-    await tester.tap(find.text('Simpan'));
+    await tester.enterText(
+      find.byKey(const ValueKey('map-search')),
+      'puri asri',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('map-hit-0')));
     await tester.pumpAndSettle();
-    expect(st.saved, contains('Jl. Tes Contoh 9'));
+    await tester.tap(find.byKey(const ValueKey('map-use')));
+    await tester.pumpAndSettle();
+    final added = st.saved.last;
+    expect(added, endsWith('Kembangan, Jakarta Barat 11610'));
+    expect(st.address, added);
     await tester.scrollUntilVisible(
-      find.text('Jl. Tes Contoh 9'),
+      find.text(added),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Jl. Tes Contoh 9'), findsOneWidget);
+    expect(find.text(added), findsOneWidget);
 
     await tester.ensureVisible(find.byTooltip('Hapus alamat').last);
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Hapus alamat').last);
     await tester.pumpAndSettle();
-    expect(st.saved, isNot(contains('Jl. Tes Contoh 9')));
+    expect(st.saved, isNot(contains(added)));
 
     await tester.scrollUntilVisible(
       find.widgetWithText(InkWell, 'Notifikasi'),

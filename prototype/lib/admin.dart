@@ -867,7 +867,7 @@ class _AnalysisTab extends StatelessWidget {
         if (id == null) continue;
         final p = catalog.where((x) => x.id == id).firstOrNull;
         if (p == null) continue;
-        byCat[p.category] = (byCat[p.category] ?? 0) + l.qty * l.price;
+        byCat[p.group] = (byCat[p.group] ?? 0) + l.qty * l.price;
         byProduct[p.name] = (byProduct[p.name] ?? 0) + l.qty;
       }
     }

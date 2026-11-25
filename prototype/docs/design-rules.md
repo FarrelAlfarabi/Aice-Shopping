@@ -24,3 +24,17 @@ To swap a photo: replace the file with a 400 x 400 WebP on a pure white backgrou
 
 ## Screenshots
 `SHOTS=1 flutter test test/shots_test.dart --update-goldens` writes every consumer screen at 360 px in ID, EN and ZH to `test/shots/` (git-ignored).
+
+## Categories
+- 7 shelves, in this order: Yogurt, Frozen Food, Es Krim, Sayur, Sembako, Minuman, Snack (`categories` in `lib/data.dart`).
+- Each product keeps its kind (`category`: cone, stick, icecup, tub, mochi, bundle, cup, frozen, drink, veg, staple, snack). `kindGroup` maps a kind to its shelf. Inside Es Krim the search screen shows kind chips (Cone, Stik, Cup, Tub, Mochi, Paket).
+- Sayur, Sembako, Snack and some drinks are brand `toko` (the store's own goods), never `aice`. A guard test checks this.
+- Cold-chain tags and the "Garansi Tidak Meleleh" row show only for `frozen` and `chilled` storage. Sayur is `fresh`, Sembako and Snack are `room`.
+- New items use flat drawn tiles made by `tool/make_tiles.py` (Pillow, 400 px WebP on white, about 4 KB each). Swap any of them for a real photo the same way as above.
+
+## Map address picker (DEMO)
+- `lib/map_picker.dart` (screen) and `lib/places.dart` (data). Opened from "Alamat dan toko" > "Pilih di peta" and from Profil > Alamat tersimpan > Tambah.
+- A drawn 8 x 8 km map of Jakarta Barat. No real map service, API key or location permission.
+- Search box with live suggestions, drag and pinch or wheel to move and zoom, centre pin, "Lokasi saya" button.
+- The address, nearest store, distance and delivery time update as the pin moves. Pins more than 5 km from every store cannot be saved.
+- "Gunakan lokasi ini" saves the address to Alamat tersimpan, picks the nearest store and shows the distance on Beranda.

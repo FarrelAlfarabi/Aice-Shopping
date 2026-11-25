@@ -23,6 +23,13 @@ Map<String, StockInfo> seedStock() {
   m['tub-stroberi'] = StockInfo(28, 10);
   m['cup-matcha'] = StockInfo(40, 20, nearExpiry: true);
   m['stik-cokelat'] = StockInfo(96, 30);
+  // Everyday shelves: fresh greens sell out fast, rice moves in sacks.
+  m['veg-bayam'] = StockInfo(12, 15, nearExpiry: true); // low, near expiry
+  m['veg-tomat'] = StockInfo(34, 15);
+  m['staple-beras'] = StockInfo(26, 10);
+  m['staple-minyak'] = StockInfo(8, 12); // low
+  m['snack-wafer'] = StockInfo(72, 24);
+  m['drink-air'] = StockInfo(140, 48);
   return m;
 }
 

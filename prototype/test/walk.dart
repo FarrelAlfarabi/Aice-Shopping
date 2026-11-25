@@ -1,3 +1,4 @@
+import 'package:aice_shopping/map_picker.dart';
 import 'package:aice_shopping/accounts.dart';
 import 'package:aice_shopping/admin.dart';
 import 'package:aice_shopping/assistant.dart';
@@ -148,6 +149,9 @@ Future<(Set<String>, List<String>)> walk(
     'frozen-naget',
     'bundle-keluarga',
     'cone-stroberi',
+    'veg-bayam',
+    'staple-beras',
+    'drink-kopi',
   ]) {
     where = 'ProductScreen(productById(id)))';
     await push(ProductScreen(productById(id)));
@@ -160,6 +164,32 @@ Future<(Set<String>, List<String>)> walk(
   await back();
   where = 'const SearchScreen(category: frozen))';
   await push(const SearchScreen(category: 'frozen'));
+  await back();
+  where = 'const SearchScreen(category: icecream))';
+  await push(const SearchScreen(category: 'icecream'));
+  await back();
+  for (final c in ['sayur', 'sembako', 'snack', 'yogurt']) {
+    where = 'SearchScreen(category: $c)';
+    await push(SearchScreen(category: c));
+    await back();
+  }
+  where = 'const MapPickerScreen())';
+  await push(const MapPickerScreen());
+  await tester.tap(find.byKey(const ValueKey('map-my-location')));
+  await settle();
+  await tester.enterText(find.byKey(const ValueKey('map-search')), 'jl');
+  await settle();
+  await tester.enterText(find.byKey(const ValueKey('map-search')), 'zzz');
+  await settle();
+  await tester.tap(find.byKey(const ValueKey('map-zoom-out')));
+  await tester.tap(find.byKey(const ValueKey('map-zoom-out')));
+  await tester.tap(find.byKey(const ValueKey('map-zoom-out')));
+  await settle();
+  await tester.drag(
+    find.byKey(const ValueKey('map-canvas')),
+    const Offset(-600, -600),
+  );
+  await settle(); // far corner: out of delivery area notice
   await back();
   where = 'const MixPackScreen())';
   await push(const MixPackScreen());

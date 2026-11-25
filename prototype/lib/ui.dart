@@ -131,6 +131,12 @@ IconData iconFor(String category) {
       return Icons.card_giftcard_outlined;
     case 'frozen':
       return Icons.set_meal_outlined;
+    case 'veg':
+      return Icons.eco_outlined;
+    case 'staple':
+      return Icons.rice_bowl_outlined;
+    case 'snack':
+      return Icons.cookie_outlined;
     default:
       return Icons.icecream_outlined;
   }
@@ -145,6 +151,11 @@ const photoByCategory = {
   'drink': 'drink-cokelat.webp',
   'bundle': 'bundle-keluarga.webp',
   'frozen': 'frozen-naget.webp',
+  'mochi': 'mochi-vanila.webp',
+  'icecup': 'icup-cokelat.webp',
+  'veg': 'veg-bayam.webp',
+  'staple': 'staple-beras.webp',
+  'snack': 'snack-keripik.webp',
 };
 
 /// Soft pastel behind each photo. The photos have a pure white background, so
@@ -181,6 +192,34 @@ const _tileByPhoto = {
   'frozen-naget.webp': Color(0xFFFFF0D9),
   'frozen-tahu.webp': Color(0xFFDFF3F5),
   'frozen-sosis.webp': Color(0xFFFFE6E1),
+  // Drawn tiles for the everyday shelves.
+  'mochi-vanila.webp': Color(0xFFFFF3DD),
+  'mochi-stroberi.webp': Color(0xFFFFE6EE),
+  'mochi-matcha.webp': Color(0xFFE6F3DD),
+  'icup-cokelat.webp': Color(0xFFF3E7DD),
+  'icup-vanila.webp': Color(0xFFFFF5D6),
+  'yog-drink.webp': Color(0xFFFFE6EE),
+  'yog-greek.webp': Color(0xFFE9EEFF),
+  'frozen-dimsum.webp': Color(0xFFFFF1DE),
+  'frozen-kentang.webp': Color(0xFFFFEBE6),
+  'frozen-bakso.webp': Color(0xFFE5F1FB),
+  'drink-teh.webp': Color(0xFFFFF0DC),
+  'drink-air.webp': Color(0xFFE5F3FF),
+  'drink-kopi.webp': Color(0xFFF3E9DF),
+  'veg-bayam.webp': Color(0xFFE4F4E2),
+  'veg-kangkung.webp': Color(0xFFEAF5DE),
+  'veg-wortel.webp': Color(0xFFFFEEDD),
+  'veg-tomat.webp': Color(0xFFFFE6E3),
+  'veg-brokoli.webp': Color(0xFFE2F2E2),
+  'staple-beras.webp': Color(0xFFF5F0E2),
+  'staple-gula.webp': Color(0xFFEAF0F8),
+  'staple-tepung.webp': Color(0xFFF8ECE6),
+  'staple-minyak.webp': Color(0xFFFFF6D8),
+  'staple-telur.webp': Color(0xFFF9EEDF),
+  'snack-keripik.webp': Color(0xFFFFE9E3),
+  'snack-mete.webp': Color(0xFFF8EEE0),
+  'snack-wafer.webp': Color(0xFFF6EADD),
+  'snack-biskuit.webp': Color(0xFFFAF0DE),
 };
 
 Color tileColor(String file) => _tileByPhoto[file] ?? C.tint;

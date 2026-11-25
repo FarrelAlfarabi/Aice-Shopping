@@ -7,6 +7,7 @@ import 'data.dart';
 import 'format.dart';
 import 'membership.dart';
 import 'intro.dart';
+import 'map_picker.dart';
 import 'motion.dart';
 import 'screens_b.dart';
 import 'screens_c.dart';
@@ -123,6 +124,21 @@ class _AddressScreenState extends State<AddressScreen> {
                 children: [
                   const Text('Alamat pengiriman', style: tH3),
                   const SizedBox(height: 8),
+                  ListGroup(
+                    children: [
+                      ListRow(
+                        key: const ValueKey('open-map'),
+                        icon: Icons.map_outlined,
+                        title: 'Pilih di peta',
+                        subtitle: 'Cari alamat atau geser pin',
+                        onTap: () async {
+                          final a = await openMapPicker(context);
+                          if (a != null) ctl.text = a;
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Sp.m),
                   TextField(
                     controller: ctl,
                     onChanged: s.setAddress,
@@ -318,19 +334,19 @@ class _HomeTabState extends State<HomeTab> {
       'Cone apa saja, campur rasa',
       'cone-vanila.webp',
       [Color(0xFF0B5FD8), Color(0xFF4A93FF)],
-      'cone',
+      'icecream',
     ),
     _Slide(
       'Paket Pesta hemat',
       'Hemat sampai Rp15.000',
       'bundle-keluarga.webp',
       [Color(0xFF0A3F96), Color(0xFF2F6BE0)],
-      'bundle',
+      'icecream',
     ),
     _Slide('Gratis ongkir', 'Belanja di atas Rp50.000', 'tub-stroberi.webp', [
       Color(0xFF0E7C86),
       Color(0xFF22B3A8),
-    ], 'tub'),
+    ], 'sembako'),
   ];
 
   static final hints = ['es krim favoritmu', ...popularSearches];
@@ -437,7 +453,7 @@ class _HomeTabState extends State<HomeTab> {
                           Padding(
                             padding: const EdgeInsets.only(left: 22),
                             child: Text(
-                              '${s.store.name} · ${s.store.distance}',
+                              '${s.store.name} · ${s.storeDistance}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: tMuted,
@@ -787,6 +803,7 @@ class _SearchScreenState extends State<SearchScreen> {
   late final TextEditingController ctl;
   String q = '';
   String? cat;
+  String? kind; // only inside Es Krim
   String sort = 'Terlaris';
   @override
   void initState() {
@@ -805,8 +822,15 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Product> results() {
     final words = q.toLowerCase().split(' ').where((w) => w.isNotEmpty);
     final list = catalog.where((p) {
-      if (cat != null && p.category != cat) return false;
-      final hay = '${p.name} ${categories[p.category]} ${p.size}'.toLowerCase();
+      if (cat != null && p.group != cat) return false;
+      if (kind != null && p.category != kind) return false;
+      final hay = [
+        p.name,
+        categories[p.group],
+        tr(categories[p.group]!),
+        kinds[p.category] ?? '',
+        p.size,
+      ].join(' ').toLowerCase();
       return words.every(hay.contains);
     }).toList();
     switch (sort) {
@@ -879,7 +903,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     for (final e in categories.entries)
                       SmallChip(
                         e.value,
-                        onTap: () => setState(() => cat = e.key),
+                        onTap: () => setState(() {
+                          cat = e.key;
+                          kind = null;
+                        }),
                       ),
                   ],
                 ),
@@ -912,7 +939,10 @@ class _SearchScreenState extends State<SearchScreen> {
                         child: SmallChip(
                           'Semua tipe',
                           on: cat == null,
-                          onTap: () => setState(() => cat = null),
+                          onTap: () => setState(() {
+                            cat = null;
+                            kind = null;
+                          }),
                         ),
                       ),
                       for (final e in categories.entries)
@@ -921,12 +951,38 @@ class _SearchScreenState extends State<SearchScreen> {
                           child: SmallChip(
                             e.value,
                             on: cat == e.key,
-                            onTap: () => setState(() => cat = e.key),
+                            onTap: () => setState(() {
+                              cat = e.key;
+                              kind = null;
+                            }),
                           ),
                         ),
                     ],
                   ),
                 ),
+                if (cat == 'icecream')
+                  SizedBox(
+                    key: const ValueKey('kind-chips'),
+                    height: 48,
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final e in [
+                          const MapEntry<String?, String>(null, 'Semua'),
+                          ...kinds.entries,
+                        ])
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: SmallChip(
+                              e.value,
+                              on: kind == e.key,
+                              onTap: () => setState(() => kind = e.key),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                   child: Align(
@@ -1043,7 +1099,10 @@ class _ProductScreenState extends State<ProductScreen> {
     final units = pack * n;
     final similar = catalog
         .where((x) => x.category == p.category && x.id != p.id)
-        .followedBy(catalog.where((x) => x.category != p.category))
+        .followedBy(
+          catalog.where((x) => x.group == p.group && x.category != p.category),
+        )
+        .followedBy(catalog.where((x) => x.group != p.group))
         .take(5)
         .toList();
     return Scaffold(
@@ -1129,26 +1188,32 @@ class _ProductScreenState extends State<ProductScreen> {
                   : 'Beli 3 Diskon 10%. Tambah ${3 - inCart - units} lagi untuk dapat diskon.',
             ),
           ],
-          const SizedBox(height: Sp.l),
-          const ListGroup(
-            children: [
-              ListRow(
-                icon: Icons.verified_user_outlined,
-                title: 'Garansi Tidak Meleleh',
-                subtitle:
-                    'Meleleh saat tiba? Lapor dalam 24 jam, kami ganti atau kembalikan dana (contoh).',
-              ),
-            ],
-          ),
+          if (p.coldChain) ...[
+            const SizedBox(height: Sp.l),
+            const ListGroup(
+              children: [
+                ListRow(
+                  icon: Icons.verified_user_outlined,
+                  title: 'Garansi Tidak Meleleh',
+                  subtitle:
+                      'Meleleh saat tiba? Lapor dalam 24 jam, kami ganti atau kembalikan dana (contoh).',
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: Sp.xl),
           const Text('Deskripsi', style: tH3),
           const SizedBox(height: 4),
-          Text(
-            p.chilled
-                ? '${p.name}, ${p.size}. Simpan di kulkas 2-6°C dan habiskan sebelum tanggal kedaluwarsa.'
-                : '${p.name}, ${p.size}. Simpan di freezer -18°C dan jangan dibekukan ulang setelah meleleh.',
-            style: const TextStyle(color: C.muted, height: 1.4),
-          ),
+          Text(switch (p.storage) {
+            'chilled' =>
+              '${p.name}, ${p.size}. Simpan di kulkas 2-6°C dan habiskan sebelum tanggal kedaluwarsa.',
+            'fresh' =>
+              '${p.name}, ${p.size}. Simpan di kulkas dan masak dalam 3 hari.',
+            'room' =>
+              '${p.name}, ${p.size}. Simpan di tempat kering dan sejuk.',
+            _ =>
+              '${p.name}, ${p.size}. Simpan di freezer -18°C dan jangan dibekukan ulang setelah meleleh.',
+          }, style: const TextStyle(color: C.muted, height: 1.4)),
           const SizedBox(height: Sp.xl),
           const Text('Produk Serupa', style: tH3),
           const SizedBox(height: 8),

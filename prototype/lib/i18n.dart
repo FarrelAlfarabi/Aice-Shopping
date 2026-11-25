@@ -3,6 +3,7 @@ import 'accounts.dart';
 import 'data.dart';
 import 'l10n/en.dart';
 import 'l10n/zh.dart';
+import 'places.dart';
 import 'pricing.dart';
 
 /// Languages in the app. Indonesian is the default and is the source text:
@@ -112,13 +113,17 @@ List<String> _keepList() => _keep ??= ([
   for (final st in stores) st.area,
   ...savedAddresses,
   for (final a in savedAddresses) ...a.split(', '),
+  for (final p in places) p.name,
+  for (final r in regions) r.name,
+  'Jakarta Barat',
+  'Jakarta Selatan',
   inviteCodeVip,
   for (final v in vouchers) v.code,
   sampleBankAccount,
 ]..sort((a, b) => b.length.compareTo(a.length)));
 
 final _codes = RegExp(
-  r'\b(ml|g|km|pcs|x|VIP|QRIS|ID|EN|OTP|WhatsApp|BPOM|UTC|P0|P1|SHOPPING|aice|Rp|AC|ICE)\b',
+  r'\b(ml|g|km|pcs|x|VIP|QRIS|ID|EN|OTP|No|WhatsApp|BPOM|UTC|P0|P1|SHOPPING|aice|Rp|AC|ICE)\b',
 );
 
 /// Numbers, prices, names and codes need no translation.

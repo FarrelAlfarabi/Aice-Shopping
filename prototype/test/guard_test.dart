@@ -7,12 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 /// Product promises as tests (guidebook 4.6, Aice 5.3 and 5.5).
 void main() {
   test('only Aice is switched on, and all data is sample data', () {
-    expect(enabledBrands, {'aice'});
+    // Aice plus the store's own everyday goods, nothing else.
+    expect(enabledBrands, {'aice', 'toko'});
     expect(sampleData, isTrue);
     expect(catalog, isNotEmpty);
     for (final p in catalog) {
-      expect(p.brandId, 'aice', reason: p.id);
+      expect(enabledBrands, contains(p.brandId), reason: p.id);
       expect(p.sample, isTrue, reason: p.id);
+      // Sayur, sembako and snack are never sold as Aice products.
+      if (const {'sayur', 'sembako', 'snack'}.contains(p.group)) {
+        expect(p.brandId, isNot('aice'), reason: p.id);
+      }
     }
     for (final s in stores) {
       expect(s.sample, isTrue, reason: s.name);
@@ -20,10 +25,22 @@ void main() {
     }
   });
 
-  test('every category has several listings', () {
+  test('the 7 shelves the client asked for, each with 3 or more items', () {
+    expect(categories.keys.toList(), [
+      'yogurt',
+      'frozen',
+      'icecream',
+      'sayur',
+      'sembako',
+      'drink',
+      'snack',
+    ]);
+    for (final p in catalog) {
+      expect(categories.keys, contains(p.group), reason: p.id);
+    }
     for (final c in categories.keys) {
       expect(
-        catalog.where((p) => p.category == c).length,
+        catalog.where((p) => p.group == c && !p.soldOut).length,
         greaterThanOrEqualTo(3),
         reason: c,
       );
@@ -66,6 +83,18 @@ void main() {
               !before.endsWith('tanpa ');
         });
         expect(hits, isEmpty, reason: '"$w" in ${f.path}');
+      }
+    }
+  });
+
+  test('cold-chain tags only on frozen and chilled goods', () {
+    for (final p in catalog) {
+      expect(['frozen', 'chilled', 'fresh', 'room'], contains(p.storage));
+      if (const {'sembako', 'snack'}.contains(p.group)) {
+        expect(p.coldChain, isFalse, reason: p.id);
+      }
+      if (const {'icecream', 'frozen', 'yogurt'}.contains(p.group)) {
+        expect(p.coldChain, isTrue, reason: p.id);
       }
     }
   });

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart' hide Text;
 import 'assistant.dart';
 import 'i18n.dart';
+import 'map_picker.dart';
 import 'format.dart';
 import 'membership.dart';
 import 'payment_ui.dart';
@@ -1401,44 +1402,6 @@ void showDemoControls(BuildContext context) {
 }
 
 Future<void> _addAddress(BuildContext context, AppState s) async {
-  final text = await showDialog<String>(
-    context: context,
-    builder: (_) => const _AddAddressDialog(),
-  );
-  if (text != null) s.addAddress(text);
-}
-
-class _AddAddressDialog extends StatefulWidget {
-  const _AddAddressDialog();
-  @override
-  State<_AddAddressDialog> createState() => _AddAddressDialogState();
-}
-
-class _AddAddressDialogState extends State<_AddAddressDialog> {
-  final ctl = TextEditingController();
-  @override
-  void dispose() {
-    ctl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Tambah alamat'),
-    content: TextField(
-      controller: ctl,
-      autofocus: true,
-      decoration: InputDecoration(hintText: tr('Tulis alamat')),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Batal'),
-      ),
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(ctl.text),
-        child: const Text('Simpan'),
-      ),
-    ],
-  );
+  // The map picker saves the address itself.
+  await openMapPicker(context);
 }

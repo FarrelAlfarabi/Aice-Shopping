@@ -13,7 +13,18 @@ import 'ui.dart';
 /// Home pieces from the design preview: photo category tiles, Flash Sale with
 /// a countdown, the sticky mini-cart and the floating Tanya AI button.
 
-const _tileCategories = ['cone', 'tub', 'stick', 'cup', 'frozen', 'drink'];
+/// The product whose photo stands for each shelf on the home tiles.
+const _tileHero = {
+  'yogurt': 'cup-original',
+  'frozen': 'frozen-naget',
+  'icecream': 'cone-vanila',
+  'sayur': 'veg-bayam',
+  'sembako': 'staple-beras',
+  'drink': 'drink-cokelat',
+  'snack': 'snack-keripik',
+};
+
+const _tileLabel = TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500);
 
 class CategoryTiles extends StatelessWidget {
   const CategoryTiles({super.key});
@@ -32,12 +43,13 @@ class CategoryTiles extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: LayoutBuilder(
             builder: (context, c) {
-              final w = (c.maxWidth - 2 * Sp.m) / 3;
+              // 7 shelves plus "Semua" make two even rows of 4.
+              final w = (c.maxWidth - 3 * Sp.m) / 4;
               return Wrap(
                 spacing: Sp.m,
                 runSpacing: Sp.m,
                 children: [
-                  for (final k in _tileCategories)
+                  for (final k in categories.keys)
                     SizedBox(
                       width: w,
                       child: InkWell(
@@ -49,9 +61,7 @@ class CategoryTiles extends StatelessWidget {
                             AspectRatio(
                               aspectRatio: 1,
                               child: ProductImage(
-                                catalog.firstWhere(
-                                  (p) => p.category == k && !p.soldOut,
-                                ),
+                                productById(_tileHero[k]!),
                                 radius: 14,
                               ),
                             ),
@@ -60,15 +70,47 @@ class CategoryTiles extends StatelessWidget {
                               categories[k]!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              textAlign: TextAlign.center,
+                              style: _tileLabel,
                             ),
                           ],
                         ),
                       ),
                     ),
+                  SizedBox(
+                    width: w,
+                    child: InkWell(
+                      key: const ValueKey('cat-all'),
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => openSearch(context, query: ''),
+                      child: Column(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: C.tint,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.grid_view_rounded,
+                                color: C.pri,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Semua',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: _tileLabel,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               );
             },

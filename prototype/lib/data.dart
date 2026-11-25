@@ -11,12 +11,19 @@ class Brand {
   const Brand(this.id, this.name);
 }
 
-const brands = <Brand>[Brand('aice', 'Aice')];
+const brands = <Brand>[
+  Brand('aice', 'Aice'),
+  // Everyday goods the store sells next to Aice (sayur, sembako, snack).
+  Brand('toko', 'Produk toko'),
+];
 
 class Product {
   final String id;
   final String name;
-  final String category; // cone, tub, stick, cup, drink, bundle
+
+  /// Kind of product: cone, tub, stick, mochi, icecup, cup (yogurt), drink,
+  /// bundle, frozen, veg, staple, snack. Pricing rules key on this.
+  final String category;
   final String size;
   final int price;
   final int? oldPrice;
@@ -26,8 +33,13 @@ class Product {
   final int rank; // lower = more popular
   final String brandId;
   final bool sample; // sample data, shown as "Contoh"
-  final String storage; // 'frozen' (-18 °C) or 'chilled' (2-6 °C)
+  /// 'frozen' (-18 °C), 'chilled' (2-6 °C), 'fresh' (sayur, kulkas) or
+  /// 'room' (suhu ruang). Only frozen and chilled get a cold-chain tag.
+  final String storage;
   final int? shelfLifeDays; // sample shelf life for chilled products
+
+  /// Shelf (one of [categories]) when it differs from the kind's usual one.
+  final String? shelf;
 
   const Product(
     this.id,
@@ -44,23 +56,55 @@ class Product {
     this.sample = sampleData,
     this.storage = 'frozen',
     this.shelfLifeDays,
+    this.shelf,
   });
 
   bool get chilled => storage == 'chilled';
+  bool get coldChain => storage == 'chilled' || storage == 'frozen';
+
+  /// The top-level category this product is listed under.
+  String get group => shelf ?? kindGroup[category]!;
   bool get multiBuy => category == 'cone';
   int? get percentOff => oldPrice == null
       ? null
       : (((oldPrice! - price) * 100) / oldPrice!).round();
 }
 
+/// The 7 shelves a shopper sees, in this order.
 const categories = <String, String>{
-  'cone': 'Cone',
-  'tub': 'Tub',
-  'stick': 'Stik',
-  'cup': 'Yoghurt',
+  'yogurt': 'Yogurt',
+  'frozen': 'Frozen Food',
+  'icecream': 'Es Krim',
+  'sayur': 'Sayur',
+  'sembako': 'Sembako',
   'drink': 'Minuman',
+  'snack': 'Snack',
+};
+
+/// Short names for each kind, used as filters inside Es Krim.
+const kinds = <String, String>{
+  'cone': 'Cone',
+  'stick': 'Stik',
+  'icecup': 'Cup',
+  'tub': 'Tub',
+  'mochi': 'Mochi',
   'bundle': 'Paket',
-  'frozen': 'Makanan Beku',
+};
+
+/// Which shelf each kind sits on.
+const kindGroup = <String, String>{
+  'cone': 'icecream',
+  'tub': 'icecream',
+  'stick': 'icecream',
+  'mochi': 'icecream',
+  'icecup': 'icecream',
+  'bundle': 'icecream',
+  'cup': 'yogurt',
+  'frozen': 'frozen',
+  'drink': 'drink',
+  'veg': 'sayur',
+  'staple': 'sembako',
+  'snack': 'snack',
 };
 
 /// Every sample product, for all brands.
@@ -385,6 +429,301 @@ const allProducts = <Product>[
     oldPrice: 27500,
     photo: 'paket-yoghurt.webp',
     rank: 29,
+    shelf: 'yogurt',
+  ),
+  // Es krim: mochi and cups
+  Product(
+    'mochi-vanila',
+    'Mochi Es Krim Vanila',
+    'mochi',
+    '3 x 35 g',
+    15000,
+    photo: 'mochi-vanila.webp',
+    rank: 34,
+  ),
+  Product(
+    'mochi-stroberi',
+    'Mochi Es Krim Stroberi',
+    'mochi',
+    '3 x 35 g',
+    15000,
+    ribbon: 'New',
+    photo: 'mochi-stroberi.webp',
+    rank: 35,
+  ),
+  Product(
+    'mochi-matcha',
+    'Mochi Es Krim Matcha',
+    'mochi',
+    '3 x 35 g',
+    16000,
+    photo: 'mochi-matcha.webp',
+    rank: 36,
+  ),
+  Product(
+    'icup-cokelat',
+    'Es Krim Cup Cokelat',
+    'icecup',
+    '120 ml',
+    8000,
+    photo: 'icup-cokelat.webp',
+    rank: 37,
+  ),
+  Product(
+    'icup-vanila',
+    'Es Krim Cup Vanila Kacang',
+    'icecup',
+    '120 ml',
+    8000,
+    photo: 'icup-vanila.webp',
+    rank: 38,
+  ),
+  // Yogurt, kept cold
+  Product(
+    'yog-drink-stroberi',
+    'Yogurt Minum Stroberi 200ml',
+    'cup',
+    '200 ml',
+    8500,
+    photo: 'yog-drink.webp',
+    rank: 39,
+    storage: 'chilled',
+    shelfLifeDays: 21,
+  ),
+  Product(
+    'yog-greek',
+    'Greek Yogurt Plain 500g',
+    'cup',
+    '500 g',
+    32000,
+    photo: 'yog-greek.webp',
+    rank: 40,
+    storage: 'chilled',
+    shelfLifeDays: 21,
+  ),
+  // Frozen food
+  Product(
+    'frozen-dimsum',
+    'Dimsum Ayam Udang isi 12',
+    'frozen',
+    '360 g',
+    32000,
+    photo: 'frozen-dimsum.webp',
+    rank: 41,
+  ),
+  Product(
+    'frozen-kentang',
+    'Kentang Goreng Beku 1kg',
+    'frozen',
+    '1 kg',
+    38000,
+    oldPrice: 42000,
+    photo: 'frozen-kentang.webp',
+    rank: 42,
+  ),
+  Product(
+    'frozen-bakso',
+    'Bakso Sapi Beku 500g',
+    'frozen',
+    '500 g',
+    42000,
+    photo: 'frozen-bakso.webp',
+    rank: 43,
+  ),
+  // Minuman
+  Product(
+    'drink-teh',
+    'Teh Melati Botol 350ml',
+    'drink',
+    '350 ml',
+    5000,
+    photo: 'drink-teh.webp',
+    rank: 44,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'drink-air',
+    'Air Mineral 600ml',
+    'drink',
+    '600 ml',
+    3500,
+    photo: 'drink-air.webp',
+    rank: 45,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'drink-kopi',
+    'Kopi Susu Gula Aren 250ml',
+    'drink',
+    '250 ml',
+    15000,
+    ribbon: 'New',
+    photo: 'drink-kopi.webp',
+    rank: 46,
+    brandId: 'toko',
+    storage: 'chilled',
+    shelfLifeDays: 5,
+  ),
+  // Sayur, fresh
+  Product(
+    'veg-bayam',
+    'Bayam Hijau 250g',
+    'veg',
+    '250 g',
+    6000,
+    photo: 'veg-bayam.webp',
+    rank: 47,
+    brandId: 'toko',
+    storage: 'fresh',
+  ),
+  Product(
+    'veg-kangkung',
+    'Kangkung 250g',
+    'veg',
+    '250 g',
+    5000,
+    photo: 'veg-kangkung.webp',
+    rank: 48,
+    brandId: 'toko',
+    storage: 'fresh',
+  ),
+  Product(
+    'veg-wortel',
+    'Wortel 500g',
+    'veg',
+    '500 g',
+    9000,
+    photo: 'veg-wortel.webp',
+    rank: 49,
+    brandId: 'toko',
+    storage: 'fresh',
+  ),
+  Product(
+    'veg-tomat',
+    'Tomat Merah 500g',
+    'veg',
+    '500 g',
+    11000,
+    photo: 'veg-tomat.webp',
+    rank: 50,
+    brandId: 'toko',
+    storage: 'fresh',
+  ),
+  Product(
+    'veg-brokoli',
+    'Brokoli 300g',
+    'veg',
+    '300 g',
+    16000,
+    photo: 'veg-brokoli.webp',
+    rank: 51,
+    brandId: 'toko',
+    storage: 'fresh',
+  ),
+  // Sembako
+  Product(
+    'staple-beras',
+    'Beras Pulen 5kg',
+    'staple',
+    '5 kg',
+    74000,
+    oldPrice: 78000,
+    photo: 'staple-beras.webp',
+    rank: 52,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'staple-gula',
+    'Gula Pasir 1kg',
+    'staple',
+    '1 kg',
+    17500,
+    photo: 'staple-gula.webp',
+    rank: 53,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'staple-tepung',
+    'Tepung Terigu 1kg',
+    'staple',
+    '1 kg',
+    13500,
+    photo: 'staple-tepung.webp',
+    rank: 54,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'staple-minyak',
+    'Minyak Goreng 2L',
+    'staple',
+    '2 L',
+    38000,
+    photo: 'staple-minyak.webp',
+    rank: 55,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'staple-telur',
+    'Telur Ayam 1kg',
+    'staple',
+    '1 kg',
+    29000,
+    photo: 'staple-telur.webp',
+    rank: 56,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  // Snack
+  Product(
+    'snack-keripik',
+    'Keripik Singkong Balado 150g',
+    'snack',
+    '150 g',
+    12000,
+    photo: 'snack-keripik.webp',
+    rank: 57,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'snack-mete',
+    'Kacang Mete Panggang 100g',
+    'snack',
+    '100 g',
+    26000,
+    photo: 'snack-mete.webp',
+    rank: 58,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'snack-wafer',
+    'Wafer Cokelat 140g',
+    'snack',
+    '140 g',
+    9500,
+    ribbon: 'Best Seller',
+    photo: 'snack-wafer.webp',
+    rank: 59,
+    brandId: 'toko',
+    storage: 'room',
+  ),
+  Product(
+    'snack-biskuit',
+    'Biskuit Kelapa 200g',
+    'snack',
+    '200 g',
+    11000,
+    photo: 'snack-biskuit.webp',
+    rank: 60,
+    brandId: 'toko',
+    storage: 'room',
   ),
 ];
 
@@ -410,7 +749,7 @@ class Store {
     this.area,
     this.distance,
     this.hours, {
-    this.brandIds = const {'aice'},
+    this.brandIds = const {'aice', 'toko'},
     this.sample = sampleData,
   });
 }
@@ -436,10 +775,4 @@ const savedAddresses = <String>[
   'Kantor, Jl. Arjuna Selatan No. 9, Kebon Jeruk, Jakarta Barat 11530',
 ];
 
-const popularSearches = <String>[
-  'cone',
-  'stik cokelat',
-  'paket pesta',
-  'yoghurt',
-  'tub 700 ml',
-];
+const popularSearches = <String>['cone', 'yogurt', 'naget', 'beras', 'sayur'];

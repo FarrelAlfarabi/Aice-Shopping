@@ -6,5 +6,6 @@
 const bool sampleData = true;
 
 /// Brands shown in the app. Brand and Store are separate concepts so other
-/// brands can be added later; for the demo only Aice is switched on.
-const Set<String> enabledBrands = {'aice'};
+/// brands can be added later. 'toko' is the store's own everyday goods
+/// (sayur, sembako, snack, some drinks), which the client asked for.
+const Set<String> enabledBrands = {'aice', 'toko'};

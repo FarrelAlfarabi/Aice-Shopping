@@ -36,11 +36,12 @@ class ProductInfo extends StatelessWidget {
                 color: si.low ? C.warnBg : C.tint,
                 ink: si.low ? C.warnInk : C.pri,
               ),
-            _Tag(
-              p.chilled ? 'Rantai dingin 2-6°C' : 'Rantai beku -18°C',
-              color: C.tint,
-              ink: C.pri,
-            ),
+            if (p.coldChain)
+              _Tag(
+                p.chilled ? 'Rantai dingin 2-6°C' : 'Rantai beku -18°C',
+                color: C.tint,
+                ink: C.pri,
+              ),
             if (si?.nearExpiry ?? false)
               const _Tag('Segera kedaluwarsa', color: C.warnBg, ink: C.warnInk),
             if (p.shelfLifeDays != null)

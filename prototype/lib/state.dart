@@ -254,8 +254,22 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Distance to the store from a pin set on the map, in km. Null when the
+  /// address was typed or picked from the list.
+  double? distanceKm;
+
+  String get storeDistance => distanceKm == null
+      ? store.distance
+      : '${distanceKm!.toStringAsFixed(1).replaceAll('.', ',')} km';
+
   void chooseStore(Store s) {
     store = s;
+    distanceKm = null;
+    notifyListeners();
+  }
+
+  void setDistance(double km) {
+    distanceKm = km;
     notifyListeners();
   }
 
@@ -484,6 +498,7 @@ class AppState extends ChangeNotifier {
     customer = guestCustomer;
     registered.clear();
     store = stores.first;
+    distanceKm = null;
     address = '';
     slot = 'Sekarang';
     payment = 'E-wallet';

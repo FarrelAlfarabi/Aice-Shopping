@@ -39,7 +39,7 @@ void main() {
       }
       Navigator.of(tester.element(find.byType(Shell))).push(
         MaterialPageRoute(
-          builder: (_) => const SearchScreen(category: 'bundle'),
+          builder: (_) => const SearchScreen(category: 'icecream'),
         ),
       );
       await tester.pumpAndSettle();
