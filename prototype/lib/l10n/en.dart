@@ -358,6 +358,7 @@ const Map<String, String> en = {
   'Sebelum demo, klik sekali untuk mengembalikan data ke kondisi awal (contoh).': 'Before a demo, click once to put the data back to its start (sample).',
   'Sedang berlangsung': 'In progress',
   'Sedang disiapkan': 'Being prepared',
+  'Segera kedaluwarsa': 'Expires soon',
   'Sekarang': 'Now',
   'Sekarang ({} menit)': 'Now ({} min)',
   'Selamat menikmati': 'Enjoy',

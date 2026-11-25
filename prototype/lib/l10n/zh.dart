@@ -358,6 +358,7 @@ const Map<String, String> zh = {
   'Sebelum demo, klik sekali untuk mengembalikan data ke kondisi awal (contoh).': '演示前点击一次，即可将数据恢复到初始状态（示例）。',
   'Sedang berlangsung': '进行中',
   'Sedang disiapkan': '备货中',
+  'Segera kedaluwarsa': '即将过期',
   'Sekarang': '立即',
   'Sekarang ({} menit)': '立即（{} 分钟）',
   'Selamat menikmati': '祝你好胃口',
