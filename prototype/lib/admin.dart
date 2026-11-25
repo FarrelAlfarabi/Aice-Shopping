@@ -293,6 +293,19 @@ class OrderRow extends StatelessWidget {
           ],
         ),
         Text(o.customerName, style: tMuted),
+        if (o.transferClaimed && o.status == OrderStatus.pendingPayment)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'Transfer · sudah lapor',
+              key: ValueKey('claimed-${o.id}'),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: C.good,
+              ),
+            ),
+          ),
         if (o.reported)
           Padding(
             padding: const EdgeInsets.only(top: 4),

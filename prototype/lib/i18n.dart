@@ -116,7 +116,7 @@ List<String> _keepList() => _keep ??= ([
 ]..sort((a, b) => b.length.compareTo(a.length)));
 
 final _codes = RegExp(
-  r'\b(ml|g|km|pcs|x|VIP|QRIS|ID|EN|OTP|WhatsApp|BPOM|UTC|P0|P1|SHOPPING|aice|Rp|AC)\b',
+  r'\b(ml|g|km|pcs|x|VIP|QRIS|ID|EN|OTP|WhatsApp|BPOM|UTC|P0|P1|SHOPPING|aice|Rp|AC|ICE)\b',
 );
 
 /// Numbers, prices, names and codes need no translation.

@@ -76,7 +76,7 @@ void main() {
       ),
     );
     expect(find.text('Alamat belum diatur'), findsOneWidget);
-    await tester.tap(find.textContaining('Bayar'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Bayar'));
     await tester.pumpAndSettle();
     expect(find.byType(AddressScreen), findsOneWidget);
     expect(find.byType(ProcessingScreen), findsNothing);

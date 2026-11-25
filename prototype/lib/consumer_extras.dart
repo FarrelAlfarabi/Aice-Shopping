@@ -5,6 +5,7 @@ import 'accounts.dart';
 import 'data.dart';
 import 'format.dart';
 import 'i18n.dart';
+import 'payment_ui.dart';
 import 'pricing.dart';
 import 'screens_a.dart';
 import 'state.dart';
@@ -574,6 +575,7 @@ class OrderWaitingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final payWait = o.status == OrderStatus.pendingPayment;
+    final cod = o.flow == PayFlow.cod;
     Widget step(String text, bool done, bool now) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -607,28 +609,15 @@ class OrderWaitingView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 step('Pesanan diterima', true, false),
-                step('Transfer dikonfirmasi penjual', !payWait, payWait),
+                if (!cod)
+                  step('Transfer dikonfirmasi penjual', !payWait, payWait),
                 step('Pesanan disiapkan', false, !payWait),
                 step('Dalam perjalanan', false, false),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          if (payWait)
-            Panel(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Transfer ${rp(o.pricing.total)} ke:', style: tMuted),
-                  const Text(sampleBankAccount, style: tBold),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Status berubah setelah penjual mengonfirmasi transfer. Di demo ini penjual mengonfirmasi lewat tampilan Admin.',
-                    style: tMuted,
-                  ),
-                ],
-              ),
-            ),
+          PayInstructions(o),
           const SizedBox(height: 12),
           BigButton(
             'Hubungi penjual (WhatsApp)',

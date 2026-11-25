@@ -241,11 +241,13 @@ void main() {
     );
     expect(find.text('Jl. Tes Contoh 9'), findsOneWidget);
 
+    await tester.ensureVisible(find.byTooltip('Hapus alamat').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Hapus alamat').last);
     await tester.pumpAndSettle();
     expect(st.saved, isNot(contains('Jl. Tes Contoh 9')));
 
-    await tester.tap(find.text('Notifikasi'));
+    await tester.tap(find.widgetWithText(InkWell, 'Notifikasi'));
     await tester.pumpAndSettle();
     expect(find.byType(NoticesScreen), findsOneWidget);
     await tester.tap(find.text('Tandai dibaca'));
@@ -254,7 +256,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Tentang demo ini'));
+    await tester.tap(find.widgetWithText(InkWell, 'Tentang demo ini'));
     await tester.pumpAndSettle();
     expect(find.text('Yang benar-benar jalan'), findsOneWidget);
     expect(find.text('Yang hanya contoh'), findsOneWidget);

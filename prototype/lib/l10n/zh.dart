@@ -4,6 +4,7 @@ const Map<String, String> zh = {
   '+40 stok': '+40 库存',
   '+{} poin dari pesanan {} (contoh).': '+{} 积分，来自订单 {}（示例）。',
   '+{} poin sudah ditambahkan': '+{} 积分已到账',
+  '+{} poin, ditambahkan setelah pesanan selesai': '+{} 积分，订单完成后到账',
   '+{} poin, ditambahkan setelah transfer dikonfirmasi': '+{} 积分，确认转账后到账',
   '1 poin tiap {} belanja. 100 poin = {}. Tingkat: {}. Poin ditambahkan setelah transfer dikonfirmasi. Lihat Kartu Member di Beranda atau Profil (contoh).':
       '每消费 {} 得 1 积分。100 积分 = {}。等级：{}。确认转账后积分到账。可在首页或“我的”查看会员卡（示例）。',
@@ -15,6 +16,7 @@ const Map<String, String> zh = {
   'Admin': '管理员',
   'Admin (demo)': '管理员（演示）',
   'Aice Shopping (demo)': 'Aice Shopping（演示）',
+  'Akun': '账号',
   'Akun contoh (ketuk untuk mengisi):': '示例账号（点按填入）：',
   'Akun contoh dibuat.': '示例账号已创建。',
   'Akun contoh dibuat. Kode undangan benar: harga member aktif.':
@@ -34,11 +36,16 @@ const Map<String, String> zh = {
   'Atur alamat pengiriman': '设置配送地址',
   'BPOM [no. contoh]': 'BPOM [示例编号]',
   'Bahasa': '语言',
+  'Bantuan': '帮助',
   'Barang salah': '商品错误',
   'Barang stok menipis': '低库存商品',
   'Baru saja': '刚刚',
   'Batal': '取消',
   'Bayar': '支付',
+  'Bayar di tempat (COD)': '货到付款（COD）',
+  'Bayar ke kurir saat tiba (contoh)': '送达时付给骑手（示例）',
+  'Bayar {} ke kurir saat pesanan tiba. Poin ditambahkan setelah pesanan selesai (contoh).':
+      '订单送达时向骑手支付 {}。订单完成后积分到账（示例）。',
   'Bayar: {} (palsu, tidak ada uang bergerak)': '支付：{}（模拟，不涉及真实资金）',
   'Belanja di atas {}': '订单满 {}',
   'Belanja kurang dari {} kena biaya kecil {}. Tambah {} lagi, biaya ini hilang.':
@@ -83,8 +90,11 @@ const Map<String, String> zh = {
   'Cone apa saja, campur rasa': '任意甜筒，可混搭口味',
   'Contoh': '示例',
   'Contoh produk': '示例商品',
+  'Contoh saja. Tidak ada uang yang berpindah. Pilihan ini juga jadi cara bayar utama di Profil.':
+      '仅为示例，不会产生资金流动。此选择也是“我的”中的默认支付方式。',
   'Contoh sistem penjualan: pembayaran, antar, stok, dana, dan alarm dalam satu alur.':
       '示例销售系统：付款、配送、库存、资金和告警在同一流程中。',
+  'Contoh, langsung terkonfirmasi': '示例，立即确认',
   'Contoh, tanpa dana sungguhan': '示例，无真实资金',
   'Contoh: VIP-CONTOH': '例如：VIP-CONTOH',
   'DEMO · Data contoh · Bukan aplikasi resmi Aice': 'DEMO · 示例数据 · 非 Aice 官方应用',
@@ -193,6 +203,7 @@ const Map<String, String> zh = {
   'Klaim garansi': '申请保障',
   'Klaim sudah dikirim': '申请已提交',
   'Kode OTP': '验证码',
+  'Kode QR contoh, langsung terkonfirmasi': '示例二维码，立即确认',
   'Kode contoh terkirim. Tidak ada pesan asli. Isi kode apa saja.':
       '示例验证码已发送，不会发送真实消息。请输入任意验证码。',
   'Kode undangan (opsional)': '邀请码（可选）',
@@ -283,6 +294,7 @@ const Map<String, String> zh = {
   'Pembayaran': '付款',
   'Pembayaran bulan ini': '本月收款',
   'Pembayaran palsu. Tidak ada uang yang bergerak.': '模拟付款，不涉及真实资金。',
+  'Pembeli bilang sudah transfer': '买家称已转账',
   'Pembeli memesan: status "Menunggu pembayaran". Setelah transfer dikonfirmasi, pesanan masuk "Menunggu disiapkan" dan tugas antar dibuat.':
       '买家下单后状态为“待付款”。确认转账后，订单进入“待备货”并生成配送任务。',
   'Pencarian populer': '热门搜索',
@@ -305,6 +317,7 @@ const Map<String, String> zh = {
   'Pesanan dikirim dalam tas pendingin supaya tetap beku.': '订单用保冷袋配送，保持冷冻。',
   'Pesanan disiapkan': '订单备货中',
   'Pesanan diterima': '订单已收到',
+  'Pesanan saya': '我的订单',
   'Pesanan terbaru': '最新订单',
   'Pesanan terlambat': '订单延迟',
   'Pesanan terlambat lebih dari {} menit. Ongkir {} dapat dikembalikan (aturan contoh).':
@@ -312,6 +325,8 @@ const Map<String, String> zh = {
   'Pesanan tiba': '订单已送达',
   'Pesanan {} (contoh). Lapor dalam 24 jam.': '订单 {}（示例）。请在 24 小时内报告。',
   'Pesanan {} diterima toko (contoh).': '门店已收到订单 {}（示例）。',
+  'Pesanan {} diterima. Bayar ke kurir saat tiba (contoh).':
+      '订单 {} 已收到。送达时付给骑手（示例）。',
   'Pesanan {} menunggu transfer dikonfirmasi penjual (contoh).':
       '订单 {} 等待卖家确认转账（示例）。',
   'Pesanan {} sedang diantar (contoh).': '订单 {} 正在配送中（示例）。',
@@ -345,6 +360,7 @@ const Map<String, String> zh = {
   'Rantai dingin 2-6°C': '冷藏 2-6°C',
   'Rasa baru': '新口味',
   'Reguler': '普通',
+  'Rekening contoh, lalu "Saya sudah transfer"': '示例账户，转账后点“我已转账”',
   'Rekomendasi rasa cokelat': '巧克力口味推荐',
   'Rekomendasi untukmu': '为你推荐',
   'Reset': '重置',
@@ -356,6 +372,7 @@ const Map<String, String> zh = {
       '余额 {} 积分。最多可使用 {} 积分（{}）。',
   'Sampai di pintu rumah tanpa meleleh.': '送到家门口，不融化。',
   'Satuan': '单件',
+  'Saya sudah transfer': '我已转账',
   'Sebelum demo, klik sekali untuk mengembalikan data ke kondisi awal (contoh).':
       '演示前点击一次，即可将数据恢复到初始状态（示例）。',
   'Sedang berlangsung': '进行中',
@@ -385,6 +402,7 @@ const Map<String, String> zh = {
   'Stok menipis / alarm': '低库存 / 告警',
   'Stok {}': '库存 {}',
   'Subtotal': '小计',
+  'Sudah dibayar ke kurir (contoh).': '已付给骑手（示例）。',
   'Suhu kotak dingin kurir naik di atas -10 °C (contoh)':
       '骑手冷箱温度升至 -10 °C 以上（示例）',
   'Sumber data': '数据来源',
@@ -409,6 +427,7 @@ const Map<String, String> zh = {
   'Tautan penjual disalin (contoh).': '卖家链接已复制（示例）。',
   'Tentang demo ini': '关于本演示',
   'Tercapai': '已达成',
+  'Terima kasih. Menunggu penjual mengonfirmasi.': '谢谢。等待卖家确认。',
   'Terlambat': '已延迟',
   'Terlaris': '热销',
   'Termahal': '价格最高',
@@ -434,6 +453,7 @@ const Map<String, String> zh = {
   'Transfer pesanan {} dikonfirmasi, pesanan disiapkan (contoh).':
       '订单 {} 转账已确认，正在备货（示例）。',
   'Transfer {} ke:': '请转账 {} 至：',
+  'Transfer · sudah lapor': '转账 · 已报备',
   'Tub': '桶装',
   'Tugas antar': '配送任务',
   'Tugas antar menunggu': '待处理配送任务',
@@ -442,6 +462,7 @@ const Map<String, String> zh = {
   'Tulis alamat': '填写地址',
   'Tulis pertanyaan...': '输入问题...',
   'Tutup': '关闭',
+  'Ubah': '更改',
   'Ubah alamat atau toko': '更改地址或门店',
   'Ukuran kecil dan rasa lembut biasanya pas untuk anak (contoh).':
       '小份量、口味温和的通常适合孩子（示例）。',

@@ -100,6 +100,7 @@ class Order {
   DateTime? paidAt;
   DateTime trackStart; // when the trip started (tracking clock)
   bool reported = false;
+  bool transferClaimed = false; // buyer says the transfer is done
   int pointsEarn; // points this order gives once the payment is confirmed
   bool pointsAwarded;
   Order({
@@ -122,7 +123,8 @@ class Order {
     this.pointsAwarded = false,
   }) : trackStart = trackStart ?? placedAt;
 
-  bool get isPaid => status != OrderStatus.pendingPayment;
+  bool get isPaid => paidAt != null;
+  PayFlow get flow => payOption(payment).flow;
   bool get waiting =>
       status == OrderStatus.pendingPayment || status == OrderStatus.pendingPrep;
   int get units => lines.fold(0, (a, l) => a + l.qty);
@@ -390,7 +392,9 @@ class AppState extends ChangeNotifier {
   /// Turns the cart into an order and clears the cart.
   Order placeOrder() {
     final p = pricing;
-    final transfer = payment == 'Transfer bank';
+    final flow = payOption(payment).flow;
+    final transfer = flow == PayFlow.bankTransfer;
+    final cod = flow == PayFlow.cod;
     final now = DateTime.now();
     final o = Order(
       id: '#AC-${(1000 + _orderNo++).toString()}',
@@ -410,8 +414,10 @@ class AppState extends ChangeNotifier {
       demoSeconds: demoSeconds,
       customerId: customer.id,
       customerName: customer.name,
-      status: transfer ? OrderStatus.pendingPayment : OrderStatus.shipping,
-      paidAt: transfer ? null : now,
+      status: transfer
+          ? OrderStatus.pendingPayment
+          : (cod ? OrderStatus.pendingPrep : OrderStatus.shipping),
+      paidAt: (transfer || cod) ? null : now,
       pointsEarn: signedIn ? pointsFor(p.total) : 0,
     );
     if (p.pointsUsed > 0 && signedIn) {
@@ -423,7 +429,7 @@ class AppState extends ChangeNotifier {
       );
     }
     redeem = 0;
-    if (!transfer) _award(o);
+    if (flow == PayFlow.instant) _award(o);
     // Take the units out of stock (never below zero).
     for (final e in lines.entries) {
       final si = stock[e.key.id];
@@ -437,7 +443,9 @@ class AppState extends ChangeNotifier {
         'o${o.id}',
         transfer
             ? 'Pesanan ${o.id} menunggu transfer dikonfirmasi penjual (contoh).'
-            : 'Pesanan ${o.id} diterima toko (contoh).',
+            : (cod
+                  ? 'Pesanan ${o.id} diterima. Bayar ke kurir saat tiba (contoh).'
+                  : 'Pesanan ${o.id} diterima toko (contoh).'),
       ),
     );
     _qty.clear();
@@ -642,8 +650,23 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The buyer says the bank transfer is done. Only the admin can confirm it.
+  void claimTransfer(Order o) {
+    if (o.flow != PayFlow.bankTransfer ||
+        o.status != OrderStatus.pendingPayment) {
+      return;
+    }
+    o.transferClaimed = true;
+    notifyListeners();
+  }
+
   void markDelivered(Order o) {
     o.status = OrderStatus.delivered;
+    if (o.paidAt == null) {
+      // Cash on delivery is paid now, so the points are added now.
+      o.paidAt = DateTime.now();
+      _award(o);
+    }
     notifyListeners();
   }
 

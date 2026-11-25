@@ -371,3 +371,58 @@ class MembersAdminCard extends StatelessWidget {
     ),
   );
 }
+
+/// Compact Member card for Profil: number, tier progress, tap for the full card.
+class MemberCardTile extends StatelessWidget {
+  const MemberCardTile({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final s = AppScope.of(context);
+    final t = s.tier;
+    final next = nextTier(s.lifetime);
+    final progress = next == null
+        ? 1.0
+        : ((s.lifetime - t.minPoints) / (next.minPoints - t.minPoints)).clamp(
+            0.0,
+            1.0,
+          );
+    return InkWell(
+      key: const ValueKey('member-tile'),
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => openMember(context),
+      child: Panel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.workspace_premium, color: tierColor(t)),
+                const SizedBox(width: 8),
+                const Expanded(child: Text('Kartu Member', style: tBold)),
+                Text(s.customer.memberNo, style: tMuted),
+                const Icon(Icons.chevron_right, color: C.muted),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: C.tint,
+                color: C.pri,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              next == null
+                  ? 'Tingkat tertinggi sudah tercapai'
+                  : '${pts(next.minPoints - s.lifetime)} poin lagi ke ${tierName(next)}',
+              style: tMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

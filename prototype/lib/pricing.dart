@@ -58,6 +58,39 @@ const tierRules = <String, List<(int, int)>>{
   'drink': [(6, 5), (12, 10)],
 };
 
+/// How an order is paid. Sample options, all kept here (guidebook: one config).
+/// - bankTransfer: the buyer taps "Saya sudah transfer", the admin confirms.
+/// - instant: QRIS and e-wallet confirm at once.
+/// - cod: pay the courier on arrival, confirmed when the order is marked done.
+enum PayFlow { bankTransfer, instant, cod }
+
+class PayOption {
+  final String id; // also the label and the l10n key
+  final String note;
+  final PayFlow flow;
+  const PayOption(this.id, this.note, this.flow);
+}
+
+const paymentOptions = <PayOption>[
+  PayOption(
+    'Transfer bank',
+    'Rekening contoh, lalu "Saya sudah transfer"',
+    PayFlow.bankTransfer,
+  ),
+  PayOption('QRIS', 'Kode QR contoh, langsung terkonfirmasi', PayFlow.instant),
+  PayOption('E-wallet', 'Contoh, langsung terkonfirmasi', PayFlow.instant),
+  PayOption(
+    'Bayar di tempat (COD)',
+    'Bayar ke kurir saat tiba (contoh)',
+    PayFlow.cod,
+  ),
+];
+
+PayOption payOption(String id) => paymentOptions.firstWhere(
+  (o) => o.id == id,
+  orElse: () => paymentOptions[2],
+);
+
 /// Flash Sale (sample): percent off for these products while it runs. The
 /// sale lasts [flashMinutes] from when the demo starts or is reset.
 const flashDeals = <String, int>{

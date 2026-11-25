@@ -4,6 +4,8 @@ const Map<String, String> en = {
   '+40 stok': '+40 stock',
   '+{} poin dari pesanan {} (contoh).': '+{} points from order {} (sample).',
   '+{} poin sudah ditambahkan': '+{} points already added',
+  '+{} poin, ditambahkan setelah pesanan selesai':
+      '+{} points, added after the order is done',
   '+{} poin, ditambahkan setelah transfer dikonfirmasi':
       '+{} points, added after the transfer is confirmed',
   '1 poin tiap {} belanja. 100 poin = {}. Tingkat: {}. Poin ditambahkan setelah transfer dikonfirmasi. Lihat Kartu Member di Beranda atau Profil (contoh).':
@@ -16,6 +18,7 @@ const Map<String, String> en = {
   'Admin': 'Admin',
   'Admin (demo)': 'Admin (demo)',
   'Aice Shopping (demo)': 'Aice Shopping (demo)',
+  'Akun': 'Account',
   'Akun contoh (ketuk untuk mengisi):': 'Sample accounts (tap to fill):',
   'Akun contoh dibuat.': 'Sample account created.',
   'Akun contoh dibuat. Kode undangan benar: harga member aktif.':
@@ -35,11 +38,16 @@ const Map<String, String> en = {
   'Atur alamat pengiriman': 'Set delivery address',
   'BPOM [no. contoh]': 'BPOM [sample no.]',
   'Bahasa': 'Language',
+  'Bantuan': 'Help',
   'Barang salah': 'Wrong item',
   'Barang stok menipis': 'Low stock items',
   'Baru saja': 'Just now',
   'Batal': 'Cancel',
   'Bayar': 'Pay',
+  'Bayar di tempat (COD)': 'Cash on delivery (COD)',
+  'Bayar ke kurir saat tiba (contoh)': 'Pay the courier on arrival (sample)',
+  'Bayar {} ke kurir saat pesanan tiba. Poin ditambahkan setelah pesanan selesai (contoh).':
+      'Pay {} to the courier when the order arrives. Points are added after the order is done (sample).',
   'Bayar: {} (palsu, tidak ada uang bergerak)':
       'Pay: {} (fake, no money moves)',
   'Belanja di atas {}': 'Orders over {}',
@@ -90,8 +98,11 @@ const Map<String, String> en = {
   'Cone apa saja, campur rasa': 'Any cones, mixed flavors',
   'Contoh': 'Sample',
   'Contoh produk': 'Sample product',
+  'Contoh saja. Tidak ada uang yang berpindah. Pilihan ini juga jadi cara bayar utama di Profil.':
+      'Sample only. No money moves. This choice is also your default payment method in Profile.',
   'Contoh sistem penjualan: pembayaran, antar, stok, dana, dan alarm dalam satu alur.':
       'A sample sales system: payment, delivery, stock, funds and alarms in one flow.',
+  'Contoh, langsung terkonfirmasi': 'Sample, confirmed at once',
   'Contoh, tanpa dana sungguhan': 'Sample, no real funds',
   'Contoh: VIP-CONTOH': 'Example: VIP-CONTOH',
   'DEMO · Data contoh · Bukan aplikasi resmi Aice':
@@ -208,6 +219,7 @@ const Map<String, String> en = {
   'Klaim garansi': 'Claim guarantee',
   'Klaim sudah dikirim': 'Claim sent',
   'Kode OTP': 'OTP code',
+  'Kode QR contoh, langsung terkonfirmasi': 'Sample QR code, confirmed at once',
   'Kode contoh terkirim. Tidak ada pesan asli. Isi kode apa saja.':
       'Sample code sent. No real message. Enter any code.',
   'Kode undangan (opsional)': 'Invite code (optional)',
@@ -306,6 +318,7 @@ const Map<String, String> en = {
   'Pembayaran bulan ini': 'Payments this month',
   'Pembayaran palsu. Tidak ada uang yang bergerak.':
       'Fake payment. No money moves.',
+  'Pembeli bilang sudah transfer': 'Buyer says the transfer is done',
   'Pembeli memesan: status "Menunggu pembayaran". Setelah transfer dikonfirmasi, pesanan masuk "Menunggu disiapkan" dan tugas antar dibuat.':
       'The buyer orders and the status is "Awaiting payment". After the transfer is confirmed, the order moves to "Waiting to be prepared" and a delivery task is created.',
   'Pencarian populer': 'Popular searches',
@@ -331,6 +344,7 @@ const Map<String, String> en = {
       'Orders are sent in a cooler bag to stay frozen.',
   'Pesanan disiapkan': 'Order being prepared',
   'Pesanan diterima': 'Order received',
+  'Pesanan saya': 'My orders',
   'Pesanan terbaru': 'Latest orders',
   'Pesanan terlambat': 'Late order',
   'Pesanan terlambat lebih dari {} menit. Ongkir {} dapat dikembalikan (aturan contoh).':
@@ -340,6 +354,8 @@ const Map<String, String> en = {
       'Order {} (sample). Report within 24 hours.',
   'Pesanan {} diterima toko (contoh).':
       'Order {} was received by the store (sample).',
+  'Pesanan {} diterima. Bayar ke kurir saat tiba (contoh).':
+      'Order {} received. Pay the courier on arrival (sample).',
   'Pesanan {} menunggu transfer dikonfirmasi penjual (contoh).':
       'Order {} is waiting for the seller to confirm the transfer (sample).',
   'Pesanan {} sedang diantar (contoh).': 'Order {} is on the way (sample).',
@@ -376,6 +392,8 @@ const Map<String, String> en = {
   'Rantai dingin 2-6°C': 'Chilled 2-6°C',
   'Rasa baru': 'New flavor',
   'Reguler': 'Regular',
+  'Rekening contoh, lalu "Saya sudah transfer"':
+      'Sample account, then "I have transferred"',
   'Rekomendasi rasa cokelat': 'Chocolate flavor picks',
   'Rekomendasi untukmu': 'Recommended for you',
   'Reset': 'Reset',
@@ -387,6 +405,7 @@ const Map<String, String> en = {
       'Balance {} points. You can use up to {} points ({}).',
   'Sampai di pintu rumah tanpa meleleh.': 'Reaches your door without melting.',
   'Satuan': 'Single',
+  'Saya sudah transfer': 'I have transferred',
   'Sebelum demo, klik sekali untuk mengembalikan data ke kondisi awal (contoh).':
       'Before a demo, click once to put the data back to its start (sample).',
   'Sedang berlangsung': 'In progress',
@@ -418,6 +437,7 @@ const Map<String, String> en = {
   'Stok menipis / alarm': 'Low stock / alarms',
   'Stok {}': 'Stock {}',
   'Subtotal': 'Subtotal',
+  'Sudah dibayar ke kurir (contoh).': 'Paid to the courier (sample).',
   'Suhu kotak dingin kurir naik di atas -10 °C (contoh)':
       'The courier cold box rose above -10 °C (sample)',
   'Sumber data': 'Data source',
@@ -444,6 +464,8 @@ const Map<String, String> en = {
   'Tautan penjual disalin (contoh).': 'Seller link copied (sample).',
   'Tentang demo ini': 'About this demo',
   'Tercapai': 'Reached',
+  'Terima kasih. Menunggu penjual mengonfirmasi.':
+      'Thank you. Waiting for the seller to confirm.',
   'Terlambat': 'Late',
   'Terlaris': 'Best seller',
   'Termahal': 'Highest price',
@@ -470,6 +492,7 @@ const Map<String, String> en = {
   'Transfer pesanan {} dikonfirmasi, pesanan disiapkan (contoh).':
       'Transfer for order {} confirmed, the order is being prepared (sample).',
   'Transfer {} ke:': 'Transfer {} to:',
+  'Transfer · sudah lapor': 'Transfer · reported',
   'Tub': 'Tubs',
   'Tugas antar': 'Delivery tasks',
   'Tugas antar menunggu': 'Pending delivery tasks',
@@ -478,6 +501,7 @@ const Map<String, String> en = {
   'Tulis alamat': 'Write address',
   'Tulis pertanyaan...': 'Write a question...',
   'Tutup': 'Close',
+  'Ubah': 'Change',
   'Ubah alamat atau toko': 'Change address or store',
   'Ukuran kecil dan rasa lembut biasanya pas untuk anak (contoh).':
       'Small sizes and mild flavors usually suit kids (sample).',
