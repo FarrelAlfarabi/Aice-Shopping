@@ -107,9 +107,11 @@ List<String>? _keep;
 List<String> _keepList() => _keep ??= ([
   for (final p in allProducts) p.name,
   for (final c in demoAccounts) c.name,
+  for (final c in demoAccounts) c.address,
+  for (final st in stores) st.name,
+  for (final st in stores) st.area,
   ...savedAddresses,
   for (final a in savedAddresses) ...a.split(', '),
-  'Asia/Jakarta (UTC+7)',
   inviteCodeVip,
   for (final v in vouchers) v.code,
   sampleBankAccount,

@@ -247,6 +247,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(st.saved, isNot(contains('Jl. Tes Contoh 9')));
 
+    await tester.scrollUntilVisible(
+      find.widgetWithText(InkWell, 'Notifikasi'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.widgetWithText(InkWell, 'Notifikasi'));
     await tester.pumpAndSettle();
     expect(find.byType(NoticesScreen), findsOneWidget);
@@ -256,6 +261,13 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(
+      find.widgetWithText(InkWell, 'Tentang demo ini'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(InkWell, 'Tentang demo ini'));
     await tester.pumpAndSettle();
     expect(find.text('Yang benar-benar jalan'), findsOneWidget);

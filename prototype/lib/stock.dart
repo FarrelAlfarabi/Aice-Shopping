@@ -36,7 +36,7 @@ class ColdAlarm {
 }
 
 List<ColdAlarm> seedColdAlarms() => [
-  ColdAlarm('p0-1', 'Freezer Toko Contoh 2 naik ke -9 °C (contoh)'),
+  ColdAlarm('p0-1', 'Freezer Toko Beku Makmur naik ke -9 °C'),
 ];
 
 class Expense {
@@ -46,10 +46,10 @@ class Expense {
 }
 
 const seedExpenses = <Expense>[
-  Expense('Listrik freezer (contoh)', 1850000),
-  Expense('Bensin kurir (contoh)', 920000),
-  Expense('Es kering dan tas pendingin (contoh)', 640000),
-  Expense('Gaji bulanan (contoh)', 3600000),
+  Expense('Listrik freezer', 1850000),
+  Expense('Bensin kurir', 920000),
+  Expense('Es kering dan tas pendingin', 640000),
+  Expense('Gaji bulanan', 3600000),
 ];
 
 /// Sales from earlier this month that are not in the order list (sample).

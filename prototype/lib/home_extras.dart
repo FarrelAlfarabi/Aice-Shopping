@@ -24,17 +24,18 @@ class CategoryTiles extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: Sp.l),
           child: SectionTitle('Kategori'),
         ),
+        const SizedBox(height: Sp.xs),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: LayoutBuilder(
             builder: (context, c) {
-              final w = (c.maxWidth - 20) / 3;
+              final w = (c.maxWidth - 2 * Sp.m) / 3;
               return Wrap(
-                spacing: 10,
-                runSpacing: 10,
+                spacing: Sp.m,
+                runSpacing: Sp.m,
                 children: [
                   for (final k in _tileCategories)
                     SizedBox(
@@ -59,7 +60,10 @@ class CategoryTiles extends StatelessWidget {
                               categories[k]!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: tBold,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -112,127 +116,68 @@ class _FlashSaleState extends State<FlashSale> {
     final items = [
       for (final id in flashDeals.keys) productById(id),
     ].where((p) => !p.soldOut).toList();
-    return Column(
-      key: const ValueKey('flash-sale'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              const Text('⚡ Flash Sale (contoh)', style: tH3),
-              Text(
-                'Berakhir dalam ${_hms(s.flashLeft)}',
-                key: const ValueKey('flash-countdown'),
-                style: const TextStyle(
-                  color: C.acc,
-                  fontWeight: FontWeight.w800,
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Sp.l),
+      child: Column(
+        key: const ValueKey('flash-sale'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Sp.l),
+            child: SizedBox(
+              height: 44,
+              child: Row(
+                children: [
+                  const Expanded(child: Text('Flash Sale', style: tH3)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Sp.s,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: C.acc,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _hms(s.flashLeft),
+                      key: const ValueKey('flash-countdown'),
+                      style: const TextStyle(
+                        color: C.accInk,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 240 + 220 * (MediaQuery.textScalerOf(context).scale(1) - 1),
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              for (final p in items)
-                Container(
+          SizedBox(
+            height: cardExtent(context, 140) + 10,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(Sp.l, 2, Sp.l, Sp.s),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(width: Sp.m),
+              itemBuilder: (_, i) {
+                final p = items[i];
+                return ProductCard(
+                  p: p,
                   width: 140,
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: C.surface,
-                    border: Border.all(color: C.line),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        onTap: () => openProduct(context, p),
-                        child: Stack(
-                          children: [
-                            SizedBox(
-                              height: 92,
-                              width: double.infinity,
-                              child: ProductImage(p, radius: 10),
-                            ),
-                            Positioned(
-                              left: 4,
-                              top: 4,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: C.acc,
-                                  borderRadius: BorderRadius.circular(99),
-                                ),
-                                child: Text(
-                                  '-${flashDeals[p.id]}%',
-                                  style: const TextStyle(
-                                    color: C.accInk,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        p.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tBold,
-                      ),
-                      Wrap(
-                        spacing: 6,
-                        children: [
-                          Text(
-                            rp(flashUnitPrice(p)),
-                            style: const TextStyle(
-                              color: C.acc,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          Text(
-                            rp(p.price),
-                            style: const TextStyle(
-                              color: C.muted,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          key: ValueKey('flash-add-${p.id}'),
-                          onPressed: () {
-                            s.add(p);
-                            addedToCart(context, '${p.name} masuk keranjang');
-                          },
-                          child: const Text('Tambah'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
+                  price: flashUnitPrice(p),
+                  badge: '-${flashDeals[p.id]}%',
+                  addKey: ValueKey('flash-add-${p.id}'),
+                  onTap: () => openProduct(context, p),
+                  onAdd: () {
+                    s.add(p);
+                    addedToCart(context, '${p.name} masuk keranjang');
+                  },
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -264,7 +209,7 @@ class MiniCart extends StatelessWidget {
                     '${s.itemCount} item · ${rp(p.subtotal)}',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(

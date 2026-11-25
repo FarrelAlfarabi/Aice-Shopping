@@ -26,7 +26,38 @@ ThemeData buildTheme() {
       bodyColor: C.ink,
       displayColor: C.ink,
     ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: C.surface,
+      surfaceTintColor: Colors.transparent,
+      showDragHandle: true,
+    ),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: C.surface,
+      surfaceTintColor: Colors.transparent,
+    ),
+    dividerTheme: const DividerThemeData(color: C.line, thickness: 1),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: C.surface,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: C.tint,
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (st) => TextStyle(
+          fontSize: 12,
+          fontWeight: st.contains(WidgetState.selected)
+              ? FontWeight.w600
+              : FontWeight.w400,
+          color: st.contains(WidgetState.selected) ? C.pri : C.muted,
+        ),
+      ),
+    ),
     appBarTheme: const AppBarTheme(
+      titleTextStyle: TextStyle(
+        fontFamily: 'Roboto',
+        fontFamilyFallback: ['ZhSubset'],
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: C.ink,
+      ),
       backgroundColor: C.bg,
       foregroundColor: C.ink,
       elevation: 0,
@@ -53,14 +84,38 @@ ThemeData buildTheme() {
   );
 }
 
+// ---------------------------------------------------------------- Design rules
+// One set of rules for every consumer screen (see docs/design-rules.md):
+// - Spacing comes from [Sp] only: 4, 8, 12, 16, 24.
+// - Type: [tH2] page title, [tH3] section title, [tBody] rows and body text,
+//   [tMuted] helper text. Bold only for titles and prices ([tPrice], [tBold]).
+// - One card style: [Panel] (white, 16 radius, 1 px light border, no shadow).
+//   Never put a bordered card inside another card.
+// - Lists: a section title, then one [ListGroup] whose rows ([ListRow],
+//   [OptionTile]) have no border of their own. Dividers only between rows of
+//   one group, never next to a border.
+// - Selected state: a check mark or a filled chip, never an extra box.
+// - Tap targets at least 44 px high.
+
+/// Spacing scale. Use these instead of loose numbers.
+class Sp {
+  static const double xs = 4;
+  static const double s = 8;
+  static const double m = 12;
+  static const double l = 16;
+  static const double xl = 24;
+}
+
 const TextStyle tH2 = TextStyle(
-  fontSize: 22,
-  fontWeight: FontWeight.w800,
-  height: 1.15,
+  fontSize: 24,
+  fontWeight: FontWeight.w700,
+  height: 1.2,
 );
-const TextStyle tH3 = TextStyle(fontSize: 16, fontWeight: FontWeight.w800);
-const TextStyle tMuted = TextStyle(fontSize: 12.5, color: C.muted);
-const TextStyle tBold = TextStyle(fontWeight: FontWeight.w700);
+const TextStyle tH3 = TextStyle(fontSize: 17, fontWeight: FontWeight.w700);
+const TextStyle tBody = TextStyle(fontSize: 15, height: 1.3);
+const TextStyle tMuted = TextStyle(fontSize: 13, color: C.muted, height: 1.3);
+const TextStyle tBold = TextStyle(fontWeight: FontWeight.w600);
+const TextStyle tPrice = TextStyle(fontWeight: FontWeight.w700);
 
 IconData iconFor(String category) {
   switch (category) {
@@ -242,7 +297,7 @@ class Ribbon extends StatelessWidget {
       text,
       style: TextStyle(
         fontSize: 10.5,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w700,
         color: sold ? C.ink : (ink ?? C.accInk),
       ),
     ),
@@ -253,21 +308,32 @@ class PriceRow extends StatelessWidget {
   final Product p;
   final double size;
   final bool oneLine;
-  const PriceRow(this.p, {super.key, this.size = 14, this.oneLine = false});
+
+  /// Shown instead of the product's own price (for example a flash price).
+  final int? price;
+  const PriceRow(
+    this.p, {
+    super.key,
+    this.size = 14,
+    this.oneLine = false,
+    this.price,
+  });
   @override
   Widget build(BuildContext context) {
+    final now = price ?? p.price;
+    final was = price != null ? p.price : p.oldPrice;
     final parts = <Widget>[
       Text(
-        rp(p.price),
+        rp(now),
         style: TextStyle(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
           fontSize: size,
-          color: p.oldPrice != null ? C.danger : C.ink,
+          color: was != null ? C.danger : C.ink,
         ),
       ),
-      if (p.oldPrice != null)
+      if (was != null)
         Text(
-          rp(p.oldPrice!),
+          rp(was),
           style: const TextStyle(
             fontSize: 11.5,
             color: C.muted,
@@ -302,6 +368,15 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onAdd;
   final double? width;
   final Object? heroTag;
+
+  /// Flash price, shown with the normal price crossed out.
+  final int? price;
+
+  /// Overrides the ribbon on the photo (for example "-20%").
+  final String? badge;
+
+  /// Key for the first quick-add button, for tests.
+  final Key? addKey;
   const ProductCard({
     super.key,
     required this.p,
@@ -309,6 +384,9 @@ class ProductCard extends StatelessWidget {
     required this.onAdd,
     this.width,
     this.heroTag,
+    this.price,
+    this.badge,
+    this.addKey,
   });
 
   @override
@@ -316,7 +394,9 @@ class ProductCard extends StatelessWidget {
     final s = AppScope.of(context);
     final qty = s.qtyOf(p.id);
     final label =
-        p.ribbon ?? (p.percentOff != null ? '-${p.percentOff}%' : null);
+        badge ??
+        p.ribbon ??
+        (p.percentOff != null ? '-${p.percentOff}%' : null);
     return SizedBox(
       width: width,
       child: Pressable(
@@ -355,6 +435,7 @@ class ProductCard extends StatelessWidget {
                     child: p.soldOut
                         ? const SizedBox.shrink()
                         : _AddControl(
+                            addKey: addKey,
                             qty: qty,
                             name: p.name,
                             onAdd: onAdd,
@@ -375,8 +456,8 @@ class ProductCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13.5,
                         height: 1.25,
                       ),
                     ),
@@ -391,7 +472,7 @@ class ProductCard extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: PriceRow(p, oneLine: true),
+                      child: PriceRow(p, oneLine: true, price: price),
                     ),
                   ],
                 ),
@@ -405,12 +486,14 @@ class ProductCard extends StatelessWidget {
 }
 
 class _AddControl extends StatelessWidget {
+  final Key? addKey;
   final int qty;
   final String name;
   final VoidCallback onAdd; // first add: shows the snackbar
   final VoidCallback onMore; // later adds: quiet, the stepper shows the count
   final VoidCallback onRemove;
   const _AddControl({
+    this.addKey,
     required this.qty,
     required this.name,
     required this.onAdd,
@@ -420,16 +503,17 @@ class _AddControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget btn(IconData i, VoidCallback f, String tip) => Semantics(
+    Widget btn(IconData i, VoidCallback f, String tip, {Key? key}) => Semantics(
       button: true,
       label: tip,
       child: InkResponse(
+        key: key,
         onTap: f,
         radius: 22,
         child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(i, size: 20, color: Colors.white),
+          width: 44,
+          height: 44,
+          child: Icon(i, size: 22, color: Colors.white),
         ),
       ),
     );
@@ -444,7 +528,7 @@ class _AddControl extends StatelessWidget {
         child: qty == 0
             ? Tooltip(
                 message: 'Tambah $name',
-                child: btn(Icons.add, onAdd, 'Tambah $name'),
+                child: btn(Icons.add, onAdd, 'Tambah $name', key: addKey),
               )
             : Row(
                 mainAxisSize: MainAxisSize.min,
@@ -462,7 +546,7 @@ class _AddControl extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -500,7 +584,7 @@ class BigButton extends StatelessWidget {
         disabledForegroundColor: C.muted,
         side: secondary ? const BorderSide(color: C.line) : null,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
       ),
       child: Row(
         mainAxisAlignment: trailing == null
@@ -551,6 +635,8 @@ class Panel extends StatelessWidget {
   );
 }
 
+/// A short message on a soft colour fill (no border): yellow for a nudge,
+/// green when something worked.
 class Notice extends StatelessWidget {
   final String text;
   final bool good;
@@ -558,22 +644,23 @@ class Notice extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    padding: const EdgeInsets.all(12),
+    padding: const EdgeInsets.symmetric(horizontal: Sp.m, vertical: 10),
     decoration: BoxDecoration(
-      color: good ? const Color(0xFFDDF5E9) : C.warnBg,
+      color: good ? C.goodBg : C.warnBg,
       borderRadius: BorderRadius.circular(12),
     ),
     child: Text(
       text,
       style: TextStyle(
-        fontWeight: FontWeight.w700,
-        fontSize: 12.5,
+        fontWeight: FontWeight.w500,
+        fontSize: 13.5,
         color: good ? C.good : C.warnInk,
       ),
     ),
   );
 }
 
+/// Minus, count, plus on a soft fill. 44 px buttons.
 class QtyStepper extends StatelessWidget {
   final int qty;
   final VoidCallback onMinus;
@@ -587,9 +674,8 @@ class QtyStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      border: Border.all(color: C.line),
       borderRadius: BorderRadius.circular(99),
-      color: C.surface,
+      color: C.tint,
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -597,32 +683,190 @@ class QtyStepper extends StatelessWidget {
         IconButton(
           onPressed: onMinus,
           tooltip: tr('Kurangi'),
-          icon: const Icon(Icons.remove, size: 18),
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+          icon: const Icon(Icons.remove, size: 18, color: C.pri),
         ),
         SizedBox(
           width: 22,
           child: Text(
             '$qty',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w800),
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
         IconButton(
           onPressed: onPlus,
           tooltip: tr('Tambah'),
-          icon: const Icon(Icons.add, size: 18),
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+          icon: const Icon(Icons.add, size: 18, color: C.pri),
         ),
       ],
     ),
   );
 }
 
+/// One card that holds a list of rows, with an optional section title above
+/// it. Rows are separated by a thin inset line; the rows themselves have no
+/// border. This is the only place dividers are drawn.
+class ListGroup extends StatelessWidget {
+  final String? title;
+  final Widget? action;
+  final List<Widget> children;
+
+  /// Left inset of the lines between rows (lines up with the row text when
+  /// the rows have an icon).
+  final double indent;
+  const ListGroup({
+    super.key,
+    this.title,
+    this.action,
+    required this.children,
+    this.indent = 52,
+  });
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (title != null)
+        Padding(
+          padding: const EdgeInsets.only(left: Sp.xs, bottom: Sp.s),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 32),
+            child: Row(
+              children: [
+                Expanded(child: Text(title!, style: tH3)),
+                if (action != null) action!,
+              ],
+            ),
+          ),
+        ),
+      Panel(
+        padding: EdgeInsets.zero,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(rCard),
+          child: Column(
+            children: [
+              for (var i = 0; i < children.length; i++) ...[
+                children[i],
+                if (i < children.length - 1)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: indent,
+                    color: C.line.withValues(alpha: 0.7),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+/// A row inside a [ListGroup]: icon, title (normal weight), optional
+/// subtitle, value and trailing widget. Shows a chevron when it opens
+/// something. At least 56 px high.
+class ListRow extends StatelessWidget {
+  final IconData? icon;
+  final Widget? leading;
+  final String title;
+  final String? subtitle;
+  final String? value;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool chevron;
+  final bool external;
+  final int badge;
+  final Color? titleColor;
+  const ListRow({
+    super.key,
+    required this.title,
+    this.icon,
+    this.leading,
+    this.subtitle,
+    this.value,
+    this.trailing,
+    this.onTap,
+    this.chevron = true,
+    this.external = false,
+    this.badge = 0,
+    this.titleColor,
+  });
+  @override
+  Widget build(BuildContext context) {
+    final lead =
+        leading ??
+        (icon == null
+            ? null
+            : Badge(
+                isLabelVisible: badge > 0,
+                smallSize: 8,
+                child: Icon(icon, color: C.pri, size: 22),
+              ));
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: Sp.l, vertical: 10),
+        child: Row(
+          children: [
+            if (lead != null) ...[
+              leading ?? SizedBox(width: 22, child: Center(child: lead)),
+              const SizedBox(width: 14),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title, style: tBody.copyWith(color: titleColor)),
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(subtitle!, style: tMuted),
+                    ),
+                ],
+              ),
+            ),
+            if (value != null) ...[
+              const SizedBox(width: Sp.s),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Text(
+                  value!,
+                  textAlign: TextAlign.end,
+                  style: tMuted.copyWith(fontSize: 14),
+                ),
+              ),
+            ],
+            if (trailing != null) ...[
+              const SizedBox(width: Sp.s),
+              trailing!,
+            ] else if (onTap != null && chevron) ...[
+              const SizedBox(width: Sp.xs),
+              Icon(
+                external ? Icons.open_in_new : Icons.chevron_right,
+                size: external ? 18 : 22,
+                color: C.muted,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A choice inside a [ListGroup]. The chosen row shows a blue check mark;
+/// there is no extra box or border.
 class OptionTile extends StatelessWidget {
   final bool selected;
   final String title;
   final String? subtitle;
   final VoidCallback onTap;
   final Widget? trailing;
+  final IconData? icon;
   const OptionTile({
     super.key,
     required this.selected,
@@ -630,43 +874,31 @@ class OptionTile extends StatelessWidget {
     required this.onTap,
     this.subtitle,
     this.trailing,
+    this.icon,
   });
   @override
-  Widget build(BuildContext context) => Material(
-    color: C.surface,
-    borderRadius: BorderRadius.circular(rCard),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(rCard),
+  Widget build(BuildContext context) => Semantics(
+    selected: selected,
+    inMutuallyExclusiveGroup: true,
+    child: ListRow(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
       onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 56),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(rCard),
-          border: Border.all(
-            color: selected ? C.pri : C.line,
-            width: selected ? 2 : 1,
+      titleColor: selected ? C.pri : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailing != null) trailing!,
+          SizedBox(
+            width: 32,
+            child: Icon(
+              selected ? Icons.check_circle : Icons.circle_outlined,
+              color: selected ? C.pri : C.line,
+              size: 22,
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: selected ? C.pri : C.muted,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: tBold),
-                  if (subtitle != null) Text(subtitle!, style: tMuted),
-                ],
-              ),
-            ),
-            if (trailing != null) trailing!,
-          ],
-        ),
+        ],
       ),
     ),
   );
@@ -685,26 +917,34 @@ class SectionTitle extends StatelessWidget {
     this.sub,
   });
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: tH3),
-            if (sub != null) Text(sub!, style: tMuted),
-          ],
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 44),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: tH3),
+              if (sub != null) Text(sub!, style: tMuted),
+            ],
+          ),
         ),
-      ),
-      if (action != null)
-        TextButton(
-          onPressed: onAction,
-          child: Text(action!, style: const TextStyle(color: C.muted)),
-        ),
-    ],
+        if (action != null)
+          TextButton(
+            onPressed: onAction,
+            child: Text(
+              action!,
+              style: const TextStyle(color: C.pri, fontWeight: FontWeight.w500),
+            ),
+          ),
+      ],
+    ),
   );
 }
 
+/// A pill. Chosen: blue fill, white text. Not chosen: soft fill, no border.
 class SmallChip extends StatelessWidget {
   final String label;
   final bool on;
@@ -716,26 +956,26 @@ class SmallChip extends StatelessWidget {
     required this.onTap,
   });
   @override
-  Widget build(BuildContext context) => Material(
-    color: on ? C.ink : C.surface,
-    borderRadius: BorderRadius.circular(99),
-    child: InkWell(
+  Widget build(BuildContext context) => Semantics(
+    selected: on,
+    button: true,
+    child: Material(
+      color: on ? C.pri : C.tint,
       borderRadius: BorderRadius.circular(99),
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 40),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: on ? C.ink : C.line),
-        ),
-        child: Center(
-          widthFactor: 1,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: on ? Colors.white : C.ink,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(99),
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: on ? Colors.white : C.ink,
+              ),
             ),
           ),
         ),

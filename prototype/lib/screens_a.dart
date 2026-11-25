@@ -7,7 +7,6 @@ import 'data.dart';
 import 'format.dart';
 import 'membership.dart';
 import 'intro.dart';
-import 'assistant.dart';
 import 'motion.dart';
 import 'screens_b.dart';
 import 'screens_c.dart';
@@ -147,19 +146,20 @@ class _AddressScreenState extends State<AddressScreen> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 18),
-                  const Text('Toko terdekat (contoh)', style: tH3),
-                  const SizedBox(height: 8),
-                  for (final st in stores)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: OptionTile(
-                        selected: s.store == st,
-                        title: st.name,
-                        subtitle: '${st.distance} · ${st.hours}',
-                        onTap: () => s.chooseStore(st),
-                      ),
-                    ),
+                  const SizedBox(height: Sp.xl),
+                  ListGroup(
+                    title: 'Toko terdekat',
+                    children: [
+                      for (final st in stores)
+                        OptionTile(
+                          icon: Icons.storefront_outlined,
+                          selected: s.store == st,
+                          title: st.name,
+                          subtitle: '${st.area} · ${st.distance} · ${st.hours}',
+                          onTap: () => s.chooseStore(st),
+                        ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                   const Center(child: Text(footerText, style: tMuted)),
                 ],
@@ -290,15 +290,6 @@ void openSearch(BuildContext context, {String query = '', String? category}) =>
       ),
     );
 
-/// Photo shown in each popular search chip.
-const _chipPhoto = {
-  'cone': 'cone-vanila.webp',
-  'stik cokelat': 'stik-cokelat.webp',
-  'paket pesta': 'bundle-keluarga.webp',
-  'yoghurt': 'cup-blueberry.webp',
-  'tub 700 ml': 'tub-stroberi.webp',
-};
-
 class _Slide {
   final String title;
   final String sub;
@@ -331,7 +322,7 @@ class _HomeTabState extends State<HomeTab> {
     ),
     _Slide(
       'Paket Pesta hemat',
-      'Hemat sampai Rp15.000 (contoh)',
+      'Hemat sampai Rp15.000',
       'bundle-keluarga.webp',
       [Color(0xFF0A3F96), Color(0xFF2F6BE0)],
       'bundle',
@@ -395,59 +386,91 @@ class _HomeTabState extends State<HomeTab> {
         ),
       );
 
+  /// Address and store on the left, delivery time chip on the right, then
+  /// search. Long press the address to open the hidden demo controls.
   Widget _header(BuildContext context) {
     final s = AppScope.of(context);
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      decoration: const BoxDecoration(
-        color: C.surface,
-        border: Border(bottom: BorderSide(color: C.line)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Sp.l, Sp.s, Sp.l, Sp.m),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              // Long press the wordmark to open the hidden demo controls.
               Expanded(
                 child: GestureDetector(
                   onLongPress: () => showDemoControls(context),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text(
-                      'es krim shop (contoh)',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: C.ink,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
+                  child: InkWell(
+                    key: const ValueKey('address-bar'),
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => openAddress(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: Sp.xs),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.place, color: C.pri, size: 18),
+                              const SizedBox(width: Sp.xs),
+                              Flexible(
+                                child: Text(
+                                  s.hasAddress
+                                      ? s.address
+                                      : 'Atur alamat pengiriman',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: C.ink,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: C.ink,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 22),
+                            child: Text(
+                              s.store.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tMuted,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: Sp.s),
               Container(
+                key: const ValueKey('eta-chip'),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 4,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: C.acc,
+                  color: C.tint,
                   borderRadius: BorderRadius.circular(99),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.storefront, size: 13, color: C.accInk),
-                    const SizedBox(width: 4),
+                    Icon(Icons.bolt, size: 16, color: C.pri),
+                    SizedBox(width: 2),
                     Text(
-                      s.store.name,
-                      style: const TextStyle(
-                        color: C.accInk,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
+                      '15 menit',
+                      style: TextStyle(
+                        color: C.pri,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -455,223 +478,56 @@ class _HomeTabState extends State<HomeTab> {
               ),
             ],
           ),
-          InkWell(
-            key: const ValueKey('address-bar'),
-            onTap: () => openAddress(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+          const SizedBox(height: Sp.m),
+          Pressable(
+            onTap: () => openSearch(context),
+            scale: 0.98,
+            semanticLabel: 'Cari es krim',
+            child: Container(
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: C.tint,
+                borderRadius: BorderRadius.circular(14),
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.place, color: C.muted, size: 16),
-                  const SizedBox(width: 4),
+                  const Icon(Icons.search, color: C.muted),
+                  const SizedBox(width: Sp.s),
+                  const Text('Cari ', style: TextStyle(color: C.muted)),
                   Expanded(
-                    child: Text(
-                      s.hasAddress ? s.address : 'Atur alamat pengiriman',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: C.ink,
-                        fontWeight: s.hasAddress
-                            ? FontWeight.w400
-                            : FontWeight.w800,
-                        decoration: s.hasAddress
-                            ? null
-                            : TextDecoration.underline,
-                        decorationColor: C.ink,
+                    child: ClipRect(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 350),
+                        transitionBuilder: (c, a) => SlideTransition(
+                          position:
+                              Tween(
+                                begin: const Offset(0, 0.8),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: a,
+                                  curve: Curves.easeOutCubic,
+                                ),
+                              ),
+                          child: FadeTransition(opacity: a, child: c),
+                        ),
+                        layoutBuilder: (cur, prev) => Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [...prev, if (cur != null) cur],
+                        ),
+                        child: Text(
+                          hint == 0 ? hints[0] : '"${hints[hint]}"',
+                          key: ValueKey(hint),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: C.muted),
+                        ),
                       ),
                     ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: C.muted,
-                    size: 20,
                   ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: const BoxDecoration(
-                  color: C.pri,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.bolt, size: 20, color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Tiba dalam 15 Menit',
-                  style: TextStyle(
-                    color: C.ink,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 38),
-            child: Text(
-              'Waktu contoh, bukan janji Aice',
-              style: TextStyle(color: C.muted, fontSize: 12),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Pressable(
-                  onTap: () => openSearch(context),
-                  scale: 0.98,
-                  semanticLabel: 'Cari es krim',
-                  child: Container(
-                    height: 48,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: C.tint,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: C.line),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.search, color: C.muted),
-                        const SizedBox(width: 8),
-                        const Text('Cari ', style: TextStyle(color: C.muted)),
-                        Expanded(
-                          child: ClipRect(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 350),
-                              transitionBuilder: (c, a) => SlideTransition(
-                                position:
-                                    Tween(
-                                      begin: const Offset(0, 0.8),
-                                      end: Offset.zero,
-                                    ).animate(
-                                      CurvedAnimation(
-                                        parent: a,
-                                        curve: Curves.easeOutCubic,
-                                      ),
-                                    ),
-                                child: FadeTransition(opacity: a, child: c),
-                              ),
-                              layoutBuilder: (cur, prev) => Stack(
-                                alignment: Alignment.centerLeft,
-                                children: [...prev, if (cur != null) cur],
-                              ),
-                              child: Text(
-                                hint == 0 ? hints[0] : '"${hints[hint]}"',
-                                key: ValueKey(hint),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: C.muted,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Pressable(
-                onTap: () => openAssistant(context),
-                semanticLabel: 'Tanya AI',
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: C.acc,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.auto_awesome, color: C.accInk),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 38,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: popularSearches.length + 1,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) {
-                if (i == 0) {
-                  return Pressable(
-                    onTap: () => openAssistant(context),
-                    semanticLabel: 'Tanya AI',
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.center,
-                      decoration: const ShapeDecoration(
-                        color: C.acc,
-                        shape: StadiumBorder(),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.auto_awesome, size: 16, color: C.accInk),
-                          SizedBox(width: 6),
-                          Text(
-                            'Tanya AI',
-                            style: TextStyle(
-                              color: C.accInk,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                final q = popularSearches[i - 1];
-                final f = _chipPhoto[q];
-                return Pressable(
-                  onTap: () => openSearch(context, query: q),
-                  semanticLabel: 'Cari $q',
-                  child: Container(
-                    padding: EdgeInsets.fromLTRB(f == null ? 14 : 4, 4, 14, 4),
-                    decoration: ShapeDecoration(
-                      color: C.tint,
-                      shape: const StadiumBorder(
-                        side: BorderSide(color: C.line),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (f != null) ...[
-                          ClipOval(
-                            child: SizedBox(
-                              width: 30,
-                              height: 30,
-                              child: Photo(f, bg: C.ink, padding: 1),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Text(
-                          q,
-                          style: const TextStyle(
-                            color: C.ink,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
             ),
           ),
         ],
@@ -751,14 +607,12 @@ class _HomeTabState extends State<HomeTab> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Ribbon('Contoh'),
-                    const SizedBox(height: 6),
                     Text(
                       sl.title,
                       maxLines: 2,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         fontSize: 19,
                         height: 1.1,
                       ),
@@ -793,7 +647,7 @@ class _HomeTabState extends State<HomeTab> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: sl.colors.first,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 12,
                               ),
                             ),
@@ -817,172 +671,15 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  /// Image button for a collection: photo bleeds into the pastel tile.
-  Widget _collection(
-    BuildContext context, {
-    required String title,
-    required String sub,
-    required String photo,
-    required String category,
-    bool big = false,
-  }) {
-    final bg = tileColor(photo);
-    final ps = big ? 132.0 : 64.0;
-    return Pressable(
-      onTap: () => openSearch(context, category: category),
-      semanticLabel: title,
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: big ? -10 : -6,
-              bottom: big ? -10 : -8,
-              width: ps,
-              height: ps,
-              child: big ? Float(dy: 4, child: Photo(photo)) : Photo(photo),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(12, 10, big ? 12 : ps - 10, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: big ? 17 : 14,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    sub,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      color: C.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (big) ...[
-                    const Spacer(),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward,
-                        size: 18,
-                        color: C.ink,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _multiBuy(BuildContext context) {
-    final s = AppScope.of(context);
-    final n = catalog
-        .where((p) => p.multiBuy)
-        .fold<int>(0, (a, p) => a + s.qtyOf(p.id));
-    final done = n >= 3;
-    return Pressable(
-      onTap: () => openSearch(context, category: 'cone'),
-      scale: 0.98,
-      semanticLabel: 'Promo beli 3 cone',
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: C.surface,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x140B1B33),
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 58,
-              height: 58,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: const Photo('cone-cokelat.webp'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: Text(
-                      done
-                          ? 'Diskon 10% cone aktif'
-                          : 'Beli 3 cone, diskon 10%',
-                      key: ValueKey(done),
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    done
-                        ? 'Potongan dihitung otomatis di keranjang (contoh)'
-                        : 'Tambah ${3 - n} cone lagi, boleh campur rasa',
-                    style: tMuted,
-                  ),
-                  const SizedBox(height: 8),
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(end: (n.clamp(0, 3)) / 3),
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeOutCubic,
-                    builder: (_, v, __) => ClipRRect(
-                      borderRadius: BorderRadius.circular(99),
-                      child: LinearProgressIndicator(
-                        value: v,
-                        minHeight: 6,
-                        backgroundColor: C.tint,
-                        color: done ? C.good : C.pri,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            const Icon(Icons.chevron_right, color: C.muted),
-          ],
-        ),
-      ),
-    );
-  }
-
+  /// Beranda, photo first: header, promo carousel, one points line, photo
+  /// categories, Flash Sale, Beli lagi, two product shelves and the mix pack.
+  /// Section titles are at most three words; no helper paragraphs.
   @override
   Widget build(BuildContext context) {
     final best = [...catalog]..sort((a, b) => a.rank.compareTo(b.rank));
-    final cones = catalog.where((p) => p.multiBuy).toList();
     final bundles = catalog.where((p) => p.category == 'bundle').toList();
-    const pad = EdgeInsets.symmetric(horizontal: 16);
+    const pad = EdgeInsets.symmetric(horizontal: Sp.l);
+    const gap = SizedBox(height: Sp.xl);
     var k = 0;
     Widget sec(Widget w) => FadeSlideIn(index: k++, child: w);
     return SafeArea(
@@ -991,12 +688,11 @@ class _HomeTabState extends State<HomeTab> {
         padding: EdgeInsets.zero,
         children: [
           _header(context),
-          const SizedBox(height: 12),
           sec(
             Column(
               children: [
                 SizedBox(
-                  height: 60 + MediaQuery.textScalerOf(context).scale(108),
+                  height: 60 + MediaQuery.textScalerOf(context).scale(100),
                   child: PageView.builder(
                     controller: page,
                     itemCount: slides.length,
@@ -1004,7 +700,7 @@ class _HomeTabState extends State<HomeTab> {
                     itemBuilder: (_, i) => _banner(context, i),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: Sp.s),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -1025,147 +721,13 @@ class _HomeTabState extends State<HomeTab> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Sp.l),
           const Padding(padding: pad, child: PointsChip()),
-          const SizedBox(height: 12),
-          if (!AppScope.of(context).signedIn)
-            const Padding(padding: pad, child: WelcomeBanner()),
-          const SizedBox(height: 12),
+          gap,
           const CategoryTiles(),
-          const SizedBox(height: 14),
+          gap,
           const FlashSale(),
-          const SizedBox(height: 12),
           const ReorderRow(),
-          const SizedBox(height: 6),
-          sec(
-            Padding(
-              padding: pad,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionTitle('Kategori'),
-                  const SizedBox(height: 6),
-                  GridView.count(
-                    crossAxisCount: 3,
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.8,
-                    children: [
-                      for (final e in categories.entries)
-                        Pressable(
-                          onTap: () => openSearch(context, category: e.key),
-                          semanticLabel: e.value,
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Photo(
-                                    photoByCategory[e.key]!,
-                                    padding: 6,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                e.value,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          sec(
-            Padding(
-              padding: pad,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionTitle('Koleksi pilihan'),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    height: MediaQuery.textScalerOf(context).scale(176),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 6,
-                          child: _collection(
-                            context,
-                            title: 'Paket Pesta',
-                            sub: 'Mulai Rp28.500 (contoh)',
-                            photo: 'bundle-keluarga.webp',
-                            category: 'bundle',
-                            big: true,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          flex: 5,
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: _collection(
-                                  context,
-                                  title: 'Cemilan Anak',
-                                  sub: 'Stik',
-                                  photo: 'stik-cokelat.webp',
-                                  category: 'stick',
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Expanded(
-                                child: _collection(
-                                  context,
-                                  title: 'Hemat Berdua',
-                                  sub: 'Yoghurt',
-                                  photo: 'cup-blueberry.webp',
-                                  category: 'cup',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          sec(Padding(padding: pad, child: _multiBuy(context))),
-          const SizedBox(height: 10),
-          sec(const Padding(padding: pad, child: MixPackCard())),
-          const SizedBox(height: 12),
-          sec(
-            Column(
-              children: [
-                const Padding(
-                  padding: pad,
-                  child: SectionTitle(
-                    'Rekomendasi untukmu',
-                    sub: 'Berdasarkan popularitas dan riwayat belanjamu',
-                  ),
-                ),
-                shelf(context, 'rec', recommendedFor(AppScope.of(context))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
           sec(
             Column(
               children: [
@@ -1177,62 +739,22 @@ class _HomeTabState extends State<HomeTab> {
                     onAction: () => openSearch(context),
                   ),
                 ),
-                shelf(context, 'best', best.take(6).toList()),
+                shelf(context, 'best', best.take(8).toList()),
               ],
             ),
           ),
-          const SizedBox(height: 6),
-          sec(
-            Column(
-              children: [
-                const Padding(padding: pad, child: SectionTitle('Rasa baru')),
-                shelf(
-                  context,
-                  'new',
-                  catalog.where((p) => p.ribbon == 'New').toList(),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          sec(
-            Column(
-              children: [
-                const Padding(
-                  padding: pad,
-                  child: SectionTitle('Minuman dingin'),
-                ),
-                shelf(
-                  context,
-                  'drink',
-                  catalog.where((p) => p.category == 'drink').toList(),
-                ),
-              ],
-            ),
-          ),
-          sec(
-            Column(
-              children: [
-                const Padding(
-                  padding: pad,
-                  child: SectionTitle('Beli 3 Diskon 10% (cone)'),
-                ),
-                shelf(context, 'cone', cones),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: Sp.s),
           sec(
             Column(
               children: [
                 const Padding(padding: pad, child: SectionTitle('Paket hemat')),
                 shelf(context, 'bundle', bundles),
-                const SizedBox(height: 8),
-                Padding(padding: pad, child: PromoDeals(bundles)),
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: Sp.s),
+          sec(const Padding(padding: pad, child: MixPackCard())),
+          gap,
           const Center(child: Text(footerText, style: tMuted)),
           const SizedBox(height: 150),
         ],
@@ -1397,7 +919,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('${res.length} hasil (contoh)', style: tMuted),
+                    child: Text('${res.length} hasil', style: tMuted),
                   ),
                 ),
                 Expanded(
@@ -1557,7 +1079,7 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
           const SizedBox(height: 12),
           Text(p.name, style: tH2),
-          Text('${p.size} · Contoh produk', style: tMuted),
+          Text(p.size, style: tMuted),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -1568,17 +1090,7 @@ class _ProductScreenState extends State<ProductScreen> {
               if (p.percentOff != null) Ribbon('-${p.percentOff}%'),
             ],
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              const _Badge('Halal [no. contoh]'),
-              const _Badge('BPOM [no. contoh]'),
-              _Badge(p.chilled ? 'Simpan dingin 2-6°C' : 'Simpan -18°C'),
-            ],
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Sp.m),
           ProductInfo(p),
           if (hasPacks && !p.soldOut) ...[
             const SizedBox(height: 14),
@@ -1605,31 +1117,27 @@ class _ProductScreenState extends State<ProductScreen> {
                   : 'Beli 3 Diskon 10%. Tambah ${3 - inCart - units} lagi untuk dapat diskon.',
             ),
           ],
-          const SizedBox(height: 14),
-          Panel(
-            color: C.tint,
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Garansi Tidak Meleleh', style: tBold),
-                SizedBox(height: 2),
-                Text(
-                  'Meleleh saat tiba? Lapor dalam 24 jam, kami ganti atau kembalikan dana (contoh).',
-                  style: tMuted,
-                ),
-              ],
-            ),
+          const SizedBox(height: Sp.l),
+          const ListGroup(
+            children: [
+              ListRow(
+                icon: Icons.verified_user_outlined,
+                title: 'Garansi Tidak Meleleh',
+                subtitle:
+                    'Meleleh saat tiba? Lapor dalam 24 jam, kami ganti atau kembalikan dana (contoh).',
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: Sp.xl),
           const Text('Deskripsi', style: tH3),
           const SizedBox(height: 4),
           Text(
             p.chilled
-                ? '${p.name}, ${p.size}. Contoh deskripsi untuk demo. Simpan di kulkas 2-6°C dan habiskan sebelum tanggal kedaluwarsa.'
-                : '${p.name}, ${p.size}. Contoh deskripsi untuk demo. Simpan di freezer -18°C dan jangan dibekukan ulang setelah meleleh.',
+                ? '${p.name}, ${p.size}. Simpan di kulkas 2-6°C dan habiskan sebelum tanggal kedaluwarsa.'
+                : '${p.name}, ${p.size}. Simpan di freezer -18°C dan jangan dibekukan ulang setelah meleleh.',
             style: const TextStyle(color: C.muted, height: 1.4),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: Sp.xl),
           const Text('Produk Serupa', style: tH3),
           const SizedBox(height: 8),
           SizedBox(
@@ -1690,22 +1198,4 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
     );
   }
-}
-
-class _Badge extends StatelessWidget {
-  final String t;
-  const _Badge(this.t);
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-      color: C.surface,
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: C.line),
-    ),
-    child: Text(
-      t,
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
-    ),
-  );
 }

@@ -5,6 +5,8 @@ import 'package:aice_shopping/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'walk.dart';
+
 /// Home and search must not overflow on a small phone (360 px) with large text.
 void main() {
   setUpAll(() => loopMotion = false);
@@ -44,4 +46,14 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  // Design rules (docs/design-rules.md): walks every consumer screen in
+  // Indonesian and fails on a bordered card inside another bordered card or
+  // on an overflow. English and Chinese run the same check in lang_test.
+  testWidgets('no card inside a card on any consumer screen (id)', (
+    tester,
+  ) async {
+    final (_, problems) = await walk(tester, 'id');
+    expect(problems, isEmpty, reason: problems.join('\n'));
+  });
 }

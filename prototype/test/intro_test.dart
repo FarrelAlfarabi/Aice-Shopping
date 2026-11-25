@@ -25,24 +25,24 @@ void main() {
     expect(find.text('Es krim, tetap beku.'), findsOneWidget);
     expect(find.byType(BrandLogo), findsOneWidget);
     expect(find.text('Mulai'), findsOneWidget);
-    expect(find.text('Tiba dalam 15 Menit'), findsNothing);
+    expect(find.byKey(const ValueKey('eta-chip')), findsNothing);
 
     await tester.tap(find.text('Mulai'));
     await tester.pumpAndSettle();
 
     expect(find.byType(IntroScreen), findsNothing);
-    expect(find.text('Tiba dalam 15 Menit'), findsOneWidget);
+    expect(find.text('15 menit'), findsOneWidget);
     expect(find.text('Atur alamat pengiriman'), findsOneWidget);
 
     // The address bar opens the picker; saving puts the address on Home.
     await tester.tap(find.byKey(const ValueKey('address-bar')));
     await tester.pumpAndSettle();
     expect(find.text('Alamat dan toko'), findsOneWidget);
-    await tester.tap(find.text('Jl. Contoh No. 12'));
+    await tester.tap(find.text('Jl. Kemanggisan Utama No. 27'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
-    expect(find.text('Jl. Contoh No. 12, Kota Contoh'), findsOneWidget);
+    expect(find.text(savedAddresses.first), findsOneWidget);
   });
 
   testWidgets('slides can be swiped', (tester) async {
@@ -60,7 +60,7 @@ void main() {
   test('reset demo brings the intro back', () {
     final s = AppState()
       ..finishIntro()
-      ..setAddress('Jl. Contoh No. 12, Kota Contoh');
+      ..setAddress(savedAddresses.first);
     expect(s.hasAddress, true);
     s.resetDemo();
     expect(s.introSeen, false);

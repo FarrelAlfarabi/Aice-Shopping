@@ -176,8 +176,8 @@ void main() {
   group('demo sign in', () {
     test('finds a demo account by phone, ignores spaces and dashes', () {
       final s = AppState();
-      expect(s.findByPhone('821 3333 4403')?.id, 'c-jaya');
-      expect(s.findByPhone('+62 822-8888-9908')?.id, 'c-kios');
+      expect(s.findByPhone('812 0000 4403')?.id, 'c-jaya');
+      expect(s.findByPhone('+62 813-0000-9908')?.id, 'c-kios');
       expect(s.findByPhone('12345'), isNull);
       expect(s.findByPhone(''), isNull);
     });

@@ -1,6 +1,8 @@
 import 'config.dart';
 
-/// Sample catalog. All names, prices and stores are made up and shown as "contoh".
+/// Sample catalog. All names, prices, stores and addresses are made up but
+/// look real. The DEMO strip on every screen and the About screen say so, so
+/// labels do not carry "(contoh)".
 
 /// A brand that sells through the app. Only brands in [enabledBrands] show.
 class Brand {
@@ -398,12 +400,14 @@ Product productById(String id) => catalog.firstWhere((p) => p.id == id);
 /// brands it lists.
 class Store {
   final String name;
+  final String area; // kecamatan or neighbourhood
   final String distance;
   final String hours;
   final Set<String> brandIds;
   final bool sample;
   const Store(
     this.name,
+    this.area,
     this.distance,
     this.hours, {
     this.brandIds = const {'aice'},
@@ -411,16 +415,25 @@ class Store {
   });
 }
 
+/// Made-up stores with real-sounding names in Jakarta Barat. None of them is
+/// a real business.
 const stores = <Store>[
-  Store('Toko Contoh 1', '0,8 km', 'Buka 08.00 - 22.00'),
-  Store('Toko Contoh 2', '1,6 km', 'Buka 08.00 - 22.00'),
-  Store('Toko Contoh 3', '2,4 km', 'Buka 09.00 - 21.00'),
+  Store('Es Krim Sejahtera', 'Kebon Jeruk', '0,8 km', 'Buka 08.00 - 22.00'),
+  Store('Toko Beku Makmur', 'Palmerah', '1,6 km', 'Buka 08.00 - 22.00'),
+  Store(
+    'Dingin Berkah Frozen',
+    'Tanjung Duren',
+    '2,4 km',
+    'Buka 09.00 - 21.00',
+  ),
 ];
 
+/// Made-up addresses on real-sounding streets, with real kecamatan and postal
+/// codes of Jakarta Barat. House numbers are invented.
 const savedAddresses = <String>[
-  'Jl. Contoh No. 12, Kota Contoh',
-  'Apartemen Contoh Tower B, Kota Contoh',
-  'Kantor Contoh, Jl. Sampel No. 7',
+  'Jl. Kemanggisan Utama No. 27, Palmerah, Jakarta Barat 11480',
+  'Apartemen Griya Kencana Tower B Lt. 12, Kembangan, Jakarta Barat 11610',
+  'Kantor, Jl. Arjuna Selatan No. 9, Kebon Jeruk, Jakarta Barat 11530',
 ];
 
 const popularSearches = <String>[

@@ -73,7 +73,8 @@ class _MixPackScreenState extends State<MixPackScreen> {
           ),
           const SizedBox(height: 14),
           Panel(
-            color: full ? const Color(0xFFE3F5EA) : C.tint,
+            color: full ? C.goodBg : C.tint,
+            border: null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -97,49 +98,43 @@ class _MixPackScreenState extends State<MixPackScreen> {
                 if (saving > 0) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'Hemat ${rp(saving)} dibanding beli satuan (contoh)',
+                    'Hemat ${rp(saving)} dibanding beli satuan',
                     style: tMuted,
                   ),
                 ],
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          for (final p in mixChoices)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Panel(
-                child: Row(
-                  children: [
-                    SizedBox(width: 48, child: ProductImage(p)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(p.name, style: tBold),
-                          Text('${p.size} · ${rp(p.price)}', style: tMuted),
-                        ],
-                      ),
-                    ),
-                    QtyStepper(
-                      qty: picks[p] ?? 0,
-                      onMinus: () => setState(() {
-                        final q = (picks[p] ?? 0) - 1;
-                        if (q <= 0) {
-                          picks.remove(p);
-                        } else {
-                          picks[p] = q;
-                        }
-                      }),
-                      onPlus: () => setState(() {
-                        if (count < size) picks[p] = (picks[p] ?? 0) + 1;
-                      }),
-                    ),
-                  ],
+          const SizedBox(height: Sp.l),
+          ListGroup(
+            indent: 76,
+            children: [
+              for (final p in mixChoices)
+                ListRow(
+                  leading: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: ProductImage(p, radius: 10),
+                  ),
+                  title: p.name,
+                  subtitle: '${p.size} · ${rp(p.price)}',
+                  trailing: QtyStepper(
+                    qty: picks[p] ?? 0,
+                    onMinus: () => setState(() {
+                      final q = (picks[p] ?? 0) - 1;
+                      if (q <= 0) {
+                        picks.remove(p);
+                      } else {
+                        picks[p] = q;
+                      }
+                    }),
+                    onPlus: () => setState(() {
+                      if (count < size) picks[p] = (picks[p] ?? 0) + 1;
+                    }),
+                  ),
                 ),
-              ),
-            ),
+            ],
+          ),
           const SizedBox(height: 8),
           const Center(child: Text(footerText, style: tMuted)),
         ],
@@ -181,46 +176,33 @@ class MixPackCard extends StatelessWidget {
       scale: 0.98,
       semanticLabel: 'Susun paket mix sendiri',
       child: Container(
-        padding: const EdgeInsets.all(10),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: C.surface,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x140B1B33),
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
+          color: tileColor('paket-cone.webp'),
+          borderRadius: BorderRadius.circular(rCard),
         ),
         child: Row(
           children: [
-            SizedBox(
-              width: 58,
-              height: 58,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: const Photo('paket-cone.webp'),
-              ),
+            const SizedBox(
+              width: 96,
+              height: 96,
+              child: Photo('paket-cone.webp', padding: 6),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Sp.s),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Susun Paket Mix sendiri',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
+                  const Text('Paket Mix', style: tH3),
                   const SizedBox(height: 2),
-                  Text(
-                    'Pilih ${mixPackPrices.keys.join(", ")} rasa, harga paket mulai ${rp(from.value)} (contoh)',
-                    style: tMuted,
-                  ),
+                  Text('Mulai ${rp(from.value)}', style: tMuted),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: C.muted),
+            const Padding(
+              padding: EdgeInsets.only(right: Sp.m),
+              child: Icon(Icons.chevron_right, color: C.ink),
+            ),
           ],
         ),
       ),
@@ -377,39 +359,23 @@ class NoticesScreen extends StatelessWidget {
       body: s.notices.isEmpty
           ? const Center(child: Text('Belum ada notifikasi.', style: tMuted))
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Sp.l),
               children: [
-                for (final n in s.notices)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Pressable(
-                      onTap: () => s.markNoticeRead(n),
-                      child: Panel(
-                        color: n.read ? C.surface : C.tint,
-                        child: Row(
-                          children: [
-                            Icon(
-                              n.read
-                                  ? Icons.notifications_none
-                                  : Icons.notifications_active,
-                              color: n.read ? C.muted : C.pri,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                n.text,
-                                style: TextStyle(
-                                  fontWeight: n.read
-                                      ? FontWeight.w400
-                                      : FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                ListGroup(
+                  children: [
+                    for (final n in s.notices)
+                      ListRow(
+                        icon: n.read
+                            ? Icons.notifications_none
+                            : Icons.notifications_active,
+                        badge: n.read ? 0 : 1,
+                        title: n.text,
+                        titleColor: n.read ? C.muted : null,
+                        chevron: false,
+                        onTap: () => s.markNoticeRead(n),
                       ),
-                    ),
-                  ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 const Center(child: Text(footerText, style: tMuted)),
               ],
