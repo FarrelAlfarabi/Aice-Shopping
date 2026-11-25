@@ -30,6 +30,10 @@ const vouchers = <Voucher>[
       amount: 20000),
 ];
 
+/// Mix pack: pick any 6, 8 or 12 cones or sticks for one set price.
+/// Sample numbers, kept here only (guidebook: promises in one config).
+const mixPackPrices = <int, int>{6: 31000, 8: 41000, 12: 60000};
+
 enum VoucherStatus { none, ok, wrong, notMet }
 
 class VoucherResult {
