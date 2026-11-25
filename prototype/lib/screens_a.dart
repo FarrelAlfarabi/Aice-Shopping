@@ -6,6 +6,7 @@ import 'intro.dart';
 import 'assistant.dart';
 import 'motion.dart';
 import 'screens_b.dart';
+import 'screens_c.dart';
 import 'state.dart';
 import 'ui.dart';
 
@@ -113,7 +114,7 @@ class _AddressScreenState extends State<AddressScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final a in savedAddresses)
+                      for (final a in s.saved)
                         SmallChip(
                           a.split(',').first,
                           onTap: () {
@@ -205,9 +206,13 @@ class Shell extends StatelessWidget {
               selectedIcon: Icon(Icons.receipt_long),
               label: 'Pesanan',
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: s.unreadCount > 0,
+                label: Text('${s.unreadCount}'),
+                child: const Icon(Icons.person_outline),
+              ),
+              selectedIcon: const Icon(Icons.person),
               label: 'Profil',
             ),
           ],
@@ -1081,6 +1086,8 @@ class _HomeTabState extends State<HomeTab> {
           ),
           const SizedBox(height: 16),
           sec(Padding(padding: pad, child: _multiBuy(context))),
+          const SizedBox(height: 10),
+          sec(const Padding(padding: pad, child: MixPackCard())),
           const SizedBox(height: 12),
           sec(
             Column(

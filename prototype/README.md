@@ -12,9 +12,10 @@ Clickable Flutter web demo. Not official Aice software. All data is sample data 
 ## Where things live
 - `lib/config.dart`: switches (`sampleData`, `enabledBrands`). Pinned by `test/guard_test.dart`.
 - `lib/data.dart`: sample brands, products, stores, addresses.
-- `lib/pricing.dart`: cart maths, vouchers, delivery fee.
+- `lib/pricing.dart`: cart maths, vouchers, delivery fee, mix pack set prices.
+- `lib/screens_c.dart`: mix pack builder, order detail (re-order), notifications, about screen.
 - `assets/products/`: 400 px WebP photos with a pure white background (shown on pastel tiles).
-- Tests: `logic_test` (cart, vouchers, tracking), `intro_test` (main flow), `layout_test` (360 px, large text), `guard_test` (flags, banned claims, photos).
+- Tests: `logic_test` (cart, vouchers, tracking), `features_test` (mix pack, re-order, notifications, addresses), `intro_test` (main flow), `layout_test` (360 px, large text), `guard_test` (flags, banned claims, photos).
 
 ## Glossary
 - Brand: who makes the product (only Aice is on).

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'data.dart';
 import 'format.dart';
 import 'pricing.dart';
 import 'screens_a.dart';
+import 'screens_c.dart';
 import 'state.dart';
 import 'tracking.dart';
 import 'ui.dart';
@@ -87,6 +87,8 @@ class _CartTabState extends State<CartTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(e.key.name, style: tBold),
+                            if (e.key.category == 'mix')
+                              Text(e.key.size, style: tMuted),
                             Text(rp(e.key.price * e.value),
                                 style: const TextStyle(fontWeight: FontWeight.w800)),
                           ]),
@@ -764,7 +766,7 @@ class OrdersTab extends StatelessWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(rCard),
                 onTap: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => TrackingScreen(o))),
+                    .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(o))),
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -826,26 +828,49 @@ class ProfileTab extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 16),
-        const Text('Alamat tersimpan', style: tH3),
+        Row(children: [
+          const Expanded(child: Text('Alamat tersimpan', style: tH3)),
+          TextButton(
+              onPressed: () => _addAddress(context, s),
+              child: const Text('Tambah')),
+        ]),
         const SizedBox(height: 8),
-        for (final a in savedAddresses)
+        for (final a in s.saved)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: OptionTile(
-                selected: s.address == a, title: a, onTap: () => s.setAddress(a)),
+            child: Row(children: [
+              Expanded(
+                child: OptionTile(
+                    selected: s.address == a,
+                    title: a,
+                    onTap: () => s.setAddress(a)),
+              ),
+              IconButton(
+                  tooltip: 'Hapus alamat',
+                  onPressed: () => s.removeAddress(a),
+                  icon: const Icon(Icons.delete_outline)),
+            ]),
           ),
         const SizedBox(height: 12),
-        const Text('Notifikasi', style: tH3),
-        const SizedBox(height: 8),
-        for (final n in const [
-          'Beli 3 cone, diskon 10% hari ini (contoh).',
-          'Pesananmu #AC-0987 sudah tiba (contoh).',
-          'Voucher HEMAT10 berlaku sampai akhir pekan (contoh).',
-        ])
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Panel(child: Text(n)),
-          ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Badge(
+              isLabelVisible: s.unreadCount > 0,
+              label: Text('${s.unreadCount}'),
+              child: const Icon(Icons.notifications_none)),
+          title: const Text('Notifikasi', style: tBold),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const NoticesScreen())),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.info_outline),
+          title: const Text('Tentang demo ini', style: tBold),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const AboutDemoScreen())),
+        ),
         const SizedBox(height: 12),
         const Center(child: Text(footerText, style: tMuted)),
       ]),
@@ -899,4 +924,45 @@ void showDemoControls(BuildContext context) {
       });
     },
   );
+}
+
+Future<void> _addAddress(BuildContext context, AppState s) async {
+  final text = await showDialog<String>(
+    context: context,
+    builder: (_) => const _AddAddressDialog(),
+  );
+  if (text != null) s.addAddress(text);
+}
+
+class _AddAddressDialog extends StatefulWidget {
+  const _AddAddressDialog();
+  @override
+  State<_AddAddressDialog> createState() => _AddAddressDialogState();
+}
+
+class _AddAddressDialogState extends State<_AddAddressDialog> {
+  final ctl = TextEditingController();
+  @override
+  void dispose() {
+    ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Tambah alamat'),
+        content: TextField(
+          controller: ctl,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Tulis alamat'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(ctl.text),
+              child: const Text('Simpan')),
+        ],
+      );
 }

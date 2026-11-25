@@ -2,6 +2,18 @@
 
 Newest entry first. Source of truth for scope is `master-plan.md`.
 
+## 2026-11-25 (remaining features, no database)
+- Farrel: add the rest of the features without a DB. Supabase block (B0b) stays out. All data is local sample data, state lives on the device.
+- Gap check against the plan: cart, voucher, checkout, tracking, late guarantee, report a problem, search, Tanya AI, history and profile already existed. Missing:
+  - Mix pack builder (the optional wow feature): pick 6, 8 or 12 cones or sticks for a set price. Prices are in `pricing.dart` only.
+  - Order detail screen with "Pesan lagi" (re-order). Mix packs cannot be re-ordered, the screen says how many items were skipped.
+  - Notifications screen with unread count (badge on the Profil tab). A placed order adds one.
+  - Saved addresses: add and delete (device only). The address picker uses the same list.
+  - "Tentang demo ini": what really works and what is sample.
+- Assumptions: set prices 6 = Rp31.000, 8 = Rp41.000, 12 = Rp60.000 (sample); mix pack is not a cone, so no Beli 3 discount on it; Reset demo restores addresses, notices and mix packs.
+- Not built: live data change moment (needs Supabase), skeleton loading (nothing loads from a network).
+- Tests: 44 of 44 pass.
+
 ## 2026-11-24 (more listings)
 - Farrel: more listings in every category, then merge to main.
 - Catalog grew from 13 to 30 sample products: cone 8, stik 4, tub 5, yoghurt 3, minuman 4, paket 5. New photos are colour variants of the existing ones (taro, mangga, mint, stroberi, matcha, dark) and bundle collages. All still "contoh".
