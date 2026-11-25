@@ -370,7 +370,7 @@ class NoticesScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: s.unreadCount == 0 ? null : s.markAllRead,
-            child: const Text('Tandai dibaca'),
+            child: const Text('Tandai semua dibaca'),
           ),
         ],
       ),

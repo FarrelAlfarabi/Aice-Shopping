@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter/services.dart';
 import 'consumer_extras.dart';
 import 'data.dart';
 import 'format.dart';
@@ -14,15 +15,44 @@ import 'ui.dart';
 /// here changes the consumer's order status. Everything is sample data in
 /// memory (no backend).
 const _tabs = [
-  'Ringkasan',
+  'Ikhtisar',
   'Pesanan',
   'Antar',
   'Stok',
-  'Keuangan',
+  'Dana',
   'Alarm',
   'Analisis',
-  'Pengaturan & Izin',
+  'Pengaturan',
 ];
+
+/// One address per admin tab: open the app at #/admin to land here directly.
+const adminPaths = [
+  '/admin',
+  '/admin/pesanan',
+  '/admin/antar',
+  '/admin/stok',
+  '/admin/dana',
+  '/admin/alarm',
+  '/admin/analisis',
+  '/admin/pengaturan',
+];
+
+const _tabIcons = [
+  Icons.dashboard_outlined,
+  Icons.receipt_long_outlined,
+  Icons.local_shipping_outlined,
+  Icons.inventory_2_outlined,
+  Icons.account_balance_wallet_outlined,
+  Icons.notifications_active_outlined,
+  Icons.insights_outlined,
+  Icons.settings_outlined,
+];
+
+/// Index of the admin tab named in [fragment] (for example /admin/stok), or 0.
+int adminTabFromAddress(String fragment) {
+  final i = adminPaths.indexOf(fragment);
+  return i < 0 ? 0 : i;
+}
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -31,7 +61,12 @@ class AdminShell extends StatefulWidget {
 }
 
 class _AdminShellState extends State<AdminShell> {
-  int tab = 0;
+  int tab = adminTabFromAddress(Uri.base.fragment);
+
+  void _go(int i) {
+    setState(() => tab = i);
+    SystemNavigator.routeInformationUpdated(uri: Uri(path: adminPaths[i]));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,32 +78,72 @@ class _AdminShellState extends State<AdminShell> {
           children: [
             _Header(s),
             const SizedBox(height: 12),
-            _Kpis(s),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (var i = 0; i < _tabs.length; i++)
-                  SmallChip(
-                    _tabs[i],
-                    key: ValueKey('admin-tab-$i'),
-                    on: tab == i,
-                    onTap: () => setState(() => tab = i),
-                  ),
-              ],
+            if (tab == 0) ...[_Kpis(s), const SizedBox(height: 12)],
+            LayoutBuilder(
+              builder: (context, c) {
+                final body = switch (tab) {
+                  0 => _Overview(s),
+                  1 => _OrdersTab(s),
+                  2 => _DeliveryTab(s),
+                  3 => _StockTab(s),
+                  4 => _FundsTab(s),
+                  5 => _AlarmsTab(s),
+                  6 => _AnalysisTab(s),
+                  _ => _SettingsTab(s),
+                };
+                if (c.maxWidth >= 800) {
+                  // Laptop: a side menu next to the page.
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 190,
+                        child: Panel(
+                          key: const ValueKey('admin-side-menu'),
+                          child: Column(
+                            children: [
+                              for (var i = 0; i < _tabs.length; i++)
+                                ListTile(
+                                  key: ValueKey('admin-tab-$i'),
+                                  dense: true,
+                                  selected: tab == i,
+                                  selectedTileColor: C.tint,
+                                  selectedColor: C.pri,
+                                  leading: Icon(_tabIcons[i]),
+                                  title: Text(_tabs[i]),
+                                  onTap: () => _go(i),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: body),
+                    ],
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (var i = 0; i < _tabs.length; i++)
+                          SmallChip(
+                            _tabs[i],
+                            key: ValueKey('admin-tab-$i'),
+                            on: tab == i,
+                            onTap: () => _go(i),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    body,
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: 12),
-            switch (tab) {
-              0 => _Overview(s),
-              1 => _OrdersTab(s),
-              2 => _DeliveryTab(s),
-              3 => _StockTab(s),
-              4 => _FundsTab(s),
-              5 => _AlarmsTab(s),
-              6 => _AnalysisTab(s),
-              _ => _SettingsTab(s),
-            },
             const SizedBox(height: 12),
             const Center(child: Text(footerText, style: tMuted)),
           ],
@@ -269,7 +344,19 @@ class OrderRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(o.id, style: tBold)),
+            Expanded(
+              child: InkWell(
+                key: ValueKey('detail-${o.id}'),
+                onTap: () => _showDetail(context),
+                child: Row(
+                  children: [
+                    Flexible(child: Text(o.id, style: tBold)),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.info_outline, size: 16, color: C.muted),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(width: 6),
             Flexible(
               child: Container(
@@ -343,6 +430,54 @@ class OrderRow extends StatelessWidget {
     ),
   );
 
+  void _showDetail(BuildContext context) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (c) => SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(o.id, style: tH3),
+            const SizedBox(height: 4),
+            Text(adminStatus(o), style: tMuted),
+            const SizedBox(height: 10),
+            for (final l in o.lines)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    Expanded(child: Text('${l.name} x${l.qty}')),
+                    Text(rp(l.price * l.qty)),
+                  ],
+                ),
+              ),
+            const Divider(),
+            Row(
+              children: [
+                const Expanded(child: Text('Total', style: tBold)),
+                Text(rp(o.pricing.total), style: tBold),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('${o.customerName} · ${o.payment}', style: tMuted),
+            Text(o.address, style: tMuted),
+            Text(o.storeName, style: tMuted),
+            if (o.reported) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Ada laporan masalah dari pembeli (contoh).',
+                style: TextStyle(color: C.danger, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ),
+  );
+
   List<Widget> _actions() {
     switch (o.status) {
       case OrderStatus.pendingPayment:
@@ -398,6 +533,8 @@ class _Overview extends StatelessWidget {
     );
     final alarms = Column(
       children: [
+        _Sales7(s),
+        const SizedBox(height: 12),
         _AlarmList(s),
         const SizedBox(height: 12),
         MembersAdminCard(s),
@@ -522,6 +659,23 @@ class _StockTab extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(p.name, style: tBold),
+                        if (s.stock[p.id]!.nearExpiry)
+                          const Text(
+                            'Hampir kedaluwarsa (contoh)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: C.danger,
+                            ),
+                          ),
+                        if (p.shelfLifeDays != null)
+                          Text(
+                            'Masa simpan ${p.shelfLifeDays} hari (contoh)',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: C.muted,
+                            ),
+                          ),
                         Text(
                           'Stok ${s.stock[p.id]!.stock} · Titik pesan ulang ${s.stock[p.id]!.reorder}',
                           style: TextStyle(
@@ -561,13 +715,27 @@ class _FundsTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Keuangan bulan ini (contoh)', style: tH3),
+              const Text('Pembayaran masuk bulan ini (contoh)', style: tH3),
               const SizedBox(height: 8),
               _line('Penjualan awal bulan (contoh)', rp(baselinePayments)),
               for (final o in paid)
                 _line('${o.id} · ${o.customerName}', rp(o.pricing.total)),
               const Divider(),
               _line('Total pembayaran', rp(s.paymentsThisMonth), bold: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Panel(
+          key: const ValueKey('unpaid-panel'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Belum dibayar', style: tH3),
+              const SizedBox(height: 8),
+              if (s.unpaidOrders.isEmpty) const Text('Semua sudah dibayar.'),
+              for (final o in s.unpaidOrders)
+                _line('${o.id} · ${o.customerName}', rp(o.pricing.total)),
             ],
           ),
         ),
@@ -744,6 +912,30 @@ class _AnalysisTab extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Panel(
+          key: const ValueKey('members-by-tier'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Member per tingkat (contoh)', style: tH3),
+              const SizedBox(height: 8),
+              for (final t in memberTiers)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(tierName(t))),
+                      Text(
+                        '${s.members.values.where((m) => tierForPoints(m.lifetime) == t).length}',
+                        style: tBold,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -782,6 +974,15 @@ class _SettingsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
+      Panel(
+        child: Row(
+          children: [
+            const Expanded(child: Text('Bahasa', style: tH3)),
+            const LangChips(),
+          ],
+        ),
+      ),
+      const SizedBox(height: 12),
       Panel(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -833,4 +1034,64 @@ class _SettingsTab extends StatelessWidget {
       ],
     ),
   );
+}
+
+// -------------------------------------------------------------- 7 days
+
+/// Sample sales for the 6 days before today (Rupiah). Today adds the paid
+/// demo orders, so a new order moves the last bar.
+const sampleSales6Days = <int>[310000, 280000, 345000, 260000, 390000, 420000];
+
+class _Sales7 extends StatelessWidget {
+  final AppState s;
+  const _Sales7(this.s);
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today = s.allOrders
+        .where(
+          (o) =>
+              !o.sample &&
+              o.paidAt != null &&
+              o.paidAt!.year == now.year &&
+              o.paidAt!.month == now.month &&
+              o.paidAt!.day == now.day,
+        )
+        .fold(0, (a, o) => a + o.pricing.total);
+    final days = [...sampleSales6Days, today];
+    final top = days.fold(1, (a, b) => a > b ? a : b);
+    return Panel(
+      key: const ValueKey('sales-7'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Penjualan 7 hari (contoh)', style: tH3),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 90,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (var i = 0; i < days.length; i++)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: Container(
+                        height: 4 + 86 * days[i] / top,
+                        decoration: BoxDecoration(
+                          color: i == days.length - 1 ? C.pri : C.tint,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text('${tr('Hari ini')}: ${rp(today)}', style: tMuted),
+        ],
+      ),
+    );
+  }
 }
