@@ -13,12 +13,15 @@ class IntroSlide {
 }
 
 const introSlides = [
-  IntroSlide('Es krim, tetap beku.',
-      'Pesan es krim favoritmu dari toko terdekat.'),
-  IntroSlide('Diantar dalam kotak dingin',
-      'Sampai di pintu rumah tanpa meleleh.'),
-  IntroSlide('Pantau pesananmu',
-      'Lihat posisi pesanan dari toko sampai tiba.'),
+  IntroSlide(
+    'Es krim, tetap beku.',
+    'Pesan es krim favoritmu dari toko terdekat.',
+  ),
+  IntroSlide(
+    'Diantar dalam kotak dingin',
+    'Sampai di pintu rumah tanpa meleleh.',
+  ),
+  IntroSlide('Pantau pesananmu', 'Lihat posisi pesanan dari toko sampai tiba.'),
 ];
 
 /// First-launch welcome screen. Shows before onboarding (address and store).
@@ -44,65 +47,78 @@ class _IntroScreenState extends State<IntroScreen> {
     return Scaffold(
       backgroundColor: C.bg,
       body: SafeArea(
-        child: Column(children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Align(alignment: Alignment.centerRight, child: LangChips()),
-          ),
-          const Expanded(
-              child: Center(
-                  child: FittedBox(child: BrandLogo(size: 150)))),
-          SizedBox(
-            height: 120,
-            child: PageView.builder(
-              controller: controller,
-              itemCount: introSlides.length,
-              onPageChanged: (i) => setState(() => page = i),
-              itemBuilder: (_, i) => _SlideView(introSlides[i]),
-            ),
-          ),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            for (var i = 0; i < introSlides.length; i++)
-              AnimatedContainer(
-                key: ValueKey('intro-dot-$i'),
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: i == page ? 22 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                    color: i == page ? C.pri : C.line,
-                    borderRadius: BorderRadius.circular(4)),
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: LangChips(),
               ),
-          ]),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              alignment: WrapAlignment.center,
+            ),
+            const Expanded(
+              child: Center(child: FittedBox(child: BrandLogo(size: 150))),
+            ),
+            SizedBox(
+              height: 150,
+              child: PageView.builder(
+                controller: controller,
+                itemCount: introSlides.length,
+                onPageChanged: (i) => setState(() => page = i),
+                itemBuilder: (_, i) => _SlideView(introSlides[i]),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Demo:', style: tMuted),
-                SmallChip('Konsumen',
-                    key: const ValueKey('role-consumer'),
-                    on: s.role == AppRole.consumer,
-                    onTap: () => s.setRole(AppRole.consumer)),
-                SmallChip('Admin',
-                    key: const ValueKey('role-admin'),
-                    on: s.role == AppRole.admin,
-                    onTap: () => s.setRole(AppRole.admin)),
+                for (var i = 0; i < introSlides.length; i++)
+                  AnimatedContainer(
+                    key: ValueKey('intro-dot-$i'),
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: i == page ? 22 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: i == page ? C.pri : C.line,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: BigButton('Mulai', onPressed: s.finishIntro),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 14),
-            child: Text(footerText, style: tMuted),
-          ),
-        ]),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.center,
+                children: [
+                  const Text('Demo:', style: tMuted),
+                  SmallChip(
+                    'Konsumen',
+                    key: const ValueKey('role-consumer'),
+                    on: s.role == AppRole.consumer,
+                    onTap: () => s.setRole(AppRole.consumer),
+                  ),
+                  SmallChip(
+                    'Admin',
+                    key: const ValueKey('role-admin'),
+                    on: s.role == AppRole.admin,
+                    onTap: () => s.setRole(AppRole.admin),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: BigButton('Mulai', onPressed: s.finishIntro),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 14),
+              child: Text(footerText, style: tMuted),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -113,16 +129,32 @@ class _SlideView extends StatelessWidget {
   const _SlideView(this.slide);
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(slide.title,
+    padding: const EdgeInsets.symmetric(horizontal: 28),
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      child: SizedBox(
+        width: 304,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              slide.title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.w800, color: C.ink)),
-          const SizedBox(height: 10),
-          Text(slide.body,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: C.ink,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              slide.body,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, color: C.muted, height: 1.4)),
-        ]),
-      );
+              style: const TextStyle(fontSize: 15, color: C.muted, height: 1.4),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

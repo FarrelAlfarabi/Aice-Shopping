@@ -18,8 +18,13 @@ class OrderLine {
   final int price;
   final String? productId; // null for a mix pack (it cannot be re-ordered)
   final String? detail; // for a mix pack: which flavours
-  const OrderLine(this.name, this.qty, this.price,
-      {this.productId, this.detail});
+  const OrderLine(
+    this.name,
+    this.qty,
+    this.price, {
+    this.productId,
+    this.detail,
+  });
 }
 
 /// One item in the notification list (sample text, shown as "contoh").
@@ -31,10 +36,52 @@ class AppNotice {
 }
 
 List<AppNotice> _seedNotices() => [
-      AppNotice('n1', 'Beli 3 cone, diskon 10% hari ini (contoh).'),
-      AppNotice('n2', 'Pesananmu #AC-0987 sudah tiba (contoh).', read: true),
-      AppNotice('n3', 'Voucher HEMAT10 berlaku sampai akhir pekan (contoh).'),
-    ];
+  AppNotice('n1', 'Beli 3 cone, diskon 10% hari ini (contoh).'),
+  AppNotice('n2', 'Pesananmu #AC-0987 sudah tiba (contoh).', read: true),
+  AppNotice('n3', 'Voucher HEMAT10 berlaku sampai akhir pekan (contoh).'),
+];
+
+enum PointKind { earn, redeem, bonus }
+
+class PointEntry {
+  final DateTime at;
+  final PointKind kind;
+  final String ref; // order id, empty for the bonus
+  final int points; // negative when redeemed
+  const PointEntry(this.at, this.kind, this.ref, this.points);
+}
+
+/// Points of one demo member. In memory only, like everything else.
+class MemberAccount {
+  int balance;
+  int lifetime; // points ever earned: decides the tier
+  final List<PointEntry> history;
+  MemberAccount(this.balance, this.lifetime, [List<PointEntry>? h])
+    : history = h ?? [];
+}
+
+MemberAccount _seedAccount(Customer c) {
+  final now = DateTime.now();
+  PointEntry e(int daysAgo, PointKind k, String ref, int pts) =>
+      PointEntry(now.subtract(Duration(days: daysAgo)), k, ref, pts);
+  final h = switch (c.id) {
+    'c-jaya' => [
+      e(1, PointKind.earn, '#AC-1904', 96),
+      e(5, PointKind.earn, '#AC-1911', 240),
+      e(7, PointKind.redeem, '#AC-1907', -500),
+    ],
+    'c-kios' => [
+      e(1, PointKind.earn, '#AC-1904', 96),
+      e(13, PointKind.earn, '#AC-1902', 664),
+    ],
+    'c-rina' => [
+      e(2, PointKind.earn, '#AC-1901', 54),
+      e(15, PointKind.bonus, '', 156),
+    ],
+    _ => <PointEntry>[],
+  };
+  return MemberAccount(c.startBalance, c.startLifetime, h);
+}
 
 class Order {
   final String id;
@@ -53,6 +100,8 @@ class Order {
   DateTime? paidAt;
   DateTime trackStart; // when the trip started (tracking clock)
   bool reported = false;
+  int pointsEarn; // points this order gives once the payment is confirmed
+  bool pointsAwarded;
   Order({
     required this.id,
     required this.lines,
@@ -69,6 +118,8 @@ class Order {
     this.status = OrderStatus.shipping,
     this.paidAt,
     DateTime? trackStart,
+    this.pointsEarn = 0,
+    this.pointsAwarded = false,
   }) : trackStart = trackStart ?? placedAt;
 
   bool get isPaid => status != OrderStatus.pendingPayment;
@@ -90,6 +141,8 @@ class AppState extends ChangeNotifier {
   String lang = 'id'; // 'id' or 'en'. Used by the admin and the new screens.
   Customer customer = guestCustomer;
   final List<Customer> registered = [];
+  final Map<String, MemberAccount> members = {};
+  int redeem = 0; // points the person wants to use on this cart
   final Set<String> permissions = {...defaultPermissions};
 
   // Stock and alarms (shared with the admin)
@@ -124,17 +177,15 @@ class AppState extends ChangeNotifier {
   bool get signedIn => customer.id != guestCustomer.id;
   List<Customer> get customers => [...demoAccounts, ...registered];
 
-
-
   // Demo controls
   int demoSeconds = 75;
   bool makeLate = false;
   final bool dataLocal = true;
 
   Map<Product, int> get lines => {
-        for (final e in _qty.entries)
-          if (e.value > 0) _find(e.key): e.value,
-      };
+    for (final e in _qty.entries)
+      if (e.value > 0) _find(e.key): e.value,
+  };
   Product _find(String id) => _mix[id] ?? productById(id);
   int qtyOf(String id) => _qty[id] ?? 0;
   int get itemCount => _qty.values.fold(0, (a, b) => a + b);
@@ -143,7 +194,54 @@ class AppState extends ChangeNotifier {
   bool get hasAddress => address.trim().isNotEmpty;
 
   Voucher? get voucher => voucherStatus == VoucherStatus.ok ? _voucher : null;
-  Pricing get pricing => computePricing(lines, voucher, vip: customer.vip);
+  Pricing get pricing => computePricing(
+    lines,
+    voucher,
+    vip: isVip,
+    freeDelivery: tier.freeDelivery,
+    redeemPoints: redeem,
+  );
+
+  // ------------------------------------------------------------ Membership
+  MemberAccount _acc(Customer c) =>
+      members.putIfAbsent(c.id, () => _seedAccount(c));
+  MemberAccount accountOf(Customer c) => _acc(c);
+  bool get isMember => signedIn;
+  int get balance => signedIn ? _acc(customer).balance : 0;
+  int get lifetime => signedIn ? _acc(customer).lifetime : 0;
+  MemberTier get tier => tierForPoints(lifetime);
+  bool get isVip => tier.vipPrice;
+  MemberTier tierOf(Customer c) => tierForPoints(_acc(c).lifetime);
+  int get maxRedeem =>
+      maxRedeemablePoints(lines, voucher, vip: isVip, balance: balance);
+
+  void setRedeem(int pts) {
+    redeem = pts.clamp(0, maxRedeem);
+    notifyListeners();
+  }
+
+  void _award(Order o) {
+    if (o.pointsAwarded || o.customerId == guestCustomer.id) return;
+    o.pointsAwarded = true;
+    final c = customers.where((c) => c.id == o.customerId);
+    if (c.isEmpty || o.pointsEarn <= 0) return;
+    final a = _acc(c.first);
+    a.balance += o.pointsEarn;
+    a.lifetime += o.pointsEarn;
+    a.history.insert(
+      0,
+      PointEntry(DateTime.now(), PointKind.earn, o.id, o.pointsEarn),
+    );
+    if (c.first.id == customer.id) {
+      notices.insert(
+        0,
+        AppNotice(
+          'p${o.id}',
+          '+${o.pointsEarn} poin dari pesanan ${o.id} (contoh).',
+        ),
+      );
+    }
+  }
 
   void chooseStore(Store s) {
     store = s;
@@ -190,8 +288,14 @@ class AppState extends ChangeNotifier {
       for (final e in picks.entries)
         if (e.value > 0) '${e.value} ${e.key.name}',
     ].join(', ');
-    final p = Product('mix-${_mixNo++}', 'Paket Mix $size', 'mix', detail, price,
-        photo: 'paket-cone.webp');
+    final p = Product(
+      'mix-${_mixNo++}',
+      'Paket Mix $size',
+      'mix',
+      detail,
+      price,
+      photo: 'paket-cone.webp',
+    );
     _mix[p.id] = p;
     add(p);
     return p;
@@ -203,7 +307,9 @@ class AppState extends ChangeNotifier {
     var skipped = 0;
     for (final l in o.lines) {
       final id = l.productId;
-      final p = id == null ? null : catalog.where((x) => x.id == id).firstOrNull;
+      final p = id == null
+          ? null
+          : catalog.where((x) => x.id == id).firstOrNull;
       if (p == null || p.soldOut) {
         skipped++;
       } else {
@@ -294,7 +400,18 @@ class AppState extends ChangeNotifier {
       customerName: customer.name,
       status: transfer ? OrderStatus.pendingPayment : OrderStatus.shipping,
       paidAt: transfer ? null : now,
+      pointsEarn: signedIn ? pointsFor(p.total) : 0,
     );
+    if (p.pointsUsed > 0 && signedIn) {
+      final a = _acc(customer);
+      a.balance -= p.pointsUsed;
+      a.history.insert(
+        0,
+        PointEntry(now, PointKind.redeem, o.id, -p.pointsUsed),
+      );
+    }
+    redeem = 0;
+    if (!transfer) _award(o);
     // Take the units out of stock (never below zero).
     for (final e in lines.entries) {
       final si = stock[e.key.id];
@@ -303,12 +420,14 @@ class AppState extends ChangeNotifier {
     current = o;
     allOrders.insert(0, o);
     notices.insert(
-        0,
-        AppNotice(
-            'o${o.id}',
-            transfer
-                ? 'Pesanan ${o.id} menunggu transfer dikonfirmasi penjual (contoh).'
-                : 'Pesanan ${o.id} diterima toko (contoh).'));
+      0,
+      AppNotice(
+        'o${o.id}',
+        transfer
+            ? 'Pesanan ${o.id} menunggu transfer dikonfirmasi penjual (contoh).'
+            : 'Pesanan ${o.id} diterima toko (contoh).',
+      ),
+    );
     _qty.clear();
     voucherInput = '';
     _recheckVoucher();
@@ -363,6 +482,8 @@ class AppState extends ChangeNotifier {
   /// Used by the admin's "Reset data demo" button. Keeps the person's role,
   /// language and sign-in.
   void resetData() {
+    members.clear();
+    redeem = 0;
     allOrders
       ..clear()
       ..addAll([_sampleOrder(), ..._seedOrders()]);
@@ -391,12 +512,14 @@ class AppState extends ChangeNotifier {
 
   void signIn(Customer c) {
     customer = c;
+    redeem = 0;
     _recheckVoucher();
     notifyListeners();
   }
 
   void signOut() {
     customer = guestCustomer;
+    redeem = 0;
     _recheckVoucher();
     notifyListeners();
   }
@@ -420,9 +543,17 @@ class AppState extends ChangeNotifier {
       'c-new-${registered.length + 1}',
       name.trim().isEmpty ? 'Pelanggan Baru (contoh)' : name.trim(),
       phone.trim(),
-      vip: invite.trim().toUpperCase() == inviteCodeVip,
+      memberNo:
+          'ICE-${(100 + registered.length + 4).toString().padLeft(4, '0')}',
+      startBalance: signupBonusPoints,
+      startLifetime: invite.trim().toUpperCase() == inviteCodeVip
+          ? memberTiers.last.minPoints
+          : signupBonusPoints,
     );
     registered.add(c);
+    members[c.id] = MemberAccount(c.startBalance, c.startLifetime, [
+      PointEntry(DateTime.now(), PointKind.bonus, '', signupBonusPoints),
+    ]);
     signIn(c);
     return c;
   }
@@ -443,16 +574,20 @@ class AppState extends ChangeNotifier {
       allOrders.where((o) => !o.sample && _isToday(o.placedAt)).length;
   List<Order> get prepTasks =>
       allOrders.where((o) => o.status == OrderStatus.pendingPrep).toList();
-  int get vipCount => customers.where((c) => c.vip).length;
+  int get vipCount => customers.where((c) => tierOf(c).vipPrice).length;
+  int get pointsOutstanding => customers.fold(0, (a, c) => a + _acc(c).balance);
+  int tierCount(String key) =>
+      customers.where((c) => tierOf(c).key == key).length;
   List<MapEntry<Product, StockInfo>> get lowStock => [
-        for (final p in catalog)
-          if (stock[p.id]?.low ?? false) MapEntry(p, stock[p.id]!),
-      ];
+    for (final p in catalog)
+      if (stock[p.id]?.low ?? false) MapEntry(p, stock[p.id]!),
+  ];
   int get paymentsThisMonth =>
       baselinePayments +
       allOrders
-          .where((o) =>
-              !o.sample && o.paidAt != null && _isThisMonth(o.paidAt!))
+          .where(
+            (o) => !o.sample && o.paidAt != null && _isThisMonth(o.paidAt!),
+          )
           .fold(0, (a, o) => a + o.pricing.total);
   int get expensesThisMonth => seedExpenses.fold(0, (a, e) => a + e.amount);
   List<Order> get unpaidOrders =>
@@ -467,11 +602,15 @@ class AppState extends ChangeNotifier {
     if (o.status != OrderStatus.pendingPayment) return;
     o.status = OrderStatus.pendingPrep;
     o.paidAt = DateTime.now();
+    _award(o);
     if (o.customerId == customer.id) {
       notices.insert(
-          0,
-          AppNotice('c${o.id}',
-              'Transfer pesanan ${o.id} dikonfirmasi, pesanan disiapkan (contoh).'));
+        0,
+        AppNotice(
+          'c${o.id}',
+          'Transfer pesanan ${o.id} dikonfirmasi, pesanan disiapkan (contoh).',
+        ),
+      );
     }
     notifyListeners();
   }
@@ -482,8 +621,10 @@ class AppState extends ChangeNotifier {
     o.status = OrderStatus.shipping;
     o.trackStart = DateTime.now();
     if (o.customerId == customer.id) {
-      notices.insert(0,
-          AppNotice('s${o.id}', 'Pesanan ${o.id} sedang diantar (contoh).'));
+      notices.insert(
+        0,
+        AppNotice('s${o.id}', 'Pesanan ${o.id} sedang diantar (contoh).'),
+      );
     }
     notifyListeners();
   }
@@ -506,10 +647,12 @@ class AppState extends ChangeNotifier {
   }
 
   void simulateColdFailure() {
-    coldAlarms.add(ColdAlarm(
-      'p0-${coldAlarms.length + 1}',
-      'Suhu kotak dingin kurir naik di atas -10 °C (contoh)',
-    ));
+    coldAlarms.add(
+      ColdAlarm(
+        'p0-${coldAlarms.length + 1}',
+        'Suhu kotak dingin kurir naik di atas -10 °C (contoh)',
+      ),
+    );
     notifyListeners();
   }
 
@@ -521,17 +664,31 @@ class AppState extends ChangeNotifier {
 
 /// Sample permission switches for the admin settings tab (in memory only).
 const defaultPermissions = <String>{
-  'sales:confirm', 'sales:orders', 'warehouse:stock', 'courier:delivery',
+  'sales:confirm',
+  'sales:orders',
+  'warehouse:stock',
+  'courier:delivery',
 };
 
 /// Orders of other sample customers so the admin has something to show.
 List<Order> _seedOrders() {
-  Order mk(String id, Customer c, Map<String, int> items, OrderStatus st,
-      Duration ago,
-      {String payment = 'Transfer bank'}) {
+  Order mk(
+    String id,
+    Customer c,
+    Map<String, int> items,
+    OrderStatus st,
+    Duration ago, {
+    String payment = 'Transfer bank',
+  }) {
     final placed = DateTime.now().subtract(ago);
     final map = {for (final e in items.entries) productById(e.key): e.value};
-    final pr = computePricing(map, null, vip: c.vip);
+    final t = tierForPoints(c.startLifetime);
+    final pr = computePricing(
+      map,
+      null,
+      vip: t.vipPrice,
+      freeDelivery: t.freeDelivery,
+    );
     return Order(
       id: id,
       lines: [
@@ -549,42 +706,69 @@ List<Order> _seedOrders() {
       customerName: c.name,
       status: st,
       paidAt: st == OrderStatus.pendingPayment ? null : placed,
+      pointsEarn: pointsFor(pr.total),
+      pointsAwarded: st != OrderStatus.pendingPayment,
     );
   }
 
   return [
-    mk('#AC-2001', demoAccounts[0], {'cone-vanila': 6, 'cone-cokelat': 6},
-        OrderStatus.pendingPayment, const Duration(minutes: 20)),
-    mk('#AC-2002', demoAccounts[0], {'stik-cokelat': 12},
-        OrderStatus.pendingPayment, const Duration(hours: 1)),
-    mk('#AC-2003', demoAccounts[1], {'tub-stroberi': 4, 'cup-blueberry': 4},
-        OrderStatus.pendingPrep, const Duration(hours: 5)),
-    mk('#AC-2004', demoAccounts[2], {'bundle-keluarga': 2},
-        OrderStatus.delivered, const Duration(days: 1)),
-    mk('#AC-2005', demoAccounts[1], {'drink-cokelat': 6, 'cup-matcha': 4},
-        OrderStatus.delivered, const Duration(days: 2),
-        payment: 'QRIS'),
+    mk(
+      '#AC-2001',
+      demoAccounts[0],
+      {'cone-vanila': 6, 'cone-cokelat': 6},
+      OrderStatus.pendingPayment,
+      const Duration(minutes: 20),
+    ),
+    mk(
+      '#AC-2002',
+      demoAccounts[0],
+      {'stik-cokelat': 12},
+      OrderStatus.pendingPayment,
+      const Duration(hours: 1),
+    ),
+    mk(
+      '#AC-2003',
+      demoAccounts[1],
+      {'tub-stroberi': 4, 'cup-blueberry': 4},
+      OrderStatus.pendingPrep,
+      const Duration(hours: 5),
+    ),
+    mk(
+      '#AC-2004',
+      demoAccounts[2],
+      {'bundle-keluarga': 2},
+      OrderStatus.delivered,
+      const Duration(days: 1),
+    ),
+    mk(
+      '#AC-2005',
+      demoAccounts[1],
+      {'drink-cokelat': 6, 'cup-matcha': 4},
+      OrderStatus.delivered,
+      const Duration(days: 2),
+      payment: 'QRIS',
+    ),
   ];
 }
 
 Order _sampleOrder() => Order(
-      id: '#AC-0987',
-      lines: const [
-        OrderLine('Cone Vanila Stroberi', 3, 5000, productId: 'cone-vanila')
-      ],
-      pricing: computePricing({productById('cone-vanila'): 3}, null),
-      storeName: 'Toko Contoh 1',
-      address: savedAddresses.first,
-      payment: 'QRIS',
-      placedAt: DateTime(2026, 11, 20, 19, 30),
-      late: false,
-      demoSeconds: 75,
-      sample: true,
-    );
+  id: '#AC-0987',
+  lines: const [
+    OrderLine('Cone Vanila Stroberi', 3, 5000, productId: 'cone-vanila'),
+  ],
+  pricing: computePricing({productById('cone-vanila'): 3}, null),
+  storeName: 'Toko Contoh 1',
+  address: savedAddresses.first,
+  payment: 'QRIS',
+  placedAt: DateTime(2026, 11, 20, 19, 30),
+  late: false,
+  demoSeconds: 75,
+  sample: true,
+);
 
 class AppScope extends InheritedNotifier<AppState> {
   const AppScope({super.key, required AppState state, required super.child})
-      : super(notifier: state);
+    : super(notifier: state);
   static AppState of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<AppScope>()!.notifier!;
 }

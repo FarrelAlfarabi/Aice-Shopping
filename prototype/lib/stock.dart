@@ -36,11 +36,8 @@ class ColdAlarm {
 }
 
 List<ColdAlarm> seedColdAlarms() => [
-      ColdAlarm(
-        'p0-1',
-        'Freezer Toko Contoh 2 naik ke -9 °C (contoh)',
-      ),
-    ];
+  ColdAlarm('p0-1', 'Freezer Toko Contoh 2 naik ke -9 °C (contoh)'),
+];
 
 class Expense {
   final String label;

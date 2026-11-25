@@ -66,3 +66,7 @@ flutter:
           weight: 700
         - asset: assets/fonts/Roboto-Black.ttf
           weight: 900
+    # Only the Chinese characters the app uses (tool/make_zh_font.py).
+    - family: ZhSubset
+      fonts:
+        - asset: assets/fonts/ZhSubset.ttf

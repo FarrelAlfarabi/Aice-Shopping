@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart' hide Text;
 import 'i18n.dart';
 import 'format.dart';
+import 'membership.dart';
 import 'pricing.dart';
 import 'screens_a.dart';
 import 'screens_c.dart';
@@ -51,189 +52,280 @@ class _CartTabState extends State<CartTab> {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.shopping_cart_outlined, size: 64, color: C.muted),
-              const SizedBox(height: 12),
-              const Text('Keranjang masih kosong', style: tH2),
-              const SizedBox(height: 6),
-              const Text('Pilih es krim favoritmu dulu.',
-                  style: tMuted, textAlign: TextAlign.center),
-              const SizedBox(height: 18),
-              BigButton('Belanja sekarang', onPressed: () => tabIndex.value = 0),
-            ]),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 64,
+                  color: C.muted,
+                ),
+                const SizedBox(height: 12),
+                const Text('Keranjang masih kosong', style: tH2),
+                const SizedBox(height: 6),
+                const Text(
+                  'Pilih es krim favoritmu dulu.',
+                  style: tMuted,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 18),
+                BigButton(
+                  'Belanja sekarang',
+                  onPressed: () => tabIndex.value = 0,
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
     final p = s.pricing;
     final lines = s.lines;
-    final coneQty =
-        lines.entries.where((e) => e.key.multiBuy).fold(0, (a, e) => a + e.value);
+    final coneQty = lines.entries
+        .where((e) => e.key.multiBuy)
+        .fold(0, (a, e) => a + e.value);
     final slots = deliverySlots();
     if (!slots.contains(s.slot)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => s.setSlot(slots.first));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => s.setSlot(slots.first),
+      );
     }
     return SafeArea(
-      child: Column(children: [
-        Expanded(
-          child: ListView(padding: const EdgeInsets.all(16), children: [
-            const Text('Keranjang', style: tH2),
-            const SizedBox(height: 12),
-            Panel(
-              child: Column(children: [
-                for (final e in lines.entries) ...[
-                  Row(children: [
-                    SizedBox(width: 56, child: ProductImage(e.key)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Text('Keranjang', style: tH2),
+                const SizedBox(height: 12),
+                Panel(
+                  child: Column(
+                    children: [
+                      for (final e in lines.entries) ...[
+                        Row(
                           children: [
-                            Text(e.key.name, style: tBold),
-                            if (e.key.category == 'mix')
-                              Text(e.key.size, style: tMuted),
-                            Text(rp(e.key.price * e.value),
-                                style: const TextStyle(fontWeight: FontWeight.w800)),
-                          ]),
+                            SizedBox(width: 56, child: ProductImage(e.key)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(e.key.name, style: tBold),
+                                  if (e.key.category == 'mix')
+                                    Text(e.key.size, style: tMuted),
+                                  Text(
+                                    rp(e.key.price * e.value),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            QtyStepper(
+                              qty: e.value,
+                              onMinus: () => s.remove(e.key),
+                              onPlus: () => s.add(e.key),
+                            ),
+                          ],
+                        ),
+                        if (e.key != lines.keys.last) const Divider(height: 20),
+                      ],
+                    ],
+                  ),
+                ),
+                if (p.belowMinOrder) ...[
+                  const SizedBox(height: 10),
+                  Panel(
+                    color: C.warnBg,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Belanja kurang dari ${rp(Pricing.minOrder)} kena biaya kecil ${rp(Pricing.smallOrderFee)}. Tambah ${rp(p.toMinOrder)} lagi, biaya ini hilang.',
+                          key: const Key('min-order-note'),
+                          style: const TextStyle(
+                            color: C.warnInk,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SmallChip('Tambah item', onTap: _addMore),
+                      ],
                     ),
-                    QtyStepper(
-                        qty: e.value,
-                        onMinus: () => s.remove(e.key),
-                        onPlus: () => s.add(e.key)),
-                  ]),
-                  if (e.key != lines.keys.last) const Divider(height: 20),
+                  ),
                 ],
-              ]),
-            ),
-            if (p.belowMinOrder) ...[
-              const SizedBox(height: 10),
-              Panel(
-                color: C.warnBg,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(
-                      'Belanja kurang dari ${rp(Pricing.minOrder)} kena biaya kecil ${rp(Pricing.smallOrderFee)}. Tambah ${rp(p.toMinOrder)} lagi, biaya ini hilang.',
-                      key: const Key('min-order-note'),
-                      style: const TextStyle(
-                          color: C.warnInk, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 8),
-                  SmallChip('Tambah item', onTap: _addMore),
-                ]),
-              ),
-            ],
-            const SizedBox(height: 10),
-            if (p.multiBuy > 0)
-              Notice('Diskon Beli 3 terpasang: hemat ${rp(p.multiBuy)}.', good: true)
-            else if (coneQty > 0)
-              Notice('Beli 3 cone, diskon 10%: tambah ${3 - coneQty} lagi.'),
-            const SizedBox(height: 10),
-            Panel(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  Expanded(
-                      child: Text(
-                          'Gratis ongkir (belanja ${rp(Pricing.freeThreshold)})',
-                          style: tBold)),
-                  Text(
-                      p.toFreeDelivery == 0
-                          ? 'Tercapai'
-                          : '${rp(p.toFreeDelivery)} lagi',
-                      style: tMuted),
-                ]),
+                const SizedBox(height: 10),
+                if (p.multiBuy > 0)
+                  Notice(
+                    'Diskon Beli 3 terpasang: hemat ${rp(p.multiBuy)}.',
+                    good: true,
+                  )
+                else if (coneQty > 0)
+                  Notice(
+                    'Beli 3 cone, diskon 10%: tambah ${3 - coneQty} lagi.',
+                  ),
+                const SizedBox(height: 10),
+                Panel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Gratis ongkir (belanja ${rp(Pricing.freeThreshold)})',
+                              style: tBold,
+                            ),
+                          ),
+                          Text(
+                            p.toFreeDelivery == 0
+                                ? 'Tercapai'
+                                : '${rp(p.toFreeDelivery)} lagi',
+                            style: tMuted,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: p.freeProgress,
+                          minHeight: 10,
+                          color: C.acc,
+                          backgroundColor: C.line,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text('Voucher', style: tH3),
                 const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    value: p.freeProgress,
-                    minHeight: 10,
-                    color: C.acc,
-                    backgroundColor: C.line,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: ctl,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          hintText: tr('Masukkan kode'),
+                        ),
+                        onSubmitted: s.applyVoucher,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 48,
+                      child: FilledButton(
+                        onPressed: () => s.applyVoucher(ctl.text),
+                        child: const Text('Pakai'),
+                      ),
+                    ),
+                  ],
                 ),
-              ]),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final v in vouchers)
+                      SmallChip(
+                        v.code,
+                        onTap: () {
+                          ctl.text = v.code;
+                          s.applyVoucher(v.code);
+                        },
+                      ),
+                  ],
+                ),
+                if (s.voucherStatus == VoucherStatus.wrong)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Kode voucher tidak dikenal. Periksa lagi kodenya.',
+                      style: TextStyle(
+                        color: C.danger,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                if (s.voucherStatus == VoucherStatus.notMet)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Belanja ${rp(s.voucherShortBy)} lagi untuk memakai voucher ini.',
+                      style: const TextStyle(
+                        color: C.danger,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                if (s.voucherStatus == VoucherStatus.ok)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Voucher ${s.voucher!.code} terpasang.',
+                            style: const TextStyle(
+                              color: C.good,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ctl.clear();
+                            s.clearVoucher();
+                          },
+                          child: const Text('Lepas'),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 14),
+                const Text('Waktu kirim', style: tH3),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final sl in slots)
+                      SmallChip(
+                        sl,
+                        on: s.slot == sl,
+                        onTap: () => s.setSlot(sl),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                const RedeemPanel(),
+                const SizedBox(height: 8),
+                Panel(child: _Summary(p)),
+                const SizedBox(height: 8),
+                const Center(child: Text(footerText, style: tMuted)),
+              ],
             ),
-            const SizedBox(height: 14),
-            const Text('Voucher', style: tH3),
-            const SizedBox(height: 8),
-            Row(children: [
-              Expanded(
-                child: TextField(
-                  controller: ctl,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: InputDecoration(hintText: tr('Masukkan kode')),
-                  onSubmitted: s.applyVoucher,
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 48,
-                child: FilledButton(
-                  onPressed: () => s.applyVoucher(ctl.text),
-                  child: const Text('Pakai'),
-                ),
-              ),
-            ]),
-            const SizedBox(height: 8),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final v in vouchers)
-                SmallChip(v.code, onTap: () {
-                  ctl.text = v.code;
-                  s.applyVoucher(v.code);
-                }),
-            ]),
-            if (s.voucherStatus == VoucherStatus.wrong)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text('Kode voucher tidak dikenal. Periksa lagi kodenya.',
-                    style: TextStyle(color: C.danger, fontWeight: FontWeight.w600)),
-              ),
-            if (s.voucherStatus == VoucherStatus.notMet)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                    'Belanja ${rp(s.voucherShortBy)} lagi untuk memakai voucher ini.',
-                    style: const TextStyle(
-                        color: C.danger, fontWeight: FontWeight.w600)),
-              ),
-            if (s.voucherStatus == VoucherStatus.ok)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(children: [
-                  Expanded(
-                    child: Text('Voucher ${s.voucher!.code} terpasang.',
-                        style: const TextStyle(
-                            color: C.good, fontWeight: FontWeight.w700)),
-                  ),
-                  TextButton(
-                      onPressed: () {
-                        ctl.clear();
-                        s.clearVoucher();
-                      },
-                      child: const Text('Lepas')),
-                ]),
-              ),
-            const SizedBox(height: 14),
-            const Text('Waktu kirim', style: tH3),
-            const SizedBox(height: 8),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final sl in slots)
-                SmallChip(sl, on: s.slot == sl, onTap: () => s.setSlot(sl)),
-            ]),
-            const SizedBox(height: 14),
-            Panel(child: _Summary(p)),
-            const SizedBox(height: 8),
-            const Center(child: Text(footerText, style: tMuted)),
-          ]),
-        ),
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          decoration: const BoxDecoration(
-              color: C.surface, border: Border(top: BorderSide(color: C.line))),
-          child: BigButton('Lanjut bayar',
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            decoration: const BoxDecoration(
+              color: C.surface,
+              border: Border(top: BorderSide(color: C.line)),
+            ),
+            child: BigButton(
+              'Lanjut bayar',
               trailing: rp(p.total),
-              onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CheckoutScreen()))),
-        ),
-      ]),
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const CheckoutScreen())),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -242,36 +334,51 @@ class _Summary extends StatelessWidget {
   final Pricing p;
   const _Summary(this.p);
   Widget row(String l, String v, {bool bold = false, Color? color}) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(children: [
-          Expanded(
-              child: Text(l,
-                  style: TextStyle(
-                      fontWeight: bold ? FontWeight.w800 : FontWeight.w400,
-                      fontSize: bold ? 15 : 14))),
-          Text(v,
-              style: TextStyle(
-                  fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
-                  fontSize: bold ? 15 : 14,
-                  color: color)),
-        ]),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            l,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.w800 : FontWeight.w400,
+              fontSize: bold ? 15 : 14,
+            ),
+          ),
+        ),
+        Text(
+          v,
+          style: TextStyle(
+            fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
+            fontSize: bold ? 15 : 14,
+            color: color,
+          ),
+        ),
+      ],
+    ),
+  );
   @override
-  Widget build(BuildContext context) => Column(children: [
-        row('Subtotal', rp(p.subtotal)),
-        if (p.multiBuy > 0)
-          row('Diskon Beli 3', '-${rp(p.multiBuy)}', color: C.good),
-        if (p.tier > 0)
-          row('Diskon jumlah', '-${rp(p.tier)}', color: C.good),
-        if (p.vip > 0)
-          row('Harga member', '-${rp(p.vip)}', color: C.good),
-        if (p.voucherDiscount > 0)
-          row('Voucher', '-${rp(p.voucherDiscount)}', color: C.good),
-        row('Ongkir', p.delivery == 0 ? 'Gratis' : rp(p.delivery)),
-        if (p.smallFee > 0) row('Biaya belanja kecil', rp(p.smallFee)),
-        const Divider(),
-        row('Total', rp(p.total), bold: true),
-      ]);
+  Widget build(BuildContext context) => Column(
+    children: [
+      row('Subtotal', rp(p.subtotal)),
+      if (p.multiBuy > 0)
+        row('Diskon Beli 3', '-${rp(p.multiBuy)}', color: C.good),
+      if (p.tier > 0) row('Diskon jumlah', '-${rp(p.tier)}', color: C.good),
+      if (p.vip > 0) row('Harga member', '-${rp(p.vip)}', color: C.good),
+      if (p.voucherDiscount > 0)
+        row('Voucher', '-${rp(p.voucherDiscount)}', color: C.good),
+      if (p.pointsOff > 0)
+        row(
+          'Tukar poin (${pts(p.pointsUsed)})',
+          '-${rp(p.pointsOff)}',
+          color: C.good,
+        ),
+      row('Ongkir', p.delivery == 0 ? 'Gratis' : rp(p.delivery)),
+      if (p.smallFee > 0) row('Biaya belanja kecil', rp(p.smallFee)),
+      const Divider(),
+      row('Total', rp(p.total), bold: true),
+    ],
+  );
 }
 
 class CheckoutScreen extends StatelessWidget {
@@ -281,66 +388,93 @@ class CheckoutScreen extends StatelessWidget {
     final s = AppScope.of(context);
     final p = s.pricing;
     const methods = [
-      ('E-wallet', 'Contoh, tanpa dana sungguhan', Icons.account_balance_wallet_outlined),
-      ('Transfer bank', 'Virtual account contoh', Icons.account_balance_outlined),
+      (
+        'E-wallet',
+        'Contoh, tanpa dana sungguhan',
+        Icons.account_balance_wallet_outlined,
+      ),
+      (
+        'Transfer bank',
+        'Virtual account contoh',
+        Icons.account_balance_outlined,
+      ),
       ('QRIS', 'Pindai kode contoh', Icons.qr_code_2),
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('Pembayaran')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Panel(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Dikirim ke', style: tMuted),
-            Text(s.hasAddress ? s.address : 'Alamat belum diatur',
-                key: const ValueKey('checkout-address'),
-                style: s.hasAddress ? tBold : tBold.copyWith(color: C.danger)),
-            const SizedBox(height: 6),
-            Text('${s.store.name} · ${s.slot}', style: tMuted),
-            const SizedBox(height: 6),
-            TextButton(
-              key: const ValueKey('checkout-set-address'),
-              style: TextButton.styleFrom(padding: EdgeInsets.zero),
-              onPressed: () => openAddress(context),
-              child: Text(s.hasAddress ? 'Ubah alamat atau toko' : 'Atur alamat'),
-            ),
-          ]),
-        ),
-        const SizedBox(height: 14),
-        const Text('Metode pembayaran', style: tH3),
-        const SizedBox(height: 8),
-        for (final m in methods)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: OptionTile(
-              selected: s.payment == m.$1,
-              title: m.$1,
-              subtitle: m.$2,
-              trailing: Icon(m.$3, color: C.muted),
-              onTap: () => s.setPayment(m.$1),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Dikirim ke', style: tMuted),
+                Text(
+                  s.hasAddress ? s.address : 'Alamat belum diatur',
+                  key: const ValueKey('checkout-address'),
+                  style: s.hasAddress ? tBold : tBold.copyWith(color: C.danger),
+                ),
+                const SizedBox(height: 6),
+                Text('${s.store.name} · ${s.slot}', style: tMuted),
+                const SizedBox(height: 6),
+                TextButton(
+                  key: const ValueKey('checkout-set-address'),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  onPressed: () => openAddress(context),
+                  child: Text(
+                    s.hasAddress ? 'Ubah alamat atau toko' : 'Atur alamat',
+                  ),
+                ),
+              ],
             ),
           ),
-        const SizedBox(height: 6),
-        Panel(child: _Summary(p)),
-        const SizedBox(height: 12),
-        const Notice('Pesanan dikirim dalam tas pendingin supaya tetap beku.'),
-        const SizedBox(height: 10),
-        const Text('Demo konsep. Bukan aplikasi resmi Aice. Tidak ada uang yang berpindah.',
-            style: tMuted),
-      ]),
+          const SizedBox(height: 14),
+          const Text('Metode pembayaran', style: tH3),
+          const SizedBox(height: 8),
+          for (final m in methods)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: OptionTile(
+                selected: s.payment == m.$1,
+                title: m.$1,
+                subtitle: m.$2,
+                trailing: Icon(m.$3, color: C.muted),
+                onTap: () => s.setPayment(m.$1),
+              ),
+            ),
+          const SizedBox(height: 6),
+          Panel(child: _Summary(p)),
+          const SizedBox(height: 12),
+          const Notice(
+            'Pesanan dikirim dalam tas pendingin supaya tetap beku.',
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Demo konsep. Bukan aplikasi resmi Aice. Tidak ada uang yang berpindah.',
+            style: tMuted,
+          ),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-          child: BigButton('Bayar',
-              trailing: rp(p.total),
-              onPressed: s.cartEmpty
-                  ? null
-                  : () async {
-                      // No address yet: ask for it first, then go on.
-                      if (!s.hasAddress && !await openAddress(context)) return;
-                      if (!context.mounted) return;
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (_) => const ProcessingScreen()));
-                    }),
+          child: BigButton(
+            'Bayar',
+            trailing: rp(p.total),
+            onPressed: s.cartEmpty
+                ? null
+                : () async {
+                    // No address yet: ask for it first, then go on.
+                    if (!s.hasAddress && !await openAddress(context)) return;
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => const ProcessingScreen(),
+                      ),
+                    );
+                  },
+          ),
         ),
       ),
     );
@@ -362,7 +496,8 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       if (!mounted) return;
       final o = AppScope.of(context).placeOrder();
       Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => OrderPlacedScreen(o)));
+        MaterialPageRoute(builder: (_) => OrderPlacedScreen(o)),
+      );
     });
   }
 
@@ -374,19 +509,22 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
   @override
   Widget build(BuildContext context) => const PopScope(
-        canPop: false,
-        child: Scaffold(
-          body: Center(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 18),
-              Text('Memproses pembayaran (contoh)', style: tH3),
-              SizedBox(height: 4),
-              Text('Mohon tunggu sebentar.', style: tMuted),
-            ]),
-          ),
+    canPop: false,
+    child: Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 18),
+            Text('Memproses pembayaran (contoh)', style: tH3),
+            SizedBox(height: 4),
+            Text('Mohon tunggu sebentar.', style: tMuted),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class OrderPlacedScreen extends StatelessWidget {
@@ -394,62 +532,106 @@ class OrderPlacedScreen extends StatelessWidget {
   const OrderPlacedScreen(this.o, {super.key});
   @override
   Widget build(BuildContext context) => PopScope(
-        canPop: false,
-        child: Scaffold(
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(children: [
-                const Spacer(),
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: const BoxDecoration(color: C.good, shape: BoxShape.circle),
-                  child: const Icon(Icons.check, size: 52, color: Colors.white),
-                ),
-                const SizedBox(height: 18),
-                const Text('Pesanan diterima', style: tH2),
-                const SizedBox(height: 6),
-                Text('${o.id} · ${o.storeName}', style: tMuted),
-                const SizedBox(height: 4),
-                if (o.status == OrderStatus.pendingPayment) ...[
-                  const Text('Menunggu transfer dikonfirmasi penjual',
-                      style: tBold),
-                  const SizedBox(height: 8),
-                  Panel(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Transfer ${rp(o.pricing.total)} ke:',
-                              style: tMuted),
-                          const Text(sampleBankAccount, style: tBold),
-                          const SizedBox(height: 4),
-                          const Text(
+    canPop: false,
+    child: Scaffold(
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight - 48),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: const BoxDecoration(
+                        color: C.good,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 52,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text('Pesanan diterima', style: tH2),
+                    const SizedBox(height: 6),
+                    Text('${o.id} · ${o.storeName}', style: tMuted),
+                    const SizedBox(height: 4),
+                    if (o.status == OrderStatus.pendingPayment) ...[
+                      const Text(
+                        'Menunggu transfer dikonfirmasi penjual',
+                        style: tBold,
+                      ),
+                      const SizedBox(height: 8),
+                      Panel(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Transfer ${rp(o.pricing.total)} ke:',
+                              style: tMuted,
+                            ),
+                            const Text(sampleBankAccount, style: tBold),
+                            const SizedBox(height: 4),
+                            const Text(
                               'Di demo ini penjual mengonfirmasi lewat tampilan Admin. Tidak ada uang yang berpindah.',
-                              style: tMuted),
-                        ]),
-                  ),
-                ] else
-                  Text('Perkiraan tiba $sampleEtaMinutes menit (contoh)',
-                      style: tBold),
-                const SizedBox(height: 4),
-                Text('Total ${rp(o.pricing.total)} · ${o.payment}', style: tMuted),
-                const Spacer(),
-                BigButton(o.waiting ? 'Lihat status pesanan' : 'Lacak pesanan',
-                    onPressed: () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => TrackingScreen(o)))),
-                const SizedBox(height: 8),
-                BigButton('Kembali ke beranda', secondary: true, onPressed: () {
-                  tabIndex.value = 0;
-                  Navigator.of(context).popUntil((r) => r.isFirst);
-                }),
-                const SizedBox(height: 8),
-                const Text(footerText, style: tMuted),
-              ]),
+                              style: tMuted,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        'Perkiraan tiba $sampleEtaMinutes menit (contoh)',
+                        style: tBold,
+                      ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Total ${rp(o.pricing.total)} · ${o.payment}',
+                      style: tMuted,
+                    ),
+                    if (o.pointsEarn > 0)
+                      Text(
+                        o.pointsAwarded
+                            ? '+${pts(o.pointsEarn)} poin sudah ditambahkan'
+                            : '+${pts(o.pointsEarn)} poin, ditambahkan setelah transfer dikonfirmasi',
+                        style: const TextStyle(
+                          color: C.good,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    const Spacer(),
+                    BigButton(
+                      o.waiting ? 'Lihat status pesanan' : 'Lacak pesanan',
+                      onPressed: () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => TrackingScreen(o)),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    BigButton(
+                      'Kembali ke beranda',
+                      secondary: true,
+                      onPressed: () {
+                        tabIndex.value = 0;
+                        Navigator.of(context).popUntil((r) => r.isFirst);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(footerText, style: tMuted),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class TrackingScreen extends StatefulWidget {
@@ -492,166 +674,227 @@ class _TrackingScreenState extends State<TrackingScreen> {
       'Pesanan diterima',
       'Sedang disiapkan',
       'Dalam perjalanan',
-      'Tiba di tujuan'
+      'Tiba di tujuan',
     ];
     final idx = st.phase.index;
     final head = st.delivered
         ? 'Pesanan tiba'
         : st.isLate
-            ? 'Terlambat'
-            : 'Tiba dalam';
+        ? 'Terlambat'
+        : 'Tiba dalam';
     final big = st.delivered
         ? 'Selamat menikmati'
         : st.isLate
-            ? '${st.minutesLate.floor()} mnt'
-            : clock(st.minutesLeft);
+        ? '${st.minutesLate.floor()} mnt'
+        : clock(st.minutesLeft);
     return Scaffold(
       appBar: AppBar(title: Text('Lacak ${o.id}')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
               color: st.isLate && !st.delivered ? C.danger : C.pri,
-              borderRadius: BorderRadius.circular(20)),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(head, style: const TextStyle(color: Colors.white70)),
-            Text(big,
-                style: TextStyle(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(head, style: const TextStyle(color: Colors.white70)),
+                Text(
+                  big,
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
                     fontSize: st.delivered ? 26 : 46,
-                    fontFeatures: const [FontFeature.tabularFigures()])),
-            Text('${o.storeName} · ${o.address}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white70)),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        if (!st.delivered)
-          Panel(
-            color: C.tint,
-            child: const Row(children: [
-              Icon(Icons.ac_unit, color: C.pri),
-              SizedBox(width: 10),
-              Expanded(
-                  child: Text('Tetap beku: dikirim dalam tas pendingin, -18°C (contoh).',
-                      style: tBold)),
-            ]),
-          ),
-        if (st.guarantee) ...[
-          const SizedBox(height: 12),
-          Panel(
-            color: C.warnBg,
-            border: null,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Garansi tepat waktu', style: tBold),
-              const SizedBox(height: 2),
-              Text(
-                  'Pesanan terlambat lebih dari $lateGraceMinutes menit. Ongkir ${rp(o.pricing.delivery == 0 ? Pricing.baseFee : o.pricing.delivery)} dapat dikembalikan (aturan contoh).',
-                  style: const TextStyle(color: C.warnInk)),
-              const SizedBox(height: 10),
-              BigButton(o.reported ? 'Klaim sudah dikirim' : 'Klaim garansi',
-                  onPressed: o.reported
-                      ? null
-                      : () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) =>
-                              ReportScreen(o, preset: 'Pesanan terlambat')))),
-            ]),
-          ),
-        ],
-        const SizedBox(height: 14),
-        Panel(
-          child: Column(children: [
-            for (var i = 0; i < names.length; i++)
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Column(children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: i < idx || (i == idx && st.delivered)
-                          ? C.pri
-                          : C.surface,
-                      border: Border.all(
-                          color: i <= idx ? C.pri : C.line, width: 2),
-                    ),
-                    child: i < idx || (i == idx && st.delivered)
-                        ? const Icon(Icons.check, size: 14, color: Colors.white)
-                        : null,
-                  ),
-                  if (i < names.length - 1)
-                    Container(
-                        width: 2,
-                        height: 30,
-                        color: i < idx ? C.pri : C.line),
-                ]),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(names[i], style: tBold),
-                          Text(
-                              i < idx || (i == idx && st.delivered)
-                                  ? 'Selesai'
-                                  : i == idx
-                                      ? 'Sedang berlangsung'
-                                      : 'Menunggu',
-                              style: tMuted),
-                        ]),
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
-              ]),
-          ]),
-        ),
-        const SizedBox(height: 14),
-        Panel(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Ringkasan', style: tH3),
-            const SizedBox(height: 6),
-            for (final l in o.lines)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(children: [
-                  Expanded(child: Text('${l.qty} x ${l.name}')),
-                  Text(rp(l.qty * l.price)),
-                ]),
+                Text(
+                  '${o.storeName} · ${o.address}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (!st.delivered)
+            Panel(
+              color: C.tint,
+              child: const Row(
+                children: [
+                  Icon(Icons.ac_unit, color: C.pri),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Tetap beku: dikirim dalam tas pendingin, -18°C (contoh).',
+                      style: tBold,
+                    ),
+                  ),
+                ],
               ),
-            const Divider(),
-            Row(children: [
-              const Expanded(child: Text('Total', style: tBold)),
-              Text(rp(o.pricing.total), style: tBold),
-            ]),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        const Center(child: Text(footerText, style: tMuted)),
-      ]),
+            ),
+          if (st.guarantee) ...[
+            const SizedBox(height: 12),
+            Panel(
+              color: C.warnBg,
+              border: null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Garansi tepat waktu', style: tBold),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Pesanan terlambat lebih dari $lateGraceMinutes menit. Ongkir ${rp(o.pricing.delivery == 0 ? Pricing.baseFee : o.pricing.delivery)} dapat dikembalikan (aturan contoh).',
+                    style: const TextStyle(color: C.warnInk),
+                  ),
+                  const SizedBox(height: 10),
+                  BigButton(
+                    o.reported ? 'Klaim sudah dikirim' : 'Klaim garansi',
+                    onPressed: o.reported
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  ReportScreen(o, preset: 'Pesanan terlambat'),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+          Panel(
+            child: Column(
+              children: [
+                for (var i = 0; i < names.length; i++)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: i < idx || (i == idx && st.delivered)
+                                  ? C.pri
+                                  : C.surface,
+                              border: Border.all(
+                                color: i <= idx ? C.pri : C.line,
+                                width: 2,
+                              ),
+                            ),
+                            child: i < idx || (i == idx && st.delivered)
+                                ? const Icon(
+                                    Icons.check,
+                                    size: 14,
+                                    color: Colors.white,
+                                  )
+                                : null,
+                          ),
+                          if (i < names.length - 1)
+                            Container(
+                              width: 2,
+                              height: 30,
+                              color: i < idx ? C.pri : C.line,
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(names[i], style: tBold),
+                              Text(
+                                i < idx || (i == idx && st.delivered)
+                                    ? 'Selesai'
+                                    : i == idx
+                                    ? 'Sedang berlangsung'
+                                    : 'Menunggu',
+                                style: tMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Ringkasan', style: tH3),
+                const SizedBox(height: 6),
+                for (final l in o.lines)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text('${l.qty} x ${l.name}')),
+                        Text(rp(l.qty * l.price)),
+                      ],
+                    ),
+                  ),
+                const Divider(),
+                Row(
+                  children: [
+                    const Expanded(child: Text('Total', style: tBold)),
+                    Text(rp(o.pricing.total), style: tBold),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Center(child: Text(footerText, style: tMuted)),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
           child: st.delivered
-              ? Column(mainAxisSize: MainAxisSize.min, children: [
-                  BigButton(o.reported ? 'Laporan sudah dikirim' : 'Laporkan masalah',
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    BigButton(
+                      o.reported ? 'Laporan sudah dikirim' : 'Laporkan masalah',
                       secondary: true,
                       onPressed: o.reported
                           ? null
                           : () => Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => ReportScreen(o)))),
-                  const SizedBox(height: 8),
-                  BigButton('Selesai', onPressed: () {
-                    tabIndex.value = 0;
-                    Navigator.of(context).popUntil((r) => r.isFirst);
-                  }),
-                ])
+                              MaterialPageRoute(
+                                builder: (_) => ReportScreen(o),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 8),
+                    BigButton(
+                      'Selesai',
+                      onPressed: () {
+                        tabIndex.value = 0;
+                        Navigator.of(context).popUntil((r) => r.isFirst);
+                      },
+                    ),
+                  ],
+                )
               : const Text(
                   'Tombol "Laporkan masalah" muncul setelah pesanan tiba.',
                   textAlign: TextAlign.center,
-                  style: tMuted),
+                  style: tMuted,
+                ),
         ),
       ),
     );
@@ -688,50 +931,78 @@ class _ReportScreenState extends State<ReportScreen> {
     final s = AppScope.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Laporkan masalah')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Text('Pesanan ${widget.o.id} (contoh). Lapor dalam 24 jam.', style: tMuted),
-        const SizedBox(height: 12),
-        for (final i in issues)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: OptionTile(
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            'Pesanan ${widget.o.id} (contoh). Lapor dalam 24 jam.',
+            style: tMuted,
+          ),
+          const SizedBox(height: 12),
+          for (final i in issues)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: OptionTile(
                 selected: issue == i,
                 title: i,
-                onTap: () => setState(() => issue = i)),
-          ),
-        const SizedBox(height: 6),
-        OutlinedButton.icon(
-          onPressed: () => setState(() => photo = !photo),
-          icon: Icon(photo ? Icons.check_circle : Icons.add_a_photo_outlined),
-          label: Text(photo ? 'Foto ditambahkan (contoh)' : 'Tambah foto (contoh)'),
-          style: OutlinedButton.styleFrom(
+                onTap: () => setState(() => issue = i),
+              ),
+            ),
+          const SizedBox(height: 6),
+          OutlinedButton.icon(
+            onPressed: () => setState(() => photo = !photo),
+            icon: Icon(photo ? Icons.check_circle : Icons.add_a_photo_outlined),
+            label: Text(
+              photo ? 'Foto ditambahkan (contoh)' : 'Tambah foto (contoh)',
+            ),
+            style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
-              foregroundColor: photo ? C.good : C.ink),
-        ),
-        const SizedBox(height: 14),
-        const Text('Yang kamu mau', style: tH3),
-        const SizedBox(height: 8),
-        Wrap(spacing: 8, children: [
-          for (final w in ['Ganti baru', 'Kembalikan dana'])
-            SmallChip(w, on: want == w, onTap: () => setState(() => want = w)),
-        ]),
-        const SizedBox(height: 14),
-        TextField(
-          controller: note,
-          maxLines: 3,
-          decoration: InputDecoration(hintText: tr('Ceritakan singkat (opsional)')),
-        ),
-        const SizedBox(height: 10),
-        const Text('Demo: tidak ada pengembalian dana sungguhan.', style: tMuted),
-      ]),
+              foregroundColor: photo ? C.good : C.ink,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text('Yang kamu mau', style: tH3),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final w in ['Ganti baru', 'Kembalikan dana'])
+                SmallChip(
+                  w,
+                  on: want == w,
+                  onTap: () => setState(() => want = w),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: note,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: tr('Ceritakan singkat (opsional)'),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Demo: tidak ada pengembalian dana sungguhan.',
+            style: tMuted,
+          ),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-          child: BigButton('Kirim laporan', onPressed: () {
-            s.markReported(widget.o);
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (_) => ReportDone(issue: issue, want: want)));
-          }),
+          child: BigButton(
+            'Kirim laporan',
+            onPressed: () {
+              s.markReported(widget.o);
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => ReportDone(issue: issue, want: want),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -744,35 +1015,44 @@ class ReportDone extends StatelessWidget {
   const ReportDone({super.key, required this.issue, required this.want});
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(children: [
-              const Spacer(),
-              Container(
-                width: 88,
-                height: 88,
-                decoration: const BoxDecoration(color: C.good, shape: BoxShape.circle),
-                child: const Icon(Icons.check, size: 52, color: Colors.white),
+    body: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Spacer(),
+            Container(
+              width: 88,
+              height: 88,
+              decoration: const BoxDecoration(
+                color: C.good,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 18),
-              const Text('Laporan terkirim', style: tH2),
-              const SizedBox(height: 8),
-              Text('$issue. Permintaan: $want.', textAlign: TextAlign.center),
-              const SizedBox(height: 6),
-              const Text(
-                  'Ini demo. Tidak ada penggantian atau pengembalian dana sungguhan.',
-                  textAlign: TextAlign.center,
-                  style: tMuted),
-              const Spacer(),
-              BigButton('Kembali ke beranda', onPressed: () {
+              child: const Icon(Icons.check, size: 52, color: Colors.white),
+            ),
+            const SizedBox(height: 18),
+            const Text('Laporan terkirim', style: tH2),
+            const SizedBox(height: 8),
+            Text('$issue. Permintaan: $want.', textAlign: TextAlign.center),
+            const SizedBox(height: 6),
+            const Text(
+              'Ini demo. Tidak ada penggantian atau pengembalian dana sungguhan.',
+              textAlign: TextAlign.center,
+              style: tMuted,
+            ),
+            const Spacer(),
+            BigButton(
+              'Kembali ke beranda',
+              onPressed: () {
                 tabIndex.value = 0;
                 Navigator.of(context).popUntil((r) => r.isFirst);
-              }),
-            ]),
-          ),
+              },
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class OrdersTab extends StatelessWidget {
@@ -781,57 +1061,78 @@ class OrdersTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
     return SafeArea(
-      child: ListView(padding: const EdgeInsets.all(16), children: [
-        const Text('Pesanan', style: tH2),
-        const Text('Status diperbarui setelah penjual mengonfirmasi transfer.',
-            style: tMuted),
-        const SizedBox(height: 12),
-        for (final o in s.history)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Material(
-              color: C.surface,
-              borderRadius: BorderRadius.circular(rCard),
-              child: InkWell(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text('Pesanan', style: tH2),
+          const Text(
+            'Status diperbarui setelah penjual mengonfirmasi transfer.',
+            style: tMuted,
+          ),
+          const SizedBox(height: 12),
+          for (final o in s.history)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Material(
+                color: C.surface,
                 borderRadius: BorderRadius.circular(rCard),
-                onTap: () => Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(o))),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(rCard),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => OrderDetailScreen(o)),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(rCard),
-                      border: Border.all(color: C.line)),
-                  child: Row(children: [
-                    Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(o.id, style: tBold),
-                            Text(
+                      border: Border.all(color: C.line),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(o.id, style: tBold),
+                              Text(
                                 '${o.lines.fold(0, (a, l) => a + l.qty)} item · ${o.storeName}',
-                                style: tMuted),
-                            Text(
+                                style: tMuted,
+                              ),
+                              Text(
                                 o.sample
                                     ? '20 Nov 2026, ${_hm(o.placedAt)} (contoh)'
                                     : 'Baru saja',
-                                style: tMuted),
-                          ]),
+                                style: tMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              rp(o.pricing.total),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Ribbon(
+                              statusLabel(o),
+                              color: o.waiting ? C.warnBg : null,
+                              ink: o.waiting ? C.warnInk : null,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      Text(rp(o.pricing.total),
-                          style: const TextStyle(fontWeight: FontWeight.w800)),
-                      Ribbon(statusLabel(o),
-                          color: o.waiting ? C.warnBg : null,
-                          ink: o.waiting ? C.warnInk : null),
-                    ]),
-                  ]),
+                  ),
                 ),
               ),
             ),
-          ),
-        const SizedBox(height: 8),
-        const Center(child: Text(footerText, style: tMuted)),
-      ]),
+          const SizedBox(height: 8),
+          const Center(child: Text(footerText, style: tMuted)),
+        ],
+      ),
     );
   }
 }
@@ -842,121 +1143,172 @@ class ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
     return SafeArea(
-      child: ListView(padding: const EdgeInsets.all(16), children: [
-        const Text('Profil', style: tH2),
-        const SizedBox(height: 12),
-        Panel(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const CircleAvatar(
-                  radius: 24,
-                  backgroundColor: C.tint,
-                  child: Icon(Icons.person, color: C.pri)),
-              const SizedBox(width: 12),
-              Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Text(s.signedIn ? s.customer.name : 'Tamu (contoh)',
-                        style: tBold),
-                    Text(
-                        s.signedIn
-                            ? '${s.customer.phone}${s.customer.vip ? ' · VIP' : ''}'
-                            : 'Masuk untuk melihat harga spesial & pesananmu.',
-                        style: tMuted),
-                  ])),
-            ]),
-            const SizedBox(height: 12),
-            s.signedIn
-                ? BigButton('Keluar', secondary: true, onPressed: s.signOut)
-                : BigButton('Masuk / Daftar',
-                    onPressed: () => showSignIn(context)),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        Panel(
-          child: Column(children: [
-            _kv('Bahasa', Row(mainAxisSize: MainAxisSize.min, children: const [LangChips()])),
-            const Divider(),
-            _kv('Cara bayar', Text(s.payment, style: tBold)),
-            const Divider(),
-            _kv('Zona waktu', const Text('Asia/Jakarta (UTC+7)', style: tBold)),
-          ]),
-        ),
-        const SizedBox(height: 16),
-        Row(children: [
-          const Expanded(child: Text('Alamat tersimpan', style: tH3)),
-          TextButton(
-              onPressed: () => _addAddress(context, s),
-              child: const Text('Tambah')),
-        ]),
-        const SizedBox(height: 8),
-        for (final a in s.saved)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(children: [
-              Expanded(
-                child: OptionTile(
-                    selected: s.address == a,
-                    title: a,
-                    onTap: () => s.setAddress(a)),
-              ),
-              IconButton(
-                  tooltip: tr('Hapus alamat'),
-                  onPressed: () => s.removeAddress(a),
-                  icon: const Icon(Icons.delete_outline)),
-            ]),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text('Profil', style: tH2),
+          const SizedBox(height: 12),
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 24,
+                      backgroundColor: C.tint,
+                      child: Icon(Icons.person, color: C.pri),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            s.signedIn ? s.customer.name : 'Tamu (contoh)',
+                            style: tBold,
+                          ),
+                          Text(
+                            s.signedIn
+                                ? '${s.customer.phone}${s.isVip ? ' · VIP' : ''}'
+                                : 'Masuk untuk melihat harga spesial & pesananmu.',
+                            style: tMuted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (s.signedIn) ...[
+                  const SizedBox(height: 12),
+                  const PointsChip(),
+                ],
+                const SizedBox(height: 12),
+                s.signedIn
+                    ? BigButton(
+                        'Keluar',
+                        secondary: true,
+                        onPressed: () async {
+                          if (await confirmAction(
+                            context,
+                            title: 'Keluar dari akun?',
+                            body:
+                                'Keranjangmu tetap ada. Kamu bisa masuk lagi kapan saja (contoh).',
+                            yes: 'Keluar',
+                          )) {
+                            s.signOut();
+                          }
+                        },
+                      )
+                    : BigButton(
+                        'Masuk / Daftar',
+                        onPressed: () => showSignIn(context),
+                      ),
+              ],
+            ),
           ),
-        const SizedBox(height: 12),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Badge(
+          const SizedBox(height: 12),
+          Panel(
+            child: Column(
+              children: [
+                _kv('Bahasa', const LangChips()),
+                const Divider(),
+                _kv('Cara bayar', Text(s.payment, style: tBold)),
+                const Divider(),
+                _kv(
+                  'Zona waktu',
+                  const Text('Asia/Jakarta (UTC+7)', style: tBold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(child: Text('Alamat tersimpan', style: tH3)),
+              TextButton(
+                onPressed: () => _addAddress(context, s),
+                child: const Text('Tambah'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final a in s.saved)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OptionTile(
+                      selected: s.address == a,
+                      title: a,
+                      onTap: () => s.setAddress(a),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: tr('Hapus alamat'),
+                    onPressed: () => s.removeAddress(a),
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 12),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Badge(
               isLabelVisible: s.unreadCount > 0,
               label: Text('${s.unreadCount}'),
-              child: const Icon(Icons.notifications_none)),
-          title: const Text('Notifikasi', style: tBold),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const NoticesScreen())),
-        ),
-        ListTile(
-          key: const ValueKey('contact-sales-tile'),
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.chat_outlined),
-          title: const Text('Hubungi penjual (WhatsApp)', style: tBold),
-          trailing: const Icon(Icons.open_in_new, size: 18),
-          onTap: () => contactSalesperson(context),
-        ),
-        ListTile(
-          key: const ValueKey('switch-admin'),
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.admin_panel_settings_outlined),
-          title: const Text('Demo: buka tampilan Admin', style: tBold),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => s.setRole(AppRole.admin),
-        ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.info_outline),
-          title: const Text('Tentang demo ini', style: tBold),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const AboutDemoScreen())),
-        ),
-        const SizedBox(height: 12),
-        const Center(child: Text(footerText, style: tMuted)),
-      ]),
+              child: const Icon(Icons.notifications_none),
+            ),
+            title: const Text('Notifikasi', style: tBold),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const NoticesScreen())),
+          ),
+          ListTile(
+            key: const ValueKey('contact-sales-tile'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.chat_outlined),
+            title: const Text('Hubungi penjual (WhatsApp)', style: tBold),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => contactSalesperson(context),
+          ),
+          ListTile(
+            key: const ValueKey('switch-admin'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.admin_panel_settings_outlined),
+            title: const Text('Demo: buka tampilan Admin', style: tBold),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => s.setRole(AppRole.admin),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Tentang demo ini', style: tBold),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const AboutDemoScreen())),
+          ),
+          const SizedBox(height: 12),
+          const Center(child: Text(footerText, style: tMuted)),
+        ],
+      ),
     );
   }
 }
 
 Widget _kv(String k, Widget v) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: [
-        Expanded(child: Text(k, style: tMuted)),
-        v,
-      ]),
-    );
+  padding: const EdgeInsets.symmetric(vertical: 6),
+  child: Row(
+    children: [
+      Expanded(child: Text(k, style: tMuted)),
+      Flexible(child: v),
+    ],
+  ),
+);
 
 /// Hidden panel for the person running the demo. Opened by a long press on the
 /// wordmark on Home.
@@ -965,43 +1317,62 @@ void showDemoControls(BuildContext context) {
     context: context,
     showDragHandle: true,
     builder: (sheetContext) {
-      return Builder(builder: (ctx) {
-        final s = AppScope.of(ctx);
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Kontrol demo', style: tH2),
-            const SizedBox(height: 14),
-            const Text('Kecepatan pelacakan', style: tBold),
-            const SizedBox(height: 8),
-            Wrap(spacing: 8, children: [
-              for (final v in [45, 75, 120])
-                SmallChip('$v detik',
-                    on: s.demoSeconds == v, onTap: () => s.setSpeed(v)),
-            ]),
-            const SizedBox(height: 10),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Buat pesanan ini terlambat'),
-              subtitle: const Text('Untuk menunjukkan garansi tepat waktu'),
-              value: s.makeLate,
-              onChanged: s.setMakeLate,
+      return Builder(
+        builder: (ctx) {
+          final s = AppScope.of(ctx);
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Kontrol demo', style: tH2),
+                const SizedBox(height: 14),
+                const Text('Kecepatan pelacakan', style: tBold),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final v in [45, 75, 120])
+                      SmallChip(
+                        '$v detik',
+                        on: s.demoSeconds == v,
+                        onTap: () => s.setSpeed(v),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Buat pesanan ini terlambat'),
+                  subtitle: const Text('Untuk menunjukkan garansi tepat waktu'),
+                  value: s.makeLate,
+                  onChanged: s.setMakeLate,
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Sumber data'),
+                  trailing: Text(
+                    s.dataLocal ? 'Lokal' : 'Supabase',
+                    style: tBold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                BigButton(
+                  'Reset demo',
+                  secondary: true,
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    Navigator.of(context).popUntil((r) => r.isFirst);
+                    tabIndex.value = 0;
+                    s.resetDemo();
+                  },
+                ),
+              ],
             ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Sumber data'),
-              trailing: Text(s.dataLocal ? 'Lokal' : 'Supabase', style: tBold),
-            ),
-            const SizedBox(height: 8),
-            BigButton('Reset demo', secondary: true, onPressed: () {
-              Navigator.of(sheetContext).pop();
-              Navigator.of(context).popUntil((r) => r.isFirst);
-              tabIndex.value = 0;
-              s.resetDemo();
-            }),
-          ]),
-        );
-      });
+          );
+        },
+      );
     },
   );
 }
@@ -1030,19 +1401,21 @@ class _AddAddressDialogState extends State<_AddAddressDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Tambah alamat'),
-        content: TextField(
-          controller: ctl,
-          autofocus: true,
-          decoration: InputDecoration(hintText: tr('Tulis alamat')),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Batal')),
-          TextButton(
-              onPressed: () => Navigator.of(context).pop(ctl.text),
-              child: const Text('Simpan')),
-        ],
-      );
+    title: const Text('Tambah alamat'),
+    content: TextField(
+      controller: ctl,
+      autofocus: true,
+      decoration: InputDecoration(hintText: tr('Tulis alamat')),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Batal'),
+      ),
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(ctl.text),
+        child: const Text('Simpan'),
+      ),
+    ],
+  );
 }

@@ -22,12 +22,25 @@ class Voucher {
 }
 
 const vouchers = <Voucher>[
-  Voucher('HEMAT10', 'Diskon 10% (maks. Rp10.000), min. belanja Rp30.000', 30000,
-      percent: 10, maxDiscount: 10000),
-  Voucher('GRATISONGKIR', 'Gratis ongkir, min. belanja Rp20.000', 20000,
-      freeShip: true),
-  Voucher('PESTA20', 'Potongan Rp20.000, min. belanja Rp100.000', 100000,
-      amount: 20000),
+  Voucher(
+    'HEMAT10',
+    'Diskon 10% (maks. Rp10.000), min. belanja Rp30.000',
+    30000,
+    percent: 10,
+    maxDiscount: 10000,
+  ),
+  Voucher(
+    'GRATISONGKIR',
+    'Gratis ongkir, min. belanja Rp20.000',
+    20000,
+    freeShip: true,
+  ),
+  Voucher(
+    'PESTA20',
+    'Potongan Rp20.000, min. belanja Rp100.000',
+    100000,
+    amount: 20000,
+  ),
 ];
 
 /// Mix pack: pick any 6, 8 or 12 cones or sticks for one set price.
@@ -45,8 +58,57 @@ const tierRules = <String, List<(int, int)>>{
   'drink': [(6, 5), (12, 10)],
 };
 
-/// Extra percent off for VIP demo accounts ("harga member"). Sample number.
+/// Extra percent off for the VIP price (top tier, "harga member"). Sample.
 const vipPercent = 5;
+
+/// Membership tiers by lifetime points. All sample rules, kept here only.
+class MemberTier {
+  final String key; // reg, silver, gold (also the l10n key suffix)
+  final int minPoints;
+  final bool freeDelivery;
+  final bool vipPrice;
+  const MemberTier(
+    this.key,
+    this.minPoints, {
+    this.freeDelivery = false,
+    this.vipPrice = false,
+  });
+}
+
+const memberTiers = <MemberTier>[
+  MemberTier('reg', 0),
+  MemberTier('silver', 500, freeDelivery: true),
+  MemberTier('gold', 1500, freeDelivery: true, vipPrice: true),
+];
+
+/// 1 point for every Rp1.000 of the final total.
+const pointsEarnRp = 1000;
+
+/// 1 point is worth Rp10 when redeemed (100 points = Rp1.000).
+const pointValueRp = 10;
+
+/// Points can pay at most this percent of the subtotal.
+const maxRedeemPercent = 50;
+
+/// Points given to a new sample account.
+const signupBonusPoints = 100;
+
+MemberTier tierForPoints(int lifetime) {
+  var t = memberTiers.first;
+  for (final m in memberTiers) {
+    if (lifetime >= m.minPoints) t = m;
+  }
+  return t;
+}
+
+MemberTier? nextTier(int lifetime) {
+  for (final m in memberTiers) {
+    if (m.minPoints > lifetime) return m;
+  }
+  return null;
+}
+
+int pointsFor(int total) => total <= 0 ? 0 : total ~/ pointsEarnRp;
 
 /// Units in one carton per category, and the percent off when you buy a whole
 /// carton. Shown as the "Harga 1 karton" line. Sample numbers.
@@ -99,8 +161,11 @@ VoucherResult checkVoucher(String code, int subtotal) {
   if (matches.isEmpty) return const VoucherResult(VoucherStatus.wrong);
   final v = matches.first;
   if (subtotal < v.minSubtotal) {
-    return VoucherResult(VoucherStatus.notMet,
-        voucher: v, shortBy: v.minSubtotal - subtotal);
+    return VoucherResult(
+      VoucherStatus.notMet,
+      voucher: v,
+      shortBy: v.minSubtotal - subtotal,
+    );
   }
   return VoucherResult(VoucherStatus.ok, voucher: v);
 }
@@ -122,6 +187,8 @@ class Pricing {
   final int delivery;
   final int tier; // quantity tier discount (non-cone products)
   final int vip; // VIP member discount
+  final int pointsOff; // Rupiah paid with points
+  final int pointsUsed;
   const Pricing({
     required this.subtotal,
     required this.multiBuy,
@@ -129,12 +196,21 @@ class Pricing {
     required this.delivery,
     this.tier = 0,
     this.vip = 0,
+    this.pointsOff = 0,
+    this.pointsUsed = 0,
   });
 
   bool get belowMinOrder => subtotal > 0 && subtotal < minOrder;
   int get smallFee => belowMinOrder ? smallOrderFee : 0;
   int get total =>
-      subtotal - multiBuy - tier - vip - voucherDiscount + delivery + smallFee;
+      subtotal -
+      multiBuy -
+      tier -
+      vip -
+      voucherDiscount -
+      pointsOff +
+      delivery +
+      smallFee;
   int get afterMultiBuy => subtotal - multiBuy - tier - vip;
   int get toMinOrder => max(0, minOrder - subtotal);
   int get toFreeDelivery => max(0, freeThreshold - afterMultiBuy);
@@ -142,8 +218,13 @@ class Pricing {
 }
 
 /// Cones mix and match: 3 or more cones together get 10% off the cones.
-Pricing computePricing(Map<Product, int> lines, Voucher? voucher,
-    {bool vip = false}) {
+Pricing computePricing(
+  Map<Product, int> lines,
+  Voucher? voucher, {
+  bool vip = false,
+  bool freeDelivery = false,
+  int redeemPoints = 0,
+}) {
   var subtotal = 0;
   var coneTotal = 0;
   var coneQty = 0;
@@ -173,9 +254,18 @@ Pricing computePricing(Map<Product, int> lines, Voucher? voucher,
   }
   disc = min(disc, base);
 
-  final fee = (subtotal == 0 || base >= Pricing.freeThreshold || freeShip)
+  final fee =
+      (subtotal == 0 ||
+          base >= Pricing.freeThreshold ||
+          freeShip ||
+          freeDelivery)
       ? 0
       : Pricing.baseFee;
+
+  // Points: at most maxRedeemPercent of the subtotal, never more than what is
+  // left to pay after the other discounts.
+  final cap = min((subtotal * maxRedeemPercent) ~/ 100, base - disc);
+  final usable = max(0, min(redeemPoints, cap ~/ pointValueRp));
   return Pricing(
     subtotal: subtotal,
     multiBuy: multiBuy,
@@ -183,5 +273,22 @@ Pricing computePricing(Map<Product, int> lines, Voucher? voucher,
     delivery: fee,
     tier: tier,
     vip: vipOff,
+    pointsOff: usable * pointValueRp,
+    pointsUsed: usable,
   );
+}
+
+/// Most points that can be used on this cart (the balance is also a limit).
+int maxRedeemablePoints(
+  Map<Product, int> lines,
+  Voucher? voucher, {
+  bool vip = false,
+  required int balance,
+}) {
+  final p = computePricing(lines, voucher, vip: vip);
+  final cap = min(
+    (p.subtotal * maxRedeemPercent) ~/ 100,
+    p.afterMultiBuy - p.voucherDiscount,
+  );
+  return max(0, min(balance, cap ~/ pointValueRp));
 }

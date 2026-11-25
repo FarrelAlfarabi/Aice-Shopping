@@ -8,3 +8,6 @@ String rp(int n) {
   }
   return '${n < 0 ? '-' : ''}Rp$b';
 }
+
+/// A number with a dot for thousands, for example points: "1.320".
+String pts(int n) => rp(n).replaceFirst('Rp', '');

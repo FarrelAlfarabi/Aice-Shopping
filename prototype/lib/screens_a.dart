@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter/services.dart';
 import 'i18n.dart';
 import 'data.dart';
 import 'format.dart';
+import 'membership.dart';
 import 'intro.dart';
 import 'assistant.dart';
 import 'motion.dart';
@@ -15,6 +17,21 @@ import 'ui.dart';
 
 /// Which bottom tab is showing: 0 Beranda, 1 Keranjang, 2 Pesanan, 3 Profil.
 final ValueNotifier<int> tabIndex = ValueNotifier<int>(0);
+
+/// One address per tab, so the browser's address bar and Back button work.
+const tabPaths = ['/beranda', '/keranjang', '/pesanan', '/profil'];
+
+/// Starts the tab from the address (for example #/pesanan) and keeps the
+/// address in step with the tab. Call once when the app starts.
+void syncTabWithAddress() {
+  final i = tabPaths.indexOf(Uri.base.fragment);
+  if (i > 0) tabIndex.value = i;
+  tabIndex.addListener(() {
+    SystemNavigator.routeInformationUpdated(
+      uri: Uri(path: tabPaths[tabIndex.value]),
+    );
+  });
+}
 
 /// Snackbar after an add-to-cart, with a button that opens the cart tab.
 void addedToCart(BuildContext context, String msg) {
@@ -178,49 +195,56 @@ class Shell extends StatelessWidget {
     final s = AppScope.of(context);
     return ValueListenableBuilder<int>(
       valueListenable: tabIndex,
-      builder: (context, i, _) => Scaffold(
-        body: IndexedStack(
-          index: i,
-          children: const [HomeTab(), CartTab(), OrdersTab(), ProfileTab()],
-        ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: i,
-          backgroundColor: C.surface,
-          indicatorColor: C.tint,
-          onDestinationSelected: (v) => tabIndex.value = v,
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home),
-              label: tr('Beranda'),
-            ),
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: s.itemCount > 0,
-                label: Bump(
-                  trigger: s.itemCount,
-                  child: Text('${s.itemCount}'),
+      builder: (context, i, _) => PopScope(
+        // Back from another tab goes to Beranda first.
+        canPop: i == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) tabIndex.value = 0;
+        },
+        child: Scaffold(
+          body: IndexedStack(
+            index: i,
+            children: const [HomeTab(), CartTab(), OrdersTab(), ProfileTab()],
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: i,
+            backgroundColor: C.surface,
+            indicatorColor: C.tint,
+            onDestinationSelected: (v) => tabIndex.value = v,
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.home_outlined),
+                selectedIcon: const Icon(Icons.home),
+                label: tr('Beranda'),
+              ),
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: s.itemCount > 0,
+                  label: Bump(
+                    trigger: s.itemCount,
+                    child: Text('${s.itemCount}'),
+                  ),
+                  child: const Icon(Icons.shopping_cart_outlined),
                 ),
-                child: const Icon(Icons.shopping_cart_outlined),
+                selectedIcon: const Icon(Icons.shopping_cart),
+                label: tr('Keranjang'),
               ),
-              selectedIcon: const Icon(Icons.shopping_cart),
-              label: tr('Keranjang'),
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.receipt_long_outlined),
-              selectedIcon: const Icon(Icons.receipt_long),
-              label: tr('Pesanan'),
-            ),
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: s.unreadCount > 0,
-                label: Text('${s.unreadCount}'),
-                child: const Icon(Icons.person_outline),
+              NavigationDestination(
+                icon: const Icon(Icons.receipt_long_outlined),
+                selectedIcon: const Icon(Icons.receipt_long),
+                label: tr('Pesanan'),
               ),
-              selectedIcon: const Icon(Icons.person),
-              label: tr('Profil'),
-            ),
-          ],
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: s.unreadCount > 0,
+                  label: Text('${s.unreadCount}'),
+                  child: const Icon(Icons.person_outline),
+                ),
+                selectedIcon: const Icon(Icons.person),
+                label: tr('Profil'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -349,12 +373,8 @@ class _HomeTabState extends State<HomeTab> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0B5FD8), Color(0xFF0A49B5)],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+        color: C.surface,
+        border: Border(bottom: BorderSide(color: C.line)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +392,7 @@ class _HomeTabState extends State<HomeTab> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: C.ink,
                         fontWeight: FontWeight.w800,
                         fontSize: 13,
                       ),
@@ -415,7 +435,7 @@ class _HomeTabState extends State<HomeTab> {
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  const Icon(Icons.place, color: Colors.white70, size: 16),
+                  const Icon(Icons.place, color: C.muted, size: 16),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -423,20 +443,20 @@ class _HomeTabState extends State<HomeTab> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: C.ink,
                         fontWeight: s.hasAddress
                             ? FontWeight.w400
                             : FontWeight.w800,
                         decoration: s.hasAddress
                             ? null
                             : TextDecoration.underline,
-                        decorationColor: Colors.white,
+                        decorationColor: C.ink,
                       ),
                     ),
                   ),
                   const Icon(
                     Icons.keyboard_arrow_down,
-                    color: Colors.white70,
+                    color: C.muted,
                     size: 20,
                   ),
                 ],
@@ -450,17 +470,17 @@ class _HomeTabState extends State<HomeTab> {
                 width: 30,
                 height: 30,
                 decoration: const BoxDecoration(
-                  color: C.acc,
+                  color: C.pri,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.bolt, size: 20, color: C.accInk),
+                child: const Icon(Icons.bolt, size: 20, color: Colors.white),
               ),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
                   'Tiba dalam 15 Menit',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: C.ink,
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                   ),
@@ -472,7 +492,7 @@ class _HomeTabState extends State<HomeTab> {
             padding: EdgeInsets.only(left: 38),
             child: Text(
               'Waktu contoh, bukan janji Aice',
-              style: TextStyle(color: Colors.white70, fontSize: 12),
+              style: TextStyle(color: C.muted, fontSize: 12),
             ),
           ),
           const SizedBox(height: 12),
@@ -487,15 +507,9 @@ class _HomeTabState extends State<HomeTab> {
                     height: 48,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: C.tint,
                       borderRadius: BorderRadius.circular(14),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x33051C45),
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+                      border: Border.all(color: C.line),
                     ),
                     child: Row(
                       children: [
@@ -573,16 +587,21 @@ class _HomeTabState extends State<HomeTab> {
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       alignment: Alignment.center,
                       decoration: const ShapeDecoration(
-                          color: C.acc, shape: StadiumBorder()),
+                        color: C.acc,
+                        shape: StadiumBorder(),
+                      ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.auto_awesome, size: 16, color: C.accInk),
                           SizedBox(width: 6),
-                          Text('Tanya AI',
-                              style: TextStyle(
-                                  color: C.accInk,
-                                  fontWeight: FontWeight.w800)),
+                          Text(
+                            'Tanya AI',
+                            style: TextStyle(
+                              color: C.accInk,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -596,9 +615,9 @@ class _HomeTabState extends State<HomeTab> {
                   child: Container(
                     padding: EdgeInsets.fromLTRB(f == null ? 14 : 4, 4, 14, 4),
                     decoration: ShapeDecoration(
-                      color: Colors.white.withValues(alpha: 0.16),
+                      color: C.tint,
                       shape: const StadiumBorder(
-                        side: BorderSide(color: Colors.white38),
+                        side: BorderSide(color: C.line),
                       ),
                     ),
                     child: Row(
@@ -609,7 +628,7 @@ class _HomeTabState extends State<HomeTab> {
                             child: SizedBox(
                               width: 30,
                               height: 30,
-                              child: Photo(f, bg: Colors.white, padding: 1),
+                              child: Photo(f, bg: C.ink, padding: 1),
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -617,7 +636,7 @@ class _HomeTabState extends State<HomeTab> {
                         Text(
                           q,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: C.ink,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -982,7 +1001,11 @@ class _HomeTabState extends State<HomeTab> {
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
+          const Padding(padding: pad, child: PointsChip()),
+          const SizedBox(height: 12),
+          const ReorderRow(),
+          const SizedBox(height: 6),
           sec(
             Padding(
               padding: pad,
@@ -1103,8 +1126,9 @@ class _HomeTabState extends State<HomeTab> {
                 const Padding(
                   padding: pad,
                   child: SectionTitle(
-                      'Rekomendasi untukmu',
-                      sub: 'Berdasarkan popularitas dan riwayat belanjamu'),
+                    'Rekomendasi untukmu',
+                    sub: 'Berdasarkan popularitas dan riwayat belanjamu',
+                  ),
                 ),
                 shelf(context, 'rec', recommendedFor(AppScope.of(context))),
               ],
@@ -1504,10 +1528,12 @@ class _ProductScreenState extends State<ProductScreen> {
           Text(p.name, style: tH2),
           Text('${p.size} · Contoh produk', style: tMuted),
           const SizedBox(height: 8),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               PriceRow(p, size: 22),
-              const SizedBox(width: 8),
               if (p.percentOff != null) Ribbon('-${p.percentOff}%'),
             ],
           ),
