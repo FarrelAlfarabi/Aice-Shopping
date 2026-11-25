@@ -200,7 +200,14 @@ class AppState extends ChangeNotifier {
     vip: isVip,
     freeDelivery: tier.freeDelivery,
     redeemPoints: redeem,
+    flashActive: flashOn,
   );
+
+  // ------------------------------------------------------------ Flash Sale
+  DateTime flashEnd = DateTime.now().add(const Duration(minutes: flashMinutes));
+  bool get flashOn => DateTime.now().isBefore(flashEnd);
+  Duration get flashLeft =>
+      flashOn ? flashEnd.difference(DateTime.now()) : Duration.zero;
 
   // ------------------------------------------------------------ Membership
   MemberAccount _acc(Customer c) =>
@@ -212,8 +219,13 @@ class AppState extends ChangeNotifier {
   MemberTier get tier => tierForPoints(lifetime);
   bool get isVip => tier.vipPrice;
   MemberTier tierOf(Customer c) => tierForPoints(_acc(c).lifetime);
-  int get maxRedeem =>
-      maxRedeemablePoints(lines, voucher, vip: isVip, balance: balance);
+  int get maxRedeem => maxRedeemablePoints(
+    lines,
+    voucher,
+    vip: isVip,
+    flashActive: flashOn,
+    balance: balance,
+  );
 
   void setRedeem(int pts) {
     redeem = pts.clamp(0, maxRedeem);
@@ -484,6 +496,7 @@ class AppState extends ChangeNotifier {
   void resetData() {
     members.clear();
     redeem = 0;
+    flashEnd = DateTime.now().add(const Duration(minutes: flashMinutes));
     allOrders
       ..clear()
       ..addAll([_sampleOrder(), ..._seedOrders()]);

@@ -21,19 +21,22 @@ void main() {
     for (var i = 0; i < cones; i++) {
       st.add(productById('cone-vanila'));
     }
-    await tester.pumpWidget(AppScope(
-      state: st,
-      child: MaterialApp(
-        theme: buildTheme(),
-        home: const Scaffold(body: CartTab()),
+    await tester.pumpWidget(
+      AppScope(
+        state: st,
+        child: MaterialApp(
+          theme: buildTheme(),
+          home: const Scaffold(body: CartTab()),
+        ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     return st;
   }
 
-  testWidgets('under the minimum: small order fee, checkout still opens',
-      (tester) async {
+  testWidgets('under the minimum: small order fee, checkout still opens', (
+    tester,
+  ) async {
     final st = await openCart(tester, cones: 1);
     expect(st.pricing.belowMinOrder, isTrue);
     expect(find.byKey(const Key('min-order-note')), findsOneWidget);
@@ -54,16 +57,20 @@ void main() {
     expect(tabIndex.value, 0);
   });
 
-  testWidgets('min order and free delivery are labelled separately',
-      (tester) async {
+  testWidgets('min order and free delivery are labelled separately', (
+    tester,
+  ) async {
     await openCart(tester, cones: 1);
-    expect(find.textContaining('Gratis ongkir (belanja Rp50.000)'),
-        findsOneWidget);
+    expect(
+      find.textContaining('Gratis ongkir (belanja Rp50.000)'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Belanja kurang dari Rp20.000'), findsOneWidget);
   });
 
-  testWidgets('at or above the minimum: no warning, goes to checkout',
-      (tester) async {
+  testWidgets('at or above the minimum: no warning, goes to checkout', (
+    tester,
+  ) async {
     final st = await openCart(tester, cones: 4);
     expect(st.pricing.belowMinOrder, isFalse);
     expect(find.byKey(const Key('min-order-note')), findsNothing);

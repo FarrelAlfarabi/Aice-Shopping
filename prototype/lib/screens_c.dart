@@ -273,6 +273,7 @@ class OrderDetailScreen extends StatelessWidget {
                 _row('Subtotal', rp(p.subtotal)),
                 if (p.multiBuy > 0) _row('Diskon Beli 3', '-${rp(p.multiBuy)}'),
                 if (p.tier > 0) _row('Diskon jumlah', '-${rp(p.tier)}'),
+                if (p.flash > 0) _row('Flash Sale', '-${rp(p.flash)}'),
                 if (p.vip > 0) _row('Harga member', '-${rp(p.vip)}'),
                 if (p.voucherDiscount > 0)
                   _row('Voucher', '-${rp(p.voucherDiscount)}'),

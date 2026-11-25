@@ -15,25 +15,31 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       final st = AppState()..finishIntro();
-      await tester.pumpWidget(AppScope(
-        state: st,
-        child: MaterialApp(
-          theme: buildTheme(),
-          builder: (c, child) => MediaQuery(
-              data: MediaQuery.of(c)
-                  .copyWith(textScaler: TextScaler.linear(scale)),
-              child: child!),
-          home: const Shell(),
+      await tester.pumpWidget(
+        AppScope(
+          state: st,
+          child: MaterialApp(
+            theme: buildTheme(),
+            builder: (c, child) => MediaQuery(
+              data: MediaQuery.of(
+                c,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
+              child: child!,
+            ),
+            home: const Shell(),
+          ),
         ),
-      ));
+      );
       await tester.pumpAndSettle();
       for (var i = 0; i < 12; i++) {
         await tester.drag(find.byType(ListView).first, const Offset(0, -400));
         await tester.pumpAndSettle();
       }
-      Navigator.of(tester.element(find.byType(Shell)))
-          .push(MaterialPageRoute(
-              builder: (_) => const SearchScreen(category: 'bundle')));
+      Navigator.of(tester.element(find.byType(Shell))).push(
+        MaterialPageRoute(
+          builder: (_) => const SearchScreen(category: 'bundle'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });

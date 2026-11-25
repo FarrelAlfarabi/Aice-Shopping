@@ -58,6 +58,19 @@ const tierRules = <String, List<(int, int)>>{
   'drink': [(6, 5), (12, 10)],
 };
 
+/// Flash Sale (sample): percent off for these products while it runs. The
+/// sale lasts [flashMinutes] from when the demo starts or is reset.
+const flashDeals = <String, int>{
+  'cone-cokelat': 20,
+  'cup-original': 15,
+  'stik-cokelat': 10,
+};
+const flashMinutes = 120;
+
+/// Price of one unit during the Flash Sale.
+int flashUnitPrice(Product p) =>
+    p.price - (p.price * (flashDeals[p.id] ?? 0)) ~/ 100;
+
 /// Extra percent off for the VIP price (top tier, "harga member"). Sample.
 const vipPercent = 5;
 
@@ -187,6 +200,7 @@ class Pricing {
   final int delivery;
   final int tier; // quantity tier discount (non-cone products)
   final int vip; // VIP member discount
+  final int flash; // Flash Sale discount
   final int pointsOff; // Rupiah paid with points
   final int pointsUsed;
   const Pricing({
@@ -196,6 +210,7 @@ class Pricing {
     required this.delivery,
     this.tier = 0,
     this.vip = 0,
+    this.flash = 0,
     this.pointsOff = 0,
     this.pointsUsed = 0,
   });
@@ -207,11 +222,12 @@ class Pricing {
       multiBuy -
       tier -
       vip -
+      flash -
       voucherDiscount -
       pointsOff +
       delivery +
       smallFee;
-  int get afterMultiBuy => subtotal - multiBuy - tier - vip;
+  int get afterMultiBuy => subtotal - multiBuy - tier - vip - flash;
   int get toMinOrder => max(0, minOrder - subtotal);
   int get toFreeDelivery => max(0, freeThreshold - afterMultiBuy);
   double get freeProgress => min(1.0, afterMultiBuy / freeThreshold);
@@ -224,6 +240,7 @@ Pricing computePricing(
   bool vip = false,
   bool freeDelivery = false,
   int redeemPoints = 0,
+  bool flashActive = false,
 }) {
   var subtotal = 0;
   var coneTotal = 0;
@@ -240,8 +257,16 @@ Pricing computePricing(
   final multiBuy = coneQty >= Pricing.multiBuyQty
       ? (coneTotal * Pricing.multiBuyPercent) ~/ 100
       : 0;
-  final vipOff = vip ? ((subtotal - multiBuy - tier) * vipPercent) ~/ 100 : 0;
-  final base = subtotal - multiBuy - tier - vipOff;
+  var flash = 0;
+  if (flashActive) {
+    lines.forEach((p, q) {
+      flash += ((p.price - flashUnitPrice(p)) * q);
+    });
+  }
+  final vipOff = vip
+      ? ((subtotal - multiBuy - tier - flash) * vipPercent) ~/ 100
+      : 0;
+  final base = subtotal - multiBuy - tier - flash - vipOff;
 
   var disc = 0;
   var freeShip = false;
@@ -273,6 +298,7 @@ Pricing computePricing(
     delivery: fee,
     tier: tier,
     vip: vipOff,
+    flash: flash,
     pointsOff: usable * pointValueRp,
     pointsUsed: usable,
   );
@@ -283,9 +309,10 @@ int maxRedeemablePoints(
   Map<Product, int> lines,
   Voucher? voucher, {
   bool vip = false,
+  bool flashActive = false,
   required int balance,
 }) {
-  final p = computePricing(lines, voucher, vip: vip);
+  final p = computePricing(lines, voucher, vip: vip, flashActive: flashActive);
   final cap = min(
     (p.subtotal * maxRedeemPercent) ~/ 100,
     p.afterMultiBuy - p.voucherDiscount,

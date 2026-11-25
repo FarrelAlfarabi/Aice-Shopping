@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
+import 'home_extras.dart';
 import 'i18n.dart';
 import 'data.dart';
 import 'format.dart';
@@ -202,9 +203,35 @@ class Shell extends StatelessWidget {
           if (!didPop) tabIndex.value = 0;
         },
         child: Scaffold(
-          body: IndexedStack(
-            index: i,
-            children: const [HomeTab(), CartTab(), OrdersTab(), ProfileTab()],
+          body: Stack(
+            children: [
+              IndexedStack(
+                index: i,
+                children: const [
+                  HomeTab(),
+                  CartTab(),
+                  OrdersTab(),
+                  ProfileTab(),
+                ],
+              ),
+              if (i == 0)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 10,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const AskAiButton(),
+                      if (s.itemCount > 0) ...[
+                        const SizedBox(height: 8),
+                        const MiniCart(),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
           ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: i,
@@ -965,9 +992,6 @@ class _HomeTabState extends State<HomeTab> {
         children: [
           _header(context),
           const SizedBox(height: 12),
-          if (!AppScope.of(context).signedIn)
-            const Padding(padding: pad, child: WelcomeBanner()),
-          const SizedBox(height: 12),
           sec(
             Column(
               children: [
@@ -1003,6 +1027,13 @@ class _HomeTabState extends State<HomeTab> {
           ),
           const SizedBox(height: 12),
           const Padding(padding: pad, child: PointsChip()),
+          const SizedBox(height: 12),
+          if (!AppScope.of(context).signedIn)
+            const Padding(padding: pad, child: WelcomeBanner()),
+          const SizedBox(height: 12),
+          const CategoryTiles(),
+          const SizedBox(height: 14),
+          const FlashSale(),
           const SizedBox(height: 12),
           const ReorderRow(),
           const SizedBox(height: 6),
@@ -1203,7 +1234,7 @@ class _HomeTabState extends State<HomeTab> {
           ),
           const SizedBox(height: 18),
           const Center(child: Text(footerText, style: tMuted)),
-          const SizedBox(height: 18),
+          const SizedBox(height: 150),
         ],
       ),
     );

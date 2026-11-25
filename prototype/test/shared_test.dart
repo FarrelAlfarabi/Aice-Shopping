@@ -8,29 +8,32 @@ import 'package:flutter_test/flutter_test.dart';
 /// link between them (guidebook: demo must show the whole story).
 void main() {
   group('bank transfer link', () {
-    test('transfer order waits, admin confirms, then it is a delivery task', () {
-      final s = AppState();
-      s.payment = 'Transfer bank';
-      s.add(productById('cone-vanila'), 4);
-      final o = s.placeOrder();
-      expect(o.status, OrderStatus.pendingPayment);
-      expect(s.unpaidOrders, contains(o));
-      expect(s.history.first, same(o)); // the consumer sees it
-      final unpaidBefore = s.unpaidTotal;
-      final paidBefore = s.paymentsThisMonth;
+    test(
+      'transfer order waits, admin confirms, then it is a delivery task',
+      () {
+        final s = AppState();
+        s.payment = 'Transfer bank';
+        s.add(productById('cone-vanila'), 4);
+        final o = s.placeOrder();
+        expect(o.status, OrderStatus.pendingPayment);
+        expect(s.unpaidOrders, contains(o));
+        expect(s.history.first, same(o)); // the consumer sees it
+        final unpaidBefore = s.unpaidTotal;
+        final paidBefore = s.paymentsThisMonth;
 
-      s.confirmTransfer(o);
-      expect(o.status, OrderStatus.pendingPrep);
-      expect(s.prepTasks, contains(o));
-      expect(s.unpaidTotal, unpaidBefore - o.pricing.total);
-      expect(s.paymentsThisMonth, paidBefore + o.pricing.total);
-      expect(s.notices.first.text, contains('dikonfirmasi'));
+        s.confirmTransfer(o);
+        expect(o.status, OrderStatus.pendingPrep);
+        expect(s.prepTasks, contains(o));
+        expect(s.unpaidTotal, unpaidBefore - o.pricing.total);
+        expect(s.paymentsThisMonth, paidBefore + o.pricing.total);
+        expect(s.notices.first.text, contains('dikonfirmasi'));
 
-      s.startDelivery(o);
-      expect(o.status, OrderStatus.shipping);
-      s.markDelivered(o);
-      expect(o.status, OrderStatus.delivered);
-    });
+        s.startDelivery(o);
+        expect(o.status, OrderStatus.shipping);
+        s.markDelivered(o);
+        expect(o.status, OrderStatus.delivered);
+      },
+    );
 
     test('paying with QRIS skips the wait', () {
       final s = AppState();
@@ -91,19 +94,22 @@ void main() {
       expect(s.openColdAlarms, 1);
     });
 
-    test('reset data restores the sample start but keeps role and language', () {
-      final s = AppState();
-      s.setRole(AppRole.admin);
-      s.setLang('en');
-      s.confirmTransfer(s.unpaidOrders.first);
-      s.restock('cone-vanila');
-      s.resetData();
-      expect(s.unpaidOrders.length, 2);
-      expect(s.stock['cone-vanila']!.stock, 15);
-      expect(s.role, AppRole.admin);
-      expect(s.lang, 'en');
-      s.setLang('id');
-    });
+    test(
+      'reset data restores the sample start but keeps role and language',
+      () {
+        final s = AppState();
+        s.setRole(AppRole.admin);
+        s.setLang('en');
+        s.confirmTransfer(s.unpaidOrders.first);
+        s.restock('cone-vanila');
+        s.resetData();
+        expect(s.unpaidOrders.length, 2);
+        expect(s.stock['cone-vanila']!.stock, 15);
+        expect(s.role, AppRole.admin);
+        expect(s.lang, 'en');
+        s.setLang('id');
+      },
+    );
 
     test('new products are in the stock data, chilled and frozen', () {
       final s = AppState();
@@ -127,8 +133,10 @@ void main() {
       final p12 = computePricing({stick: 12}, null);
       expect(p12.tier, stick.price * 12 * 8 ~/ 100);
       // Two different sticks do not add up to a tier.
-      final mixed = computePricing(
-          {stick: 3, productById('stik-dark'): 3}, null);
+      final mixed = computePricing({
+        stick: 3,
+        productById('stik-dark'): 3,
+      }, null);
       expect(mixed.tier, 0);
       final cones = computePricing({productById('cone-vanila'): 3}, null);
       expect(cones.tier, 0);
@@ -156,8 +164,11 @@ void main() {
 
     test('carton price is cheaper than buying the pieces', () {
       for (final p in catalog) {
-        expect(cartonPrice(p), lessThan(p.price * (cartonUnits[p.category] ?? 1)),
-            reason: p.id);
+        expect(
+          cartonPrice(p),
+          lessThan(p.price * (cartonUnits[p.category] ?? 1)),
+          reason: p.id,
+        );
       }
     });
   });
@@ -171,16 +182,19 @@ void main() {
       expect(s.findByPhone(''), isNull);
     });
 
-    test('register makes a new account; the sample invite code makes it VIP', () {
-      final s = AppState();
-      final a = s.register('Toko Baru', '0811', 'salah');
-      expect(s.isVip, isFalse);
-      expect(s.balance, signupBonusPoints);
-      expect(s.customer, a);
-      s.register('Toko VIP', '0812', inviteCodeVip.toLowerCase());
-      expect(s.isVip, isTrue);
-      expect(s.customers.length, demoAccounts.length + 2);
-    });
+    test(
+      'register makes a new account; the sample invite code makes it VIP',
+      () {
+        final s = AppState();
+        final a = s.register('Toko Baru', '0811', 'salah');
+        expect(s.isVip, isFalse);
+        expect(s.balance, signupBonusPoints);
+        expect(s.customer, a);
+        s.register('Toko VIP', '0812', inviteCodeVip.toLowerCase());
+        expect(s.isVip, isTrue);
+        expect(s.customers.length, demoAccounts.length + 2);
+      },
+    );
 
     test('every sample account is marked as sample data', () {
       for (final c in demoAccounts) {

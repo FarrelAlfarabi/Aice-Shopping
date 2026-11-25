@@ -109,18 +109,24 @@ void main() {
     });
   });
 
-  testWidgets('home chip opens the member card with history and progress',
-      (tester) async {
+  testWidgets('home chip opens the member card with history and progress', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(360, 740);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final st = AppState()
       ..finishIntro()
       ..signIn(demoAccounts[1]);
-    await tester.pumpWidget(AppScope(
-      state: st,
-      child: MaterialApp(theme: buildTheme(), home: const Scaffold(body: HomeTab())),
-    ));
+    await tester.pumpWidget(
+      AppScope(
+        state: st,
+        child: MaterialApp(
+          theme: buildTheme(),
+          home: const Scaffold(body: HomeTab()),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('760 Poin · Silver'), findsOneWidget);
     await tester.ensureVisible(find.byKey(const ValueKey('points-chip')));

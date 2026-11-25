@@ -6,6 +6,8 @@ const Map<String, String> en = {
   '+{} poin sudah ditambahkan': '+{} points already added',
   '+{} poin, ditambahkan setelah transfer dikonfirmasi':
       '+{} points, added after the transfer is confirmed',
+  '1 poin tiap {} belanja. 100 poin = {}. Tingkat: {}. Poin ditambahkan setelah transfer dikonfirmasi. Lihat Kartu Member di Beranda atau Profil (contoh).':
+      '1 point for every {} you spend. 100 points = {}. Tiers: {}. Points are added after the transfer is confirmed. See the Member Card on Home or Profile (sample).',
   '1 poin tiap {}, 100 poin = {}': '1 point per {}, 100 points = {}',
   '1 poin tiap {}. 100 poin = {}. Tukar maksimal {}% dari subtotal. Poin ditambahkan setelah transfer dikonfirmasi (aturan contoh).':
       '1 point for every {}. 100 points = {}. Redeem up to {}% of the subtotal. Points are added after the transfer is confirmed (sample rules).',
@@ -44,6 +46,7 @@ const Map<String, String> en = {
   'Belanja kurang dari {} kena biaya kecil {}. Tambah {} lagi, biaya ini hilang.':
       'Orders under {} pay a small fee of {}. Add {} more and the fee goes away.',
   'Belanja sekarang': 'Shop now',
+  'Belanja {} lagi untuk gratis ongkir': 'Spend {} more for free delivery',
   'Belanja {} lagi untuk memakai voucher ini.':
       'Spend {} more to use this voucher.',
   'Beli 2 Disc.': 'Buy 2 Disc.',
@@ -61,6 +64,7 @@ const Map<String, String> en = {
   'Belum ada riwayat poin.': 'No points history yet.',
   'Belum ada tugas antar.': 'No delivery tasks yet.',
   'Bensin kurir (contoh)': 'Courier fuel (sample)',
+  'Berakhir dalam {}': 'Ends in {}',
   'Beranda': 'Home',
   'Berdasarkan popularitas dan riwayat belanjamu':
       'Based on popularity and your orders',
@@ -71,6 +75,8 @@ const Map<String, String> en = {
   'Buka': 'Open',
   'Buka WhatsApp?': 'Open WhatsApp?',
   'Buka aplikasi konsumen': 'Open consumer app',
+  'Buka tab Pesanan untuk melihat status. Pesanan baru menunggu transfer dikonfirmasi penjual, lalu disiapkan dan diantar (contoh).':
+      'Open the Orders tab to see the status. A new order waits for the seller to confirm the transfer, then it is prepared and delivered (sample).',
   'Buka {} - {}': 'Open {} - {}',
   'Cara bayar': 'Payment',
   'Cari': 'Search',
@@ -125,6 +131,7 @@ const Map<String, String> en = {
   'Es krim buat pesta 10 orang?': 'Ice cream for a party of 10?',
   'Es krim meleleh': 'Melted ice cream',
   'Es krim, tetap beku.': 'Ice cream, kept frozen.',
+  'Flash Sale': 'Flash Sale',
   'Foto ditambahkan (contoh)': 'Photo added (sample)',
   'Gabung member dan kumpulkan poin di setiap pesanan.':
       'Join as a member and collect points on every order.',
@@ -139,6 +146,7 @@ const Map<String, String> en = {
   'Gratis ongkir (belanja {})': 'Free delivery (order {})',
   'Gratis ongkir mulai': 'Free delivery from',
   'Gratis ongkir semua pesanan': 'Free delivery on all orders',
+  'Gratis ongkir tercapai': 'Free delivery reached',
   'Gratis ongkir, min. belanja Rp20.000': 'Free delivery, min. order Rp20.000',
   'Habis': 'Sold out',
   'Hai! Aku Tanya AI (contoh). Mau cari es krim untuk apa hari ini? Pilih pertanyaan di bawah atau ketik sendiri.':
@@ -179,7 +187,7 @@ const Map<String, String> en = {
   'Kartu Member': 'Member Card',
   'Kartu Member (contoh)': 'Member Card (sample)',
   'Kata sandi (opsional)': 'Password (optional)',
-  'Kategori': 'Category',
+  'Kategori': 'Categories',
   'Kecepatan pelacakan': 'Tracking speed',
   'Keluar': 'Sign out',
   'Keluar dari akun?': 'Sign out?',
@@ -509,6 +517,7 @@ const Map<String, String> en = {
   '{} item': '{} items',
   '{} item tidak bisa dipesan lagi (paket mix atau habis).':
       '{} items cannot be ordered again (mix pack or sold out).',
+  '{} item · {}': '{} items · {}',
   '{} masuk keranjang': '{} added to cart',
   '{} naik ke {} (contoh)': '{} rose to {} (sample)',
   '{} pesanan': '{} orders',
@@ -521,4 +530,5 @@ const Map<String, String> en = {
   '{}, {}. Contoh deskripsi untuk demo. Simpan di kulkas 2-6°C dan habiskan sebelum tanggal kedaluwarsa.':
       '{}, {}. Sample description for the demo. Keep in a 2-6°C fridge and finish before the expiry date.',
   '{}: {}': '{}: {}',
+  '⚡ Flash Sale (contoh)': '⚡ Flash Sale (sample)',
 };

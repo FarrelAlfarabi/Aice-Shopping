@@ -22,16 +22,22 @@ void main() {
 
   test('every category has several listings', () {
     for (final c in categories.keys) {
-      expect(catalog.where((p) => p.category == c).length,
-          greaterThanOrEqualTo(3),
-          reason: c);
+      expect(
+        catalog.where((p) => p.category == c).length,
+        greaterThanOrEqualTo(3),
+        reason: c,
+      );
     }
   });
 
   test('no banned claims in app copy', () {
     // The disclaimer itself is allowed; any other "resmi" is a claim.
     // The same disclaimer in English and Chinese is allowed too.
-    const allowed = ['bukan aplikasi resmi aice', 'not an official aice app', '非 aice 官方应用'];
+    const allowed = [
+      'bukan aplikasi resmi aice',
+      'not an official aice app',
+      '非 aice 官方应用',
+    ];
     final banned = [
       'resmi',
       'mitra resmi',
@@ -66,8 +72,11 @@ void main() {
 
   test('every product photo file exists', () {
     for (final p in catalog.where((p) => p.photo != null)) {
-      expect(File('assets/products/${p.photo}').existsSync(), isTrue,
-          reason: p.photo);
+      expect(
+        File('assets/products/${p.photo}').existsSync(),
+        isTrue,
+        reason: p.photo,
+      );
     }
   });
 }

@@ -49,6 +49,47 @@ List<String> _byIds(List<String> ids) => [
 final _rules = <_Rule>[
   _Rule(
     [
+      'poin',
+      'point',
+      'member',
+      'tier',
+      'silver',
+      'gold',
+      'reward',
+      '积分',
+      '会员',
+      '等级',
+    ],
+    () => Reply(
+      '1 poin tiap ${rp(pointsEarnRp)} belanja. 100 poin = ${rp(100 * pointValueRp)}. '
+      'Tingkat: ${memberTiers.map((m) => '${m.key == 'reg'
+          ? 'Reguler'
+          : m.key == 'silver'
+          ? 'Silver'
+          : 'Gold'} (${m.minPoints})').join(', ')}. '
+      'Poin ditambahkan setelah transfer dikonfirmasi. Lihat Kartu Member di Beranda atau Profil (contoh).',
+    ),
+  ),
+  _Rule(
+    [
+      'status',
+      'lacak',
+      'track',
+      'where is my order',
+      'my order',
+      'order status',
+      '订单状态',
+      '物流',
+      '追踪',
+      '我的订单',
+    ],
+    () => const Reply(
+      'Buka tab Pesanan untuk melihat status. Pesanan baru menunggu transfer dikonfirmasi penjual, '
+      'lalu disiapkan dan diantar (contoh).',
+    ),
+  ),
+  _Rule(
+    [
       'pesta',
       'ulang tahun',
       'acara',
@@ -57,6 +98,15 @@ final _rules = <_Rule>[
       'orang',
       'keluarga',
       'banyak',
+      'party',
+      'birthday',
+      'event',
+      'family',
+      'crowd',
+      '派对',
+      '聚会',
+      '生日',
+      '家庭',
     ],
     () => Reply(
       'Untuk acara ramai, paket lebih hemat. Paket Pesta isi 12 stik cocok untuk sekitar 10 orang, '
@@ -65,14 +115,48 @@ final _rules = <_Rule>[
     ),
   ),
   _Rule(
-    ['laris', 'populer', 'favorit', 'best', 'terlaris', 'rekomendasi'],
+    [
+      'laris',
+      'populer',
+      'favorit',
+      'best',
+      'terlaris',
+      'rekomendasi',
+      'popular',
+      'best',
+      'favorite',
+      'favourite',
+      'recommend',
+      'top',
+      '热门',
+      '畅销',
+      '推荐',
+      '最好',
+    ],
     () => Reply(
       'Ini yang paling sering dibeli minggu ini (data contoh).',
       _top(catalog, 3),
     ),
   ),
   _Rule(
-    ['promo', 'diskon', 'voucher', 'hemat', 'murah', 'kode'],
+    [
+      'promo',
+      'diskon',
+      'voucher',
+      'hemat',
+      'murah',
+      'kode',
+      'promo',
+      'discount',
+      'voucher',
+      'coupon',
+      'deal',
+      'offer',
+      '优惠',
+      '折扣',
+      '促销',
+      '券',
+    ],
     () => Reply(
       'Promo contoh hari ini:\n'
       '• Beli 3 cone apa saja, diskon ${Pricing.multiBuyPercent}%.\n'
@@ -81,21 +165,53 @@ final _rules = <_Rule>[
     ),
   ),
   _Rule(
-    ['beku', 'cair', 'dingin', 'pendingin', 'suhu', 'aman sampai'],
+    [
+      'beku',
+      'cair',
+      'dingin',
+      'pendingin',
+      'suhu',
+      'aman sampai',
+      'frozen',
+      'cold',
+      'freezer',
+      'temperature',
+      '冷冻',
+      '冷',
+      '温度',
+    ],
     () => const Reply(
       'Pesanan dikirim dalam tas pendingin -18°C dan diantar dari toko terdekat, '
       'jadi perjalanannya singkat (contoh).',
     ),
   ),
   _Rule(
-    ['meleleh', 'rusak', 'salah', 'komplain', 'lapor', 'refund', 'ganti'],
+    [
+      'meleleh',
+      'rusak',
+      'salah',
+      'komplain',
+      'lapor',
+      'refund',
+      'ganti',
+      'melt',
+      'broken',
+      'damaged',
+      'refund',
+      'complain',
+      'replace',
+      '融化',
+      '退款',
+      '投诉',
+      '换',
+    ],
     () => const Reply(
       'Kalau es krim meleleh saat tiba, buka pesanan lalu tekan "Laporkan masalah" dalam 24 jam. '
       'Pilih ganti baru atau pengembalian dana (aturan contoh).',
     ),
   ),
   _Rule(
-    ['cokelat', 'coklat', 'choco', 'mocha'],
+    ['cokelat', 'coklat', 'choco', 'mocha', 'chocolate', 'choco', '巧克力'],
     () => Reply(
       'Pilihan rasa cokelat (contoh):',
       _top(
@@ -117,6 +233,15 @@ final _rules = <_Rule>[
       'buah',
       'yoghurt',
       'yogurt',
+      'fresh',
+      'light',
+      'not too sweet',
+      'sour',
+      'fruit',
+      '清爽',
+      '酸奶',
+      '水果',
+      '不太甜',
     ],
     () => Reply(
       'Yang segar dan ringan: yoghurt dan rasa buah (contoh).',
@@ -132,21 +257,36 @@ final _rules = <_Rule>[
     ),
   ),
   _Rule(
-    ['ongkir', 'ongkos', 'kirim', 'biaya', 'gratis'],
+    [
+      'ongkir',
+      'ongkos',
+      'kirim',
+      'biaya',
+      'gratis',
+      'delivery fee',
+      'shipping',
+      'delivery cost',
+      'free delivery',
+      'how much is delivery',
+      '配送费',
+      '运费',
+      '免配送',
+      '免运',
+    ],
     () => Reply(
       'Ongkir contoh ${rp(Pricing.baseFee)}. Gratis ongkir kalau belanja minimal ${rp(Pricing.freeThreshold)}. '
       'Minimal belanja ${rp(Pricing.minOrder)}.',
     ),
   ),
   _Rule(
-    ['matcha', 'teh', 'green tea'],
+    ['matcha', 'teh', 'green tea', '抹茶'],
     () => Reply(
       'Pilihan matcha (contoh):',
       _top(catalog.where((p) => p.name.contains('Matcha')), 3),
     ),
   ),
   _Rule(
-    ['anak', 'kecil', 'bocah'],
+    ['anak', 'kecil', 'bocah', 'kid', 'child', 'children', '儿童', '孩子', '小孩'],
     () => Reply(
       'Ukuran kecil dan rasa lembut biasanya pas untuk anak (contoh).',
       _top(
@@ -156,7 +296,21 @@ final _rules = <_Rule>[
     ),
   ),
   _Rule(
-    ['berapa lama', 'lama', 'kapan sampai', 'cepat', 'menit'],
+    [
+      'berapa lama',
+      'lama',
+      'kapan sampai',
+      'cepat',
+      'menit',
+      'how long',
+      'eta',
+      'minutes',
+      'arrive',
+      'when will',
+      '多久',
+      '几分钟',
+      '什么时候到',
+    ],
     () => const Reply(
       'Di demo ini perkiraan tiba 15 menit dari toko terdekat. Waktu ini contoh, bukan janji Aice.',
     ),

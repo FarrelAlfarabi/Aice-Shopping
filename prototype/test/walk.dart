@@ -15,18 +15,22 @@ import 'package:flutter_test/flutter_test.dart';
 /// Texts that are data, not interface words: they stay as they are in every
 /// language (product names, sample people, addresses).
 Set<String> dataStrings() => {
-      for (final p in allProducts) p.name,
-      for (final p in allProducts) p.size,
-      for (final c in demoAccounts) c.name,
-      for (final c in demoAccounts) c.phone,
-      ...savedAddresses,
-      'Aice Shopping',
-    };
+  for (final p in allProducts) p.name,
+  for (final p in allProducts) p.size,
+  for (final c in demoAccounts) c.name,
+  for (final c in demoAccounts) c.phone,
+  ...savedAddresses,
+  'Aice Shopping',
+};
 
 /// Opens every screen of the app (consumer and admin) in [lang] at [width] and
 /// returns the texts that had no translation. Also fails on layout overflow.
-Future<(Set<String>, List<String>)> walk(WidgetTester tester, String lang,
-    {double width = 360, double scale = 1.0}) async {
+Future<(Set<String>, List<String>)> walk(
+  WidgetTester tester,
+  String lang, {
+  double width = 360,
+  double scale = 1.0,
+}) async {
   tester.view.physicalSize = Size(width, 800);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -34,18 +38,23 @@ Future<(Set<String>, List<String>)> walk(WidgetTester tester, String lang,
   st.setLang(lang);
   trackMisses = true;
   misses.clear();
-  await tester.pumpWidget(MediaQuery(
-    data: MediaQueryData(
-        size: Size(width, 800), textScaler: TextScaler.linear(scale)),
-    child: AiceApp(state: st),
-  ));
+  await tester.pumpWidget(
+    MediaQuery(
+      data: MediaQueryData(
+        size: Size(width, 800),
+        textScaler: TextScaler.linear(scale),
+      ),
+      child: AiceApp(state: st),
+    ),
+  );
   final problems = <String>[];
   var where = 'start';
   final oldHandler = FlutterError.onError;
   FlutterError.onError = (d) {
     final where2 = RegExp(r'lib/[a-z_]+\.dart:\d+').firstMatch(d.toString());
     problems.add(
-        '$where: ${d.exceptionAsString().split('\n').first} @ ${where2?.group(0)}');
+      '$where: ${d.exceptionAsString().split('\n').first} @ ${where2?.group(0)}',
+    );
   };
   void check() {}
 
@@ -76,9 +85,15 @@ Future<(Set<String>, List<String>)> walk(WidgetTester tester, String lang,
   }
   await settle();
   // Product pages: ice cream, chilled yogurt, frozen food, bundle.
-  for (final id in ['cone-vanila', 'cup-original', 'frozen-naget', 'bundle-keluarga', 'cone-stroberi']) {
+  for (final id in [
+    'cone-vanila',
+    'cup-original',
+    'frozen-naget',
+    'bundle-keluarga',
+    'cone-stroberi',
+  ]) {
     where = 'ProductScreen(productById(id)))';
-  await push(ProductScreen(productById(id)));
+    await push(ProductScreen(productById(id)));
     await tester.drag(find.byType(ListView).first, const Offset(0, -900));
     await settle();
     await back();
@@ -168,14 +183,21 @@ Future<(Set<String>, List<String>)> walk(WidgetTester tester, String lang,
   await settle();
   for (var i = 0; i < 8; i++) {
     where = 'admin tab $i';
-    final sc = tester.state<ScrollableState>(find
-        .descendant(of: find.byType(AdminShell), matching: find.byType(Scrollable))
-        .first);
+    final sc = tester.state<ScrollableState>(
+      find
+          .descendant(
+            of: find.byType(AdminShell),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     sc.position.jumpTo(0);
     await tester.pump();
-    for (var k = 0;
-        k < 20 && find.byKey(ValueKey('admin-tab-$i')).evaluate().isEmpty;
-        k++) {
+    for (
+      var k = 0;
+      k < 20 && find.byKey(ValueKey('admin-tab-$i')).evaluate().isEmpty;
+      k++
+    ) {
       sc.position.jumpTo(sc.position.pixels + 100);
       await tester.pump();
     }

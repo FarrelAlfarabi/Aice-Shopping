@@ -14,10 +14,16 @@ void main() {
   setUpAll(() => loopMotion = false);
 
   test('every key exists in English and Chinese', () {
-    expect(en.keys.toSet().difference(zh.keys.toSet()), isEmpty,
-        reason: 'in English but not Chinese');
-    expect(zh.keys.toSet().difference(en.keys.toSet()), isEmpty,
-        reason: 'in Chinese but not English');
+    expect(
+      en.keys.toSet().difference(zh.keys.toSet()),
+      isEmpty,
+      reason: 'in English but not Chinese',
+    );
+    expect(
+      zh.keys.toSet().difference(en.keys.toSet()),
+      isEmpty,
+      reason: 'in Chinese but not English',
+    );
   });
 
   test('no empty translations, and holes {} match the key', () {
@@ -43,7 +49,9 @@ void main() {
 
   test('every tr(...) in the code has a translation', () {
     final re = RegExp(r"""\btr\(\s*'((?:[^'\\]|\\.)*)'\s*\)""");
-    for (final f in Directory('lib').listSync(recursive: true).whereType<File>()) {
+    for (final f in Directory(
+      'lib',
+    ).listSync(recursive: true).whereType<File>()) {
       if (!f.path.endsWith('.dart') || f.path.contains('l10n')) continue;
       for (final m in re.allMatches(f.readAsStringSync())) {
         final key = m.group(1)!;
@@ -57,14 +65,18 @@ void main() {
     testWidgets('every screen is translated: $lang', (tester) async {
       final (missing, problems) = await walk(tester, lang);
       expect(problems, isEmpty, reason: problems.join('\n'));
-      expect(missing, isEmpty,
-          reason: 'No $lang text for:\n${(missing.toList()..sort()).join('\n')}');
+      expect(
+        missing,
+        isEmpty,
+        reason: 'No $lang text for:\n${(missing.toList()..sort()).join('\n')}',
+      );
     });
   }
 
   for (final lang in ['en', 'zh']) {
-    testWidgets('360 px with large text (1.3x) has no overflow: $lang',
-        (tester) async {
+    testWidgets('360 px with large text (1.3x) has no overflow: $lang', (
+      tester,
+    ) async {
       final (_, problems) = await walk(tester, lang, scale: 1.3);
       expect(problems, isEmpty, reason: problems.join('\n'));
     });
@@ -75,8 +87,12 @@ void main() {
     final used = {
       for (final v in zh.values) ...v.runes.where((r) => r > 0x2E80),
     };
-    final cmap = _fontChars(File('assets/fonts/ZhSubset.ttf').readAsBytesSync());
-    final missing = used.where((r) => !cmap.contains(r)).map(String.fromCharCode);
+    final cmap = _fontChars(
+      File('assets/fonts/ZhSubset.ttf').readAsBytesSync(),
+    );
+    final missing = used
+        .where((r) => !cmap.contains(r))
+        .map(String.fromCharCode);
     expect(missing, isEmpty);
   });
 }

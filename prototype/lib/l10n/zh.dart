@@ -5,6 +5,8 @@ const Map<String, String> zh = {
   '+{} poin dari pesanan {} (contoh).': '+{} 积分，来自订单 {}（示例）。',
   '+{} poin sudah ditambahkan': '+{} 积分已到账',
   '+{} poin, ditambahkan setelah transfer dikonfirmasi': '+{} 积分，确认转账后到账',
+  '1 poin tiap {} belanja. 100 poin = {}. Tingkat: {}. Poin ditambahkan setelah transfer dikonfirmasi. Lihat Kartu Member di Beranda atau Profil (contoh).':
+      '每消费 {} 得 1 积分。100 积分 = {}。等级：{}。确认转账后积分到账。可在首页或“我的”查看会员卡（示例）。',
   '1 poin tiap {}, 100 poin = {}': '每 {} 得 1 积分，100 积分 = {}',
   '1 poin tiap {}. 100 poin = {}. Tukar maksimal {}% dari subtotal. Poin ditambahkan setelah transfer dikonfirmasi (aturan contoh).':
       '每 {} 得 1 积分。100 积分 = {}。最多抵扣小计的 {}%。确认转账后积分到账（示例规则）。',
@@ -42,6 +44,7 @@ const Map<String, String> zh = {
   'Belanja kurang dari {} kena biaya kecil {}. Tambah {} lagi, biaya ini hilang.':
       '订单不足 {} 需付小额订单费 {}。再买 {} 即可免除。',
   'Belanja sekarang': '马上购物',
+  'Belanja {} lagi untuk gratis ongkir': '再消费 {} 即可免配送费',
   'Belanja {} lagi untuk memakai voucher ini.': '再消费 {} 即可使用此优惠券。',
   'Beli 2 Disc.': '买 2 件优惠',
   'Beli 3 Diskon 10%': '买 3 件享 9 折',
@@ -56,6 +59,7 @@ const Map<String, String> zh = {
   'Belum ada riwayat poin.': '暂无积分记录。',
   'Belum ada tugas antar.': '暂无配送任务。',
   'Bensin kurir (contoh)': '骑手油费（示例）',
+  'Berakhir dalam {}': '距结束 {}',
   'Beranda': '首页',
   'Berdasarkan popularitas dan riwayat belanjamu': '根据热门商品和你的订单',
   'Best Seller': '畅销',
@@ -65,6 +69,8 @@ const Map<String, String> zh = {
   'Buka': '打开',
   'Buka WhatsApp?': '打开 WhatsApp？',
   'Buka aplikasi konsumen': '打开消费者端',
+  'Buka tab Pesanan untuk melihat status. Pesanan baru menunggu transfer dikonfirmasi penjual, lalu disiapkan dan diantar (contoh).':
+      '打开“订单”标签查看状态。新订单等待卖家确认转账，然后备货并配送（示例）。',
   'Buka {} - {}': '营业 {} - {}',
   'Cara bayar': '支付方式',
   'Cari': '搜索',
@@ -114,6 +120,7 @@ const Map<String, String> zh = {
   'Es krim buat pesta 10 orang?': '10 人派对用什么冰淇淋？',
   'Es krim meleleh': '冰淇淋融化',
   'Es krim, tetap beku.': '冰淇淋，保持冷冻。',
+  'Flash Sale': '限时抢购',
   'Foto ditambahkan (contoh)': '照片已添加（示例）',
   'Gabung member dan kumpulkan poin di setiap pesanan.': '加入会员，每单累积积分。',
   'Gaji bulanan (contoh)': '月薪（示例）',
@@ -127,6 +134,7 @@ const Map<String, String> zh = {
   'Gratis ongkir (belanja {})': '免配送费（满 {}）',
   'Gratis ongkir mulai': '免配送费起点',
   'Gratis ongkir semua pesanan': '所有订单免配送费',
+  'Gratis ongkir tercapai': '已达免配送费',
   'Gratis ongkir, min. belanja Rp20.000': '免配送费，最低订单 Rp20.000',
   'Habis': '售罄',
   'Hai! Aku Tanya AI (contoh). Mau cari es krim untuk apa hari ini? Pilih pertanyaan di bawah atau ketik sendiri.':
@@ -472,6 +480,7 @@ const Map<String, String> zh = {
   '{} item': '{} 件',
   '{} item tidak bisa dipesan lagi (paket mix atau habis).':
       '{} 件商品无法再次下单（混合装或已售罄）。',
+  '{} item · {}': '{} 件 · {}',
   '{} masuk keranjang': '{} 已加入购物车',
   '{} naik ke {} (contoh)': '{} 升至 {}（示例）',
   '{} pesanan': '{} 单',
@@ -484,4 +493,5 @@ const Map<String, String> zh = {
   '{}, {}. Contoh deskripsi untuk demo. Simpan di kulkas 2-6°C dan habiskan sebelum tanggal kedaluwarsa.':
       '{}，{}。演示用示例描述。请冷藏于 2-6°C，并在保质期前食用。',
   '{}: {}': '{}：{}',
+  '⚡ Flash Sale (contoh)': '⚡ 限时抢购（示例）',
 };

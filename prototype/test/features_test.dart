@@ -14,22 +14,31 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   setUpAll(() => loopMotion = false);
 
-  Future<AppState> open(WidgetTester tester, Widget home,
-      {AppState? state, double scale = 1.0}) async {
+  Future<AppState> open(
+    WidgetTester tester,
+    Widget home, {
+    AppState? state,
+    double scale = 1.0,
+  }) async {
     tester.view.physicalSize = const Size(360, 740);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final st = state ?? (AppState()..finishIntro());
-    await tester.pumpWidget(AppScope(
-      state: st,
-      child: MaterialApp(
-        theme: buildTheme(),
-        builder: (c, child) => MediaQuery(
-            data: MediaQuery.of(c).copyWith(textScaler: TextScaler.linear(scale)),
-            child: child!),
-        home: home,
+    await tester.pumpWidget(
+      AppScope(
+        state: st,
+        child: MaterialApp(
+          theme: buildTheme(),
+          builder: (c, child) => MediaQuery(
+            data: MediaQuery.of(
+              c,
+            ).copyWith(textScaler: TextScaler.linear(scale)),
+            child: child!,
+          ),
+          home: home,
+        ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     return st;
   }
@@ -66,10 +75,14 @@ void main() {
 
     test('a pack that is not full is refused', () {
       final s = AppState();
-      expect(() => s.addMixPack(6, {productById('cone-vanila'): 5}),
-          throwsArgumentError);
-      expect(() => s.addMixPack(7, {productById('cone-vanila'): 7}),
-          throwsArgumentError);
+      expect(
+        () => s.addMixPack(6, {productById('cone-vanila'): 5}),
+        throwsArgumentError,
+      );
+      expect(
+        () => s.addMixPack(7, {productById('cone-vanila'): 7}),
+        throwsArgumentError,
+      );
       expect(s.cartEmpty, isTrue);
     });
 
@@ -80,14 +93,17 @@ void main() {
       expect(s.lines.length, 2);
       final o = s.placeOrder();
       expect(o.lines.length, 2);
-      expect(o.lines.every((l) => l.productId == null && l.detail != null),
-          isTrue);
+      expect(
+        o.lines.every((l) => l.productId == null && l.detail != null),
+        isTrue,
+      );
       expect(s.cartEmpty, isTrue);
     });
   });
 
-  testWidgets('mix pack screen: button stays off until the pack is full',
-      (tester) async {
+  testWidgets('mix pack screen: button stays off until the pack is full', (
+    tester,
+  ) async {
     final st = await open(tester, const MixPackScreen());
     expect(find.text('Pilih 6 lagi (0 dari 6)'), findsOneWidget);
     final btn = find.widgetWithText(FilledButton, 'Tambah ke keranjang');
@@ -113,11 +129,15 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('home shows the mix pack card and it opens the builder',
-      (tester) async {
+  testWidgets('home shows the mix pack card and it opens the builder', (
+    tester,
+  ) async {
     await open(tester, const Scaffold(body: HomeTab()));
-    await tester.scrollUntilVisible(find.byType(MixPackCard), 300,
-        scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(
+      find.byType(MixPackCard),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(find.byType(MixPackCard));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(MixPackCard));
@@ -144,8 +164,9 @@ void main() {
     });
   });
 
-  testWidgets('order detail shows lines and Pesan lagi fills the cart',
-      (tester) async {
+  testWidgets('order detail shows lines and Pesan lagi fills the cart', (
+    tester,
+  ) async {
     final st = AppState()..finishIntro();
     await open(tester, const Shell(), state: st);
     tabIndex.value = 2;
@@ -202,8 +223,9 @@ void main() {
     });
   });
 
-  testWidgets('profile: add an address, open notifications and about',
-      (tester) async {
+  testWidgets('profile: add an address, open notifications and about', (
+    tester,
+  ) async {
     final st = AppState()..finishIntro();
     await open(tester, const Scaffold(body: ProfileTab()), state: st);
     await tester.tap(find.text('Tambah'));
@@ -212,8 +234,11 @@ void main() {
     await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
     expect(st.saved, contains('Jl. Tes Contoh 9'));
-    await tester.scrollUntilVisible(find.text('Jl. Tes Contoh 9'), 200,
-        scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(
+      find.text('Jl. Tes Contoh 9'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Jl. Tes Contoh 9'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Hapus alamat').last);

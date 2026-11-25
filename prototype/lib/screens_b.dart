@@ -364,6 +364,7 @@ class _Summary extends StatelessWidget {
       if (p.multiBuy > 0)
         row('Diskon Beli 3', '-${rp(p.multiBuy)}', color: C.good),
       if (p.tier > 0) row('Diskon jumlah', '-${rp(p.tier)}', color: C.good),
+      if (p.flash > 0) row('Flash Sale', '-${rp(p.flash)}', color: C.good),
       if (p.vip > 0) row('Harga member', '-${rp(p.vip)}', color: C.good),
       if (p.voucherDiscount > 0)
         row('Voucher', '-${rp(p.voucherDiscount)}', color: C.good),
