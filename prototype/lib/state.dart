@@ -198,7 +198,7 @@ class AppState extends ChangeNotifier {
 
 Order _sampleOrder() => Order(
       id: '#AC-0987',
-      lines: const [OrderLine('Cone Vanila Susu', 3, 5000)],
+      lines: const [OrderLine('Cone Vanila Stroberi', 3, 5000)],
       pricing: computePricing({productById('cone-vanila'): 3}, null),
       storeName: 'Toko Contoh 1',
       address: savedAddresses.first,

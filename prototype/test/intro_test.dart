@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   setUpAll(() => loopMotion = false);
+  assistantTests();
 
   testWidgets('intro shows first, Mulai leads straight to Home', (tester) async {
     await tester.pumpWidget(const AiceApp());
@@ -101,4 +102,22 @@ class AiceApp2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       MaterialApp(theme: buildTheme(), home: const Root());
+}
+
+// Tanya AI is scripted: fixed keywords give fixed answers.
+void assistantTests() {
+  testWidgets('Tanya AI answers a party question with products', (tester) async {
+    await tester.pumpWidget(const AiceApp());
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Mulai'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tanya AI'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.byKey(const ValueKey('assistant-input')), 'es krim buat pesta');
+    await tester.testTextInput.receiveAction(TextInputAction.send);
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Paket Pesta'), findsWidgets);
+  });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens_a.dart';
 import 'state.dart';
 import 'ui.dart';
@@ -21,6 +22,10 @@ class _AiceAppState extends State<AiceApp> {
           title: 'Aice Shopping (demo)',
           debugShowCheckedModeBanner: false,
           theme: buildTheme(),
+          // Indonesian for built-in text such as the back button tooltip.
+          locale: const Locale('id'),
+          supportedLocales: const [Locale('id')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           // On a laptop the app sits in a centered phone-width frame.
           builder: (context, child) => ColoredBox(
             color: const Color(0xFFDCE5F2),

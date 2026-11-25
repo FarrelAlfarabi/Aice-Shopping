@@ -1,11 +1,11 @@
 {
-    "name": "aice_shopping",
-    "short_name": "aice_shopping",
+    "name": "Aice Shopping (demo)",
+    "short_name": "Aice Shopping",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B5FD8",
+    "theme_color": "#0B5FD8",
+    "description": "Demo konsep. Bukan aplikasi resmi Aice.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

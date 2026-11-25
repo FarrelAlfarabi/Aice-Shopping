@@ -56,7 +56,7 @@ const categories = <String, String>{
 /// Every sample product, for all brands.
 const allProducts = <Product>[
   // Cone
-  Product('cone-vanila', 'Cone Vanila Susu', 'cone', '80 ml', 5000,
+  Product('cone-vanila', 'Cone Vanila Stroberi', 'cone', '80 ml', 5000,
       ribbon: 'Best Seller', photo: 'cone-vanila.webp', rank: 1),
   Product('cone-cokelat', 'Cone Cokelat Crunch', 'cone', '80 ml', 6000,
       ribbon: 'New', photo: 'cone-cokelat.webp', rank: 4),
