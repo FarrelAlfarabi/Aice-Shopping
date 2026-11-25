@@ -38,6 +38,23 @@ class _CartTabState extends State<CartTab> {
     super.dispose();
   }
 
+  void _addMore() => tabIndex.value = 0;
+
+  /// Under the minimum order: the button still works. It tells the user why
+  /// they cannot pay yet and offers a way forward (never a dead end).
+  void _explainMinOrder() {
+    final p = AppScope.of(context).pricing;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(
+            'Minimum order ${rp(Pricing.minOrder)}, tambah ${rp(p.toMinOrder)} lagi.'),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+            label: 'Tambah item', textColor: C.acc, onPressed: _addMore),
+      ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
@@ -98,6 +115,21 @@ class _CartTabState extends State<CartTab> {
                 ],
               ]),
             ),
+            if (!p.canCheckout) ...[
+              const SizedBox(height: 10),
+              Panel(
+                color: C.warnBg,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(
+                      'Minimum order ${rp(Pricing.minOrder)}. Tambah ${rp(p.toMinOrder)} lagi untuk lanjut bayar.',
+                      key: const Key('min-order-note'),
+                      style: const TextStyle(
+                          color: C.warnInk, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  SmallChip('Tambah item', onTap: _addMore),
+                ]),
+              ),
+            ],
             const SizedBox(height: 10),
             if (p.multiBuy > 0)
               Notice('Diskon Beli 3 terpasang: hemat ${rp(p.multiBuy)}.', good: true)
@@ -107,7 +139,10 @@ class _CartTabState extends State<CartTab> {
             Panel(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  const Expanded(child: Text('Gratis ongkir', style: tBold)),
+                  Expanded(
+                      child: Text(
+                          'Gratis ongkir (belanja ${rp(Pricing.freeThreshold)})',
+                          style: tBold)),
                   Text(
                       p.toFreeDelivery == 0
                           ? 'Tercapai'
@@ -124,12 +159,6 @@ class _CartTabState extends State<CartTab> {
                     backgroundColor: C.line,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                    p.canCheckout
-                        ? 'Minimum order ${rp(Pricing.minOrder)} sudah terpenuhi.'
-                        : 'Minimum order ${rp(Pricing.minOrder)}.',
-                    style: tMuted),
               ]),
             ),
             const SizedBox(height: 14),
@@ -214,7 +243,10 @@ class _CartTabState extends State<CartTab> {
                   trailing: rp(p.total),
                   onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CheckoutScreen())))
-              : BigButton('Tambah ${rp(p.toMinOrder)} lagi', onPressed: null),
+              : BigButton('Lanjut bayar',
+                  trailing: rp(p.total),
+                  secondary: true,
+                  onPressed: _explainMinOrder),
         ),
       ]),
     );
