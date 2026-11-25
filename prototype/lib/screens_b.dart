@@ -38,6 +38,8 @@ class _CartTabState extends State<CartTab> {
     super.dispose();
   }
 
+  void _addMore() => tabIndex.value = 0;
+
   @override
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
@@ -98,6 +100,21 @@ class _CartTabState extends State<CartTab> {
                 ],
               ]),
             ),
+            if (p.belowMinOrder) ...[
+              const SizedBox(height: 10),
+              Panel(
+                color: C.warnBg,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(
+                      'Belanja kurang dari ${rp(Pricing.minOrder)} kena biaya kecil ${rp(Pricing.smallOrderFee)}. Tambah ${rp(p.toMinOrder)} lagi, biaya ini hilang.',
+                      key: const Key('min-order-note'),
+                      style: const TextStyle(
+                          color: C.warnInk, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  SmallChip('Tambah item', onTap: _addMore),
+                ]),
+              ),
+            ],
             const SizedBox(height: 10),
             if (p.multiBuy > 0)
               Notice('Diskon Beli 3 terpasang: hemat ${rp(p.multiBuy)}.', good: true)
@@ -107,7 +124,10 @@ class _CartTabState extends State<CartTab> {
             Panel(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  const Expanded(child: Text('Gratis ongkir', style: tBold)),
+                  Expanded(
+                      child: Text(
+                          'Gratis ongkir (belanja ${rp(Pricing.freeThreshold)})',
+                          style: tBold)),
                   Text(
                       p.toFreeDelivery == 0
                           ? 'Tercapai'
@@ -124,12 +144,6 @@ class _CartTabState extends State<CartTab> {
                     backgroundColor: C.line,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                    p.canCheckout
-                        ? 'Minimum order ${rp(Pricing.minOrder)} sudah terpenuhi.'
-                        : 'Minimum order ${rp(Pricing.minOrder)}.',
-                    style: tMuted),
               ]),
             ),
             const SizedBox(height: 14),
@@ -209,12 +223,10 @@ class _CartTabState extends State<CartTab> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           decoration: const BoxDecoration(
               color: C.surface, border: Border(top: BorderSide(color: C.line))),
-          child: p.canCheckout
-              ? BigButton('Lanjut bayar',
-                  trailing: rp(p.total),
-                  onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const CheckoutScreen())))
-              : BigButton('Tambah ${rp(p.toMinOrder)} lagi', onPressed: null),
+          child: BigButton('Lanjut bayar',
+              trailing: rp(p.total),
+              onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CheckoutScreen()))),
         ),
       ]),
     );
@@ -247,6 +259,7 @@ class _Summary extends StatelessWidget {
         if (p.voucherDiscount > 0)
           row('Voucher', '-${rp(p.voucherDiscount)}', color: C.good),
         row('Ongkir', p.delivery == 0 ? 'Gratis' : rp(p.delivery)),
+        if (p.smallFee > 0) row('Biaya belanja kecil', rp(p.smallFee)),
         const Divider(),
         row('Total', rp(p.total), bold: true),
       ]);

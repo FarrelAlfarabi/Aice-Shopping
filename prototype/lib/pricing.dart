@@ -56,6 +56,10 @@ class Pricing {
   static const baseFee = 5000;
   static const freeThreshold = 50000;
   static const minOrder = 20000;
+
+  /// Extra fee when the cart is under [minOrder]. Checkout still works
+  /// (sample value for the demo; change it here only).
+  static const smallOrderFee = 5000;
   static const multiBuyQty = 3;
   static const multiBuyPercent = 10;
 
@@ -70,9 +74,10 @@ class Pricing {
     required this.delivery,
   });
 
-  int get total => subtotal - multiBuy - voucherDiscount + delivery;
+  bool get belowMinOrder => subtotal > 0 && subtotal < minOrder;
+  int get smallFee => belowMinOrder ? smallOrderFee : 0;
+  int get total => subtotal - multiBuy - voucherDiscount + delivery + smallFee;
   int get afterMultiBuy => subtotal - multiBuy;
-  bool get canCheckout => subtotal >= minOrder;
   int get toMinOrder => max(0, minOrder - subtotal);
   int get toFreeDelivery => max(0, freeThreshold - afterMultiBuy);
   double get freeProgress => min(1.0, afterMultiBuy / freeThreshold);

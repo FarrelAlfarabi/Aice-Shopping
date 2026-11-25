@@ -448,7 +448,15 @@ class BigButton extends StatelessWidget {
             mainAxisAlignment: trailing == null
                 ? MainAxisAlignment.center
                 : MainAxisAlignment.spaceBetween,
-            children: [Text(label), if (trailing != null) Text(trailing!)],
+            children: [
+              Flexible(
+                  child: Text(label,
+                      maxLines: 1, overflow: TextOverflow.ellipsis)),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                Text(trailing!, maxLines: 1),
+              ],
+            ],
           ),
         ),
       );

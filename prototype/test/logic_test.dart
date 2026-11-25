@@ -47,9 +47,14 @@ void main() {
 
   test('minimum order', () {
     final p = computePricing({cone: 2}, null);
-    expect(p.canCheckout, false);
+    expect(p.belowMinOrder, true);
     expect(p.toMinOrder, 10000);
-    expect(computePricing({tub: 1}, null).canCheckout, true);
+    expect(p.smallFee, Pricing.smallOrderFee);
+    expect(p.total, p.subtotal + p.delivery + Pricing.smallOrderFee);
+    final ok = computePricing({tub: 1}, null);
+    expect(ok.belowMinOrder, false);
+    expect(ok.smallFee, 0);
+    expect(computePricing({}, null).smallFee, 0);
   });
 
   test('voucher checks', () {
