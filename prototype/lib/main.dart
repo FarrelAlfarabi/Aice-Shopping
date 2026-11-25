@@ -21,7 +21,14 @@ class _AiceAppState extends State<AiceApp> {
   @override
   void initState() {
     super.initState();
-    if (widget.state == null) syncTabWithAddress();
+    if (widget.state == null) {
+      // Open the app at #/admin to land on the admin dashboard.
+      if (Uri.base.fragment.startsWith('/admin')) {
+        state.finishIntro();
+        state.setRole(AppRole.admin);
+      }
+      syncTabWithAddress();
+    }
   }
 
   @override

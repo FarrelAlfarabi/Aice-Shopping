@@ -250,7 +250,7 @@ void main() {
     await tester.tap(find.widgetWithText(InkWell, 'Notifikasi'));
     await tester.pumpAndSettle();
     expect(find.byType(NoticesScreen), findsOneWidget);
-    await tester.tap(find.text('Tandai dibaca'));
+    await tester.tap(find.text('Tandai semua dibaca'));
     await tester.pumpAndSettle();
     expect(st.unreadCount, 0);
     await tester.pageBack();

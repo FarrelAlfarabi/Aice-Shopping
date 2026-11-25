@@ -14,6 +14,8 @@ const Map<String, String> en = {
   '1 poin tiap {}. 100 poin = {}. Tukar maksimal {}% dari subtotal. Poin ditambahkan setelah transfer dikonfirmasi (aturan contoh).':
       '1 point for every {}. 100 points = {}. Redeem up to {}% of the subtotal. Points are added after the transfer is confirmed (sample rules).',
   'Ada laporan': 'Has report',
+  'Ada laporan masalah dari pembeli (contoh).':
+      'The buyer reported a problem (sample).',
   'Ada promo apa hari ini?': 'Any promos today?',
   'Admin': 'Admin',
   'Admin (demo)': 'Admin (demo)',
@@ -54,7 +56,6 @@ const Map<String, String> en = {
   'Belanja kurang dari {} kena biaya kecil {}. Tambah {} lagi, biaya ini hilang.':
       'Orders under {} pay a small fee of {}. Add {} more and the fee goes away.',
   'Belanja sekarang': 'Shop now',
-  'Belanja {} lagi untuk gratis ongkir': 'Spend {} more for free delivery',
   'Belanja {} lagi untuk memakai voucher ini.':
       'Spend {} more to use this voucher.',
   'Beli 2 Disc.': 'Buy 2 Disc.',
@@ -71,6 +72,7 @@ const Map<String, String> en = {
   'Belum ada notifikasi.': 'No notifications yet.',
   'Belum ada riwayat poin.': 'No points history yet.',
   'Belum ada tugas antar.': 'No delivery tasks yet.',
+  'Belum dibayar': 'Not paid yet',
   'Bensin kurir (contoh)': 'Courier fuel (sample)',
   'Berakhir dalam {}': 'Ends in {}',
   'Beranda': 'Home',
@@ -81,7 +83,7 @@ const Map<String, String> en = {
   'Bonus bergabung': 'Welcome bonus',
   'Buat pesanan ini terlambat': 'Make this order late',
   'Buka': 'Open',
-  'Buka WhatsApp?': 'Open WhatsApp?',
+  'Buka WhatsApp sales?': 'Open sales WhatsApp?',
   'Buka aplikasi konsumen': 'Open consumer app',
   'Buka tab Pesanan untuk melihat status. Pesanan baru menunggu transfer dikonfirmasi penjual, lalu disiapkan dan diantar (contoh).':
       'Open the Orders tab to see the status. A new order waits for the seller to confirm the transfer, then it is prepared and delivered (sample).',
@@ -111,6 +113,7 @@ const Map<String, String> en = {
   'Daftar sekarang': 'Register now',
   'Daftar sendiri': 'Register yourself',
   'Dalam perjalanan': 'On the way',
+  'Dana': 'Funds',
   'Dari pesanan sebelumnya': 'From your earlier orders',
   'Demo konsep. Bukan aplikasi resmi Aice.':
       'Concept demo. Not an official Aice app.',
@@ -148,6 +151,7 @@ const Map<String, String> en = {
       'Join as a member and collect points on every order.',
   'Gaji bulanan (contoh)': 'Monthly salaries (sample)',
   'Ganti baru': 'Replace with a new one',
+  'Ganti toko': 'Change store',
   'Garansi Tidak Meleleh': 'No-Melt Guarantee',
   'Garansi tepat waktu': 'On-time guarantee',
   'Gold': 'Gold',
@@ -157,12 +161,13 @@ const Map<String, String> en = {
   'Gratis ongkir (belanja {})': 'Free delivery (order {})',
   'Gratis ongkir mulai': 'Free delivery from',
   'Gratis ongkir semua pesanan': 'Free delivery on all orders',
-  'Gratis ongkir tercapai': 'Free delivery reached',
+  'Gratis ongkir terpenuhi': 'Free delivery reached',
   'Gratis ongkir, min. belanja Rp20.000': 'Free delivery, min. order Rp20.000',
   'Habis': 'Sold out',
   'Hai! Aku Tanya AI (contoh). Mau cari es krim untuk apa hari ini? Pilih pertanyaan di bawah atau ketik sendiri.':
       'Hi! I am Ask AI (sample). What ice cream are you looking for today? Pick a question below or type your own.',
   'Halal [no. contoh]': 'Halal [sample no.]',
+  'Hampir kedaluwarsa (contoh)': 'Near expiry (sample)',
   'Hanya demo: tidak ada kata sandi atau kode asli yang dicek. Semua akun adalah contoh.':
       'Demo only: no real password or code is checked. All accounts are samples.',
   'Hapus': 'Delete',
@@ -171,13 +176,15 @@ const Map<String, String> en = {
   'Harga VIP + gratis ongkir': 'VIP price + free delivery',
   'Harga member': 'Member price',
   'Harga member (VIP, tingkat Gold)': 'Member price (VIP, Gold tier)',
+  'Hari ini': 'Today',
   'Hemat': 'Save',
   'Hemat Berdua': 'Save for Two',
   'Hemat sampai {} (contoh)': 'Save up to {} (sample)',
   'Hemat {}': 'Save {}',
   'Hitungan keranjang: total, diskon Beli 3, voucher, ongkir.':
       'Cart math: total, Buy 3 discount, voucher, delivery.',
-  'Hubungi penjual (WhatsApp)': 'Contact the seller (WhatsApp)',
+  'Hubungi sales (WhatsApp)': 'Contact sales (WhatsApp)',
+  'Ikhtisar': 'Overview',
   'Ini demo. Tidak ada penggantian atau pengembalian dana sungguhan.':
       'This is a demo. No real replacement or refund is made.',
   'Ini hanya tautan contoh ke penjual. Aplikasi tidak mengirim pesan apa pun.':
@@ -257,6 +264,7 @@ const Map<String, String> en = {
   'Maaf, untuk demo ini aku baru bisa menjawab soal produk, promo, ongkir, dan pengiriman. Coba salah satu pertanyaan di bawah, atau cari "{}" di pencarian.':
       'Sorry, in this demo I can only answer about products, promos, delivery fees and shipping. Try one of the questions below, or search for "{}".',
   'Makanan Beku': 'Frozen Food',
+  'Masa simpan {} hari (contoh)': 'Shelf life {} days (sample)',
   'Masuk': 'Sign in',
   'Masuk / Daftar': 'Sign in / Register',
   'Masuk / Daftar (contoh)': 'Sign in / Register (sample)',
@@ -273,6 +281,7 @@ const Map<String, String> en = {
       'Melted on arrival? Report within 24 hours and we replace it or refund (sample).',
   'Member & Poin': 'Members & Points',
   'Member contoh': 'Sample members',
+  'Member per tingkat (contoh)': 'Members per tier (sample)',
   'Memproses pembayaran (contoh)': 'Processing payment (sample)',
   'Mengetik...': 'Typing...',
   'Menunggu': 'Waiting',
@@ -318,6 +327,7 @@ const Map<String, String> en = {
   'Pelanggan lama': 'Returning customer',
   'Pembayaran': 'Payment',
   'Pembayaran bulan ini': 'Payments this month',
+  'Pembayaran masuk bulan ini (contoh)': 'Money in this month (sample)',
   'Pembayaran palsu. Tidak ada uang yang bergerak.':
       'Fake payment. No money moves.',
   'Pembeli bilang sudah transfer': 'Buyer says the transfer is done',
@@ -326,10 +336,12 @@ const Map<String, String> en = {
   'Pencarian populer': 'Popular searches',
   'Pencarian, urutan, dan Tanya AI (jawaban tertulis, bukan AI sungguhan).':
       'Search, sorting and Ask AI (written answers, not a real AI).',
+  'Pengaturan': 'Settings',
   'Pengaturan & Izin': 'Settings & Permissions',
   'Pengeluaran (contoh)': 'Expenses (sample)',
   'Pengeluaran bulan ini': 'Expenses this month',
   'Pengiriman': 'Delivery',
+  'Penjualan 7 hari (contoh)': 'Sales, last 7 days (sample)',
   'Penjualan awal bulan (contoh)': 'Sales so far this month (sample)',
   'Penjualan per kategori (contoh)': 'Sales by category (sample)',
   'Perkiraan tiba {} menit (contoh)':
@@ -421,6 +433,7 @@ const Map<String, String> en = {
   'Semua': 'All',
   'Semua produk, harga, foto, toko, dan alamat adalah contoh.':
       'All products, prices, photos, stores and addresses are samples.',
+  'Semua sudah dibayar.': 'All orders are paid.',
   'Semua tipe': 'All types',
   'Setara {}': 'Worth {}',
   'Silver': 'Silver',
@@ -457,11 +470,12 @@ const Map<String, String> en = {
   'Tambah {}': 'Add {}',
   'Tambah {} cone lagi, boleh campur rasa':
       'Add {} more cones, flavors can be mixed',
+  'Tambah {} lagi untuk gratis ongkir': 'Spend {} more for free delivery',
   'Tamu (contoh)': 'Guest (sample)',
   'Tandai diantar': 'Mark as delivering',
-  'Tandai dibaca': 'Mark as read',
   'Tandai sampai': 'Mark as arrived',
   'Tandai selesai': 'Mark as done',
+  'Tandai semua dibaca': 'Mark all as read',
   'Tanya AI': 'Ask AI',
   'Tautan penjual disalin (contoh).': 'Seller link copied (sample).',
   'Tentang demo ini': 'About this demo',

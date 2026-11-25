@@ -408,49 +408,52 @@ class _HomeTabState extends State<HomeTab> {
         children: [
           Row(
             children: [
-              // Long press the wordmark to open the hidden demo controls.
-              Expanded(
-                child: GestureDetector(
-                  onLongPress: () => showDemoControls(context),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text(
-                      'es krim shop (contoh)',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: C.ink,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                      ),
+              Flexible(
+                child: Pressable(
+                  onTap: () => openAddress(context),
+                  semanticLabel: 'Ganti toko',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: C.acc,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.place, size: 16, color: C.accInk),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            '${s.store.name} · ${s.store.distance}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: C.accInk,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+              const Spacer(),
+              IconButton(
+                key: const ValueKey('home-bell'),
+                tooltip: tr('Notifikasi'),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NoticesScreen()),
                 ),
-                decoration: BoxDecoration(
-                  color: C.acc,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.storefront, size: 13, color: C.accInk),
-                    const SizedBox(width: 4),
-                    Text(
-                      s.store.name,
-                      style: const TextStyle(
-                        color: C.accInk,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
+                icon: Badge(
+                  isLabelVisible: s.unreadCount > 0,
+                  label: Text('${s.unreadCount}'),
+                  child: const Icon(Icons.notifications_none, color: C.ink),
                 ),
               ),
             ],
@@ -503,13 +506,17 @@ class _HomeTabState extends State<HomeTab> {
                 child: const Icon(Icons.bolt, size: 20, color: Colors.white),
               ),
               const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Tiba dalam 15 Menit',
-                  style: TextStyle(
-                    color: C.ink,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
+              // Long press the title to open the hidden demo controls.
+              Expanded(
+                child: GestureDetector(
+                  onLongPress: () => showDemoControls(context),
+                  child: const Text(
+                    'Tiba dalam 15 Menit',
+                    style: TextStyle(
+                      color: C.ink,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
@@ -587,13 +594,29 @@ class _HomeTabState extends State<HomeTab> {
                 onTap: () => openAssistant(context),
                 semanticLabel: 'Tanya AI',
                 child: Container(
-                  width: 48,
                   height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: C.acc,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.auto_awesome, color: C.accInk),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.auto_awesome, size: 18, color: C.accInk),
+                      // With large text the label would squeeze the search box.
+                      if (MediaQuery.textScalerOf(context).scale(1) < 1.15) ...[
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Tanya AI',
+                          style: TextStyle(
+                            color: C.accInk,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -603,38 +626,10 @@ class _HomeTabState extends State<HomeTab> {
             height: 38,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: popularSearches.length + 1,
+              itemCount: popularSearches.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (_, i) {
-                if (i == 0) {
-                  return Pressable(
-                    onTap: () => openAssistant(context),
-                    semanticLabel: 'Tanya AI',
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.center,
-                      decoration: const ShapeDecoration(
-                        color: C.acc,
-                        shape: StadiumBorder(),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.auto_awesome, size: 16, color: C.accInk),
-                          SizedBox(width: 6),
-                          Text(
-                            'Tanya AI',
-                            style: TextStyle(
-                              color: C.accInk,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                final q = popularSearches[i - 1];
+                final q = popularSearches[i];
                 final f = _chipPhoto[q];
                 return Pressable(
                   onTap: () => openSearch(context, query: q),
