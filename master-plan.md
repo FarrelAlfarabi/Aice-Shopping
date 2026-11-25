@@ -3,7 +3,7 @@
 **Version:** 0.5 (sprint mode, reviewed)
 **Last updated:** 2026-11-23
 **Owner:** Farrel
-**Status:** Plan only. No code written. Repo was empty. No app building guidebook found.
+**Status:** Out of date since 2026-11-24. The app is built and on `main` (see `progress-log.md`). Read section 10 first: it lists what no longer matches the build and the open decisions from the 2026-11-25 review. Sections 1 to 9 are kept as written.
 
 > This is a clickable DEMO. Nothing in it is a working system. Every feature below is mocked unless this plan says otherwise. It is not official Aice software and there is no partnership.
 
@@ -304,3 +304,34 @@ Each block is test first for logic: write the failing test, make it pass, then b
 | D-5 | Brief: "simple ask AI helper like Astro's AI-RO." The inventory does not mention AI-RO. | Plan builds a scripted "Tanya AI" with no reference to how AI-RO really works. | Farrel to share AI-RO details if he wants a closer match. |
 | D-6 | Brief: "late delivery guarantee." Inventory: Astro refunds the delivery fee if more than 10 minutes late, no refund when delivery was free. | Plan uses that as a sample rule, not Aice's rule. | Real rule needed from Aice (OQ-11). |
 | ~~D-7~~ | ~~Inventory marks login, referral, loyalty, wallet as MVP or V2.~~ | **Resolved 2026-11-23:** Farrel decided to skip them for now. | Closed |
+
+---
+
+## 10. Review sync, 2026-11-25 (docs only, nothing decided here)
+
+This section does not change any decision. It marks where the plan and the build now differ, and lists the questions the review needs Farrel to answer. Decisions are written into section 8 only after Farrel answers.
+
+### Plan vs build
+
+| Plan says | Build says | What to do |
+|---|---|---|
+| Status: no code (section header) | Flutter app on `main`, 44 tests on PR 8 | Header fixed above. |
+| TD-2, B0b, R-9, success metric "works with Supabase off", the "live data change moment" | No Supabase. Farrel on 2026-11-25: no database for now. All data is local sample data. | Mark TD-2, B0b, R-9, R-14 and the live data moment as **deferred** once Farrel confirms (Q-A). |
+| TD-14 one seed file, TD-15 pick data source once | Not needed without Supabase. | Deferred with TD-2. |
+| TD-11 no login | Open work adds demo sign-in (sample accounts, any code works). | Needs a decision record (Q-C). |
+| TD-9 Indonesian UI | Open work adds English and Chinese. | Needs a decision record (Q-D). |
+| Customer is the only role (section 3) | Open work adds an Admin app. | Section 3 must change once Farrel confirms (Q-B). |
+| TD-3, promises in one config | `Pricing` and `tracking.dart` hold the numbers, but "15 menit", "24 jam" and "-18°C" are typed again as text in 8 places (`screens_a`, `screens_b`, `assistant`). | Change the numbers in one place and the app disagrees with itself. Move them to config. |
+| Section 4 time check (about 4 days) | Most blocks are done. B8 (phone test, rehearsal, demo script, "real vs mocked" sheet) is not in the log. | B8 is the real remaining work. |
+| Production deploys are manual (older note) | Merging to `main` creates a Vercel production deploy. | Anything merged to `main` goes live. Treat a merge as a release. |
+
+### Open decisions from the review
+
+| ID | Question | Recommended answer |
+|---|---|---|
+| Q-A | Is the database (Supabase) out for good, or only out for this round? It matters because a consumer order can only show up in the admin dashboard on another device if both read the same backend. In-memory state only works inside one browser tab. | Out for this round. Demo both apps on one device or one laptop, and say so in the script. Revisit only if Aice asks to see an order appear on a second phone. |
+| Q-B | Who is the real user of the Aice reference app: shops that buy by the carton (B2B) or people who order a few cones (B2C)? The reference screens (carton price, quantity tiers, salesperson, bank transfer confirm, VIP price) look B2B. This plan is B2C. | Keep B2C as the main story. Show Admin as the second half of the same order. Do not build a full B2B ordering flow until Aice says so. |
+| Q-C | Keep demo sign-in (sample accounts, no password check)? | Yes, as a clearly labelled sample. Guest stays the default. |
+| Q-D | Are English and Chinese in scope for the whole app or only new screens? | Whole app is about 6,000 lines of typed-in Indonesian. Do admin and new screens first, then consumer screens. Chinese needs a bundled font (see review). |
+| Q-E | Is the WhatsApp "contact salesperson" link allowed to open a real number? | No. Use a placeholder or Farrel's own number, never a made-up real one. |
+| Q-F | When is the next Aice meeting? OQ-1 has been open since 2026-11-23. | Needed to set the cut line. |
