@@ -32,6 +32,7 @@ ThemeData buildTheme() {
   final base = ColorScheme.fromSeed(seedColor: C.pri, primary: C.pri);
   return ThemeData(
     useMaterial3: true,
+    fontFamily: 'Roboto',
     colorScheme: base,
     scaffoldBackgroundColor: C.bg,
     textTheme: Typography.blackMountainView.apply(

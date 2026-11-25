@@ -4,7 +4,9 @@ Clickable Flutter web demo. Not official Aice software. All data is sample data 
 
 ## Build and deploy
 - Flutter 3.35.5.
-- `flutter test` then `flutter build web --release --no-source-maps --pwa-strategy=none`, then copy `build/web` to `deploy/` (Vercel serves `deploy/`).
+- `flutter test`, then `./tool/build_web.sh` (builds with `--no-web-resources-cdn` so the engine and fonts come from our own host, copies to `deploy/`, drops unused files). Vercel serves `deploy/`.
+- `deploy/vercel.json` sets cache headers for `canvaskit/`, `assets/`, `icons/` (1 day or less, because those paths are not versioned).
+- Roboto is bundled in `assets/fonts/` (Latin subset) so nothing is downloaded from Google at start-up.
 - `--pwa-strategy=none`: no service worker, so a new deploy shows on the next load (guidebook 5.4 / 6.3).
 
 ## Where things live
