@@ -39,7 +39,7 @@ void main() {
     expect(find.byKey(const Key('min-order-note')), findsOneWidget);
     await tester.drag(find.byType(ListView), const Offset(0, -900));
     await tester.pumpAndSettle();
-    expect(find.text('Biaya pesanan kecil'), findsOneWidget);
+    expect(find.text('Biaya belanja kecil'), findsOneWidget);
     await tester.tap(find.text('Lanjut bayar'));
     await tester.pumpAndSettle();
     expect(find.byType(CheckoutScreen), findsOneWidget);
@@ -59,7 +59,7 @@ void main() {
     await openCart(tester, cones: 1);
     expect(find.textContaining('Gratis ongkir (belanja Rp50.000)'),
         findsOneWidget);
-    expect(find.textContaining('Belanja di bawah Rp20.000'), findsOneWidget);
+    expect(find.textContaining('Belanja kurang dari Rp20.000'), findsOneWidget);
   });
 
   testWidgets('at or above the minimum: no warning, goes to checkout',
@@ -69,7 +69,7 @@ void main() {
     expect(find.byKey(const Key('min-order-note')), findsNothing);
     await tester.drag(find.byType(ListView), const Offset(0, -900));
     await tester.pumpAndSettle();
-    expect(find.text('Biaya pesanan kecil'), findsNothing);
+    expect(find.text('Biaya belanja kecil'), findsNothing);
     await tester.tap(find.text('Lanjut bayar'));
     await tester.pumpAndSettle();
     expect(find.byType(CheckoutScreen), findsOneWidget);

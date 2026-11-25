@@ -106,7 +106,7 @@ class _CartTabState extends State<CartTab> {
                 color: C.warnBg,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(
-                      'Belanja di bawah ${rp(Pricing.minOrder)} kena biaya pesanan kecil ${rp(Pricing.smallOrderFee)}. Tambah ${rp(p.toMinOrder)} lagi untuk menghindarinya.',
+                      'Belanja kurang dari ${rp(Pricing.minOrder)} kena biaya kecil ${rp(Pricing.smallOrderFee)}. Tambah ${rp(p.toMinOrder)} lagi, biaya ini hilang.',
                       key: const Key('min-order-note'),
                       style: const TextStyle(
                           color: C.warnInk, fontWeight: FontWeight.w700)),
@@ -259,7 +259,7 @@ class _Summary extends StatelessWidget {
         if (p.voucherDiscount > 0)
           row('Voucher', '-${rp(p.voucherDiscount)}', color: C.good),
         row('Ongkir', p.delivery == 0 ? 'Gratis' : rp(p.delivery)),
-        if (p.smallFee > 0) row('Biaya pesanan kecil', rp(p.smallFee)),
+        if (p.smallFee > 0) row('Biaya belanja kecil', rp(p.smallFee)),
         const Divider(),
         row('Total', rp(p.total), bold: true),
       ]);
