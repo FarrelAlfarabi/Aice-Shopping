@@ -36,19 +36,16 @@ class ProductInfo extends StatelessWidget {
                 color: si.low ? C.warnBg : C.tint,
                 ink: si.low ? C.warnInk : C.pri,
               ),
-            _Tag(
-              p.chilled ? 'Rantai dingin 2-6°C' : 'Rantai beku -18°C',
-              color: C.tint,
-              ink: C.pri,
-            ),
-            if (si?.nearExpiry ?? false)
-              const _Tag('Segera kedaluwarsa', color: C.warnBg, ink: C.warnInk),
-            if (p.shelfLifeDays != null)
+            if (p.coldChain)
               _Tag(
-                'Tahan ${p.shelfLifeDays} hari (contoh)',
+                p.chilled ? 'Rantai dingin 2-6°C' : 'Rantai beku -18°C',
                 color: C.tint,
                 ink: C.pri,
               ),
+            if (si?.nearExpiry ?? false)
+              const _Tag('Segera kedaluwarsa', color: C.warnBg, ink: C.warnInk),
+            if (p.shelfLifeDays != null)
+              _Tag('Tahan ${p.shelfLifeDays} hari', color: C.tint, ink: C.pri),
           ],
         ),
         const SizedBox(height: 8),
@@ -103,133 +100,6 @@ class _Tag extends StatelessWidget {
       style: TextStyle(color: ink, fontSize: 12.5, fontWeight: FontWeight.w600),
     ),
   );
-}
-
-/// Guest banner at the top of Home: look around first, sign in later.
-class WelcomeBanner extends StatelessWidget {
-  const WelcomeBanner({super.key});
-  @override
-  Widget build(BuildContext context) => Panel(
-    color: C.tint,
-    border: const Color(0xFFB9D3F7),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Selamat datang! Lihat-lihat produk dulu, tanpa masuk. Saat checkout kamu bisa masuk cepat, daftar, atau pakai kode undangan (semua contoh).',
-          style: TextStyle(color: C.priDark, height: 1.35),
-        ),
-        const SizedBox(height: 6),
-        TextButton(
-          key: const ValueKey('welcome-signin'),
-          style: TextButton.styleFrom(padding: EdgeInsets.zero),
-          onPressed: () => showSignIn(context),
-          child: const Text('Masuk / Daftar (contoh)'),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Products to suggest: what this person ordered before first, then the most
-/// popular ones. Sold-out products are left out.
-List<Product> recommendedFor(AppState s) {
-  final seen = <String>{};
-  final out = <Product>[];
-  for (final o in s.history) {
-    for (final l in o.lines) {
-      final id = l.productId;
-      if (id == null || !seen.add(id)) continue;
-      final p = catalog.where((x) => x.id == id).firstOrNull;
-      if (p != null && !p.soldOut) out.add(p);
-    }
-  }
-  final pop = [...catalog]..sort((a, b) => a.rank.compareTo(b.rank));
-  for (final p in pop) {
-    if (out.length >= 6) break;
-    if (!p.soldOut && seen.add(p.id)) out.add(p);
-  }
-  return out.take(6).toList();
-}
-
-/// Promo bundles as a list: percent off, crossed-out price, "Hemat Rp".
-class PromoDeals extends StatelessWidget {
-  final List<Product> bundles;
-  const PromoDeals(this.bundles, {super.key});
-  @override
-  Widget build(BuildContext context) {
-    final s = AppScope.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Promo & Paket Hemat', style: tH3),
-        const SizedBox(height: 8),
-        for (final p in bundles.where((b) => b.oldPrice != null && !b.soldOut))
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF9E6),
-              borderRadius: BorderRadius.circular(rCard),
-              border: Border.all(color: const Color(0xFFF2DD8C)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(p.name, style: tBold),
-                    Ribbon('-${p.percentOff}%'),
-                  ],
-                ),
-                Text(p.size, style: tMuted),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      rp(p.price),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: C.priDark,
-                      ),
-                    ),
-                    Text(
-                      rp(p.oldPrice!),
-                      style: const TextStyle(
-                        color: C.muted,
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                    ),
-                    Text(
-                      'Hemat ${rp(p.oldPrice! - p.price)}',
-                      style: const TextStyle(
-                        color: Color(0xFF8A5A00),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                FilledButton.icon(
-                  onPressed: () {
-                    s.add(p);
-                    addedToCart(context, '${p.name} ditambahkan');
-                  },
-                  icon: const Icon(Icons.add_shopping_cart, size: 18),
-                  label: const Text('Tambah Paket'),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
 }
 
 // ------------------------------------------------------------- Language
@@ -307,7 +177,7 @@ class _SignInSheetState extends State<SignInSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        content: Text('Masuk sebagai ${c.name} (contoh)'),
+        content: Text('Masuk sebagai ${c.name}'),
       ),
     );
   }
@@ -650,71 +520,41 @@ class ReorderRow extends StatelessWidget {
       }
     }
     if (items.isEmpty) return const SizedBox.shrink();
-    return Column(
-      key: const ValueKey('reorder-row'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: SectionTitle('Beli lagi', sub: 'Dari pesanan sebelumnya'),
-        ),
-        SizedBox(
-          height: 80,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              for (final p in items.take(6))
-                Container(
-                  width: 220,
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: C.surface,
-                    border: Border.all(color: C.line),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        onTap: () => openProduct(context, p),
-                        child: SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: ProductImage(p, radius: 10),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              p.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: tBold,
-                            ),
-                            Text(rp(p.price), style: tMuted),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: tr('Tambah ${p.name}'),
-                        onPressed: () {
-                          s.add(p);
-                          addedToCart(context, '${p.name} masuk keranjang');
-                        },
-                        icon: const Icon(Icons.add_circle, color: C.pri),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Sp.l),
+      child: Column(
+        key: const ValueKey('reorder-row'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: Sp.l),
+            child: SectionTitle('Beli lagi'),
           ),
-        ),
-      ],
+          SizedBox(
+            height: cardExtent(context, 140) + 10,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(Sp.l, 2, Sp.l, Sp.s),
+              itemCount: items.take(6).length,
+              separatorBuilder: (_, __) => const SizedBox(width: Sp.m),
+              itemBuilder: (_, i) {
+                final p = items[i];
+                return ProductCard(
+                  p: p,
+                  width: 140,
+                  heroTag: 'again-${p.id}',
+                  onTap: () =>
+                      openProduct(context, p, heroTag: 'again-${p.id}'),
+                  onAdd: () {
+                    s.add(p);
+                    addedToCart(context, '${p.name} masuk keranjang');
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

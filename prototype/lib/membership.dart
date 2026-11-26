@@ -32,56 +32,50 @@ void openMember(BuildContext context) => Navigator.of(
   context,
 ).push(MaterialPageRoute(builder: (_) => const MemberScreen()));
 
-/// Small card on Beranda: balance and tier, tap opens the Member card.
+/// One line on Beranda. Signed in: balance and tier, tap opens the Member
+/// card. Guest: a short sign-in prompt.
 class PointsChip extends StatelessWidget {
   const PointsChip({super.key});
   @override
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
     final t = s.tier;
-    return InkWell(
-      key: const ValueKey('points-chip'),
+    return Material(
+      color: C.tint,
       borderRadius: BorderRadius.circular(14),
-      onTap: s.signedIn ? () => openMember(context) : () => showSignIn(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: C.tint,
-          border: Border.all(color: C.line),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.workspace_premium, color: tierColor(t)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: s.signedIn
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${pts(s.balance)} Poin · ${tierName(t)}',
-                          style: tBold,
-                        ),
-                        const Text(
-                          'Ketuk untuk Kartu Member (contoh)',
-                          style: tMuted,
-                        ),
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('Kumpulkan poin', style: tBold),
-                        Text(
-                          'Gabung member dan kumpulkan poin di setiap pesanan.',
-                          style: tMuted,
-                        ),
-                      ],
-                    ),
-            ),
-            const Icon(Icons.chevron_right, color: C.muted),
-          ],
+      child: InkWell(
+        key: const ValueKey('points-chip'),
+        borderRadius: BorderRadius.circular(14),
+        onTap: s.signedIn
+            ? () => openMember(context)
+            : () => showSignIn(context),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: Sp.m),
+          child: Row(
+            children: [
+              Icon(
+                Icons.workspace_premium,
+                color: s.signedIn ? tierColor(t) : C.pri,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: s.signedIn
+                    ? Text(
+                        '${pts(s.balance)} Poin · ${tierName(t)}',
+                        style: tBody.copyWith(fontWeight: FontWeight.w600),
+                      )
+                    : const Text('Poin dan harga member', style: tBody),
+              ),
+              if (!s.signedIn)
+                const Text(
+                  'Masuk',
+                  style: TextStyle(color: C.pri, fontWeight: FontWeight.w600),
+                ),
+              const Icon(Icons.chevron_right, color: C.pri),
+            ],
+          ),
         ),
       ),
     );
@@ -121,7 +115,7 @@ class MemberScreen extends StatelessWidget {
                   children: [
                     const Expanded(
                       child: Text(
-                        'Kartu Member (contoh)',
+                        'Kartu Member',
                         style: TextStyle(color: Colors.white70),
                       ),
                     ),
@@ -138,7 +132,7 @@ class MemberScreen extends StatelessWidget {
                         tierName(t),
                         style: TextStyle(
                           color: tierColor(t),
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -150,7 +144,7 @@ class MemberScreen extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
@@ -163,7 +157,7 @@ class MemberScreen extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 30,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
@@ -229,41 +223,31 @@ class MemberScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Text('Riwayat poin', style: tH3),
-          const SizedBox(height: 6),
-          if (acc.history.isEmpty)
-            const Panel(child: Text('Belum ada riwayat poin.')),
-          for (final e in acc.history)
-            Panel(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(switch (e.kind) {
-                          PointKind.earn => 'Poin pesanan ${e.ref}',
-                          PointKind.redeem => 'Tukar poin untuk ${e.ref}',
-                          PointKind.bonus => 'Bonus bergabung',
-                        }, style: tBold),
-                        Text(
-                          '${e.at.day}/${e.at.month}/${e.at.year}',
-                          style: tMuted,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
+          const SizedBox(height: Sp.s),
+          ListGroup(
+            title: 'Riwayat poin',
+            indent: Sp.l,
+            children: [
+              if (acc.history.isEmpty)
+                const ListRow(title: 'Belum ada riwayat poin.'),
+              for (final e in acc.history)
+                ListRow(
+                  title: switch (e.kind) {
+                    PointKind.earn => 'Poin pesanan ${e.ref}',
+                    PointKind.redeem => 'Tukar poin untuk ${e.ref}',
+                    PointKind.bonus => 'Bonus bergabung',
+                  },
+                  subtitle: '${e.at.day}/${e.at.month}/${e.at.year}',
+                  trailing: Text(
                     '${e.points > 0 ? '+' : ''}${pts(e.points)}',
                     style: TextStyle(
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       color: e.points > 0 ? C.good : C.danger,
                     ),
                   ),
-                ],
-              ),
-            ),
+                ),
+            ],
+          ),
         ],
       ),
     );

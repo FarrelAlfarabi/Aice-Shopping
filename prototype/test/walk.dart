@@ -1,3 +1,4 @@
+import 'package:aice_shopping/map_picker.dart';
 import 'package:aice_shopping/accounts.dart';
 import 'package:aice_shopping/admin.dart';
 import 'package:aice_shopping/assistant.dart';
@@ -19,9 +20,51 @@ Set<String> dataStrings() => {
   for (final p in allProducts) p.size,
   for (final c in demoAccounts) c.name,
   for (final c in demoAccounts) c.phone,
+  for (final c in demoAccounts) c.address,
+  for (final s in stores) s.name,
   ...savedAddresses,
   'Aice Shopping',
 };
+
+/// A box that looks like a card: a border on all four sides (or an outlined
+/// shape) and at least 200 px wide. Small pills and chips do not count.
+bool isCard(Element e) {
+  final w = e.widget;
+  if (w is! DecoratedBox) return false;
+  final d = w.decoration;
+  var bordered = false;
+  if (d is BoxDecoration && d.border is Border) {
+    final b = d.border! as Border;
+    bordered =
+        b.isUniform && b.top.style != BorderStyle.none && b.top.width > 0;
+  } else if (d is ShapeDecoration && d.shape is OutlinedBorder) {
+    final side = (d.shape as OutlinedBorder).side;
+    bordered = side.style != BorderStyle.none && side.width > 0;
+  }
+  if (!bordered) return false;
+  final r = e.renderObject;
+  return r is RenderBox && r.hasSize && r.size.width >= 200;
+}
+
+String describeCard(Element e) {
+  final chain = <String>[];
+  e.visitAncestorElements((a) {
+    final n = a.widget.runtimeType.toString();
+    if (!n.startsWith('_') && n[0] == n[0].toUpperCase() && chain.length < 6) {
+      if (!const {
+        'Container',
+        'Padding',
+        'DecoratedBox',
+        'Column',
+        'Row',
+      }.contains(n)) {
+        chain.add(n);
+      }
+    }
+    return chain.length < 6;
+  });
+  return chain.join(' < ');
+}
 
 /// Opens every screen of the app (consumer and admin) in [lang] at [width] and
 /// returns the texts that had no translation. Also fails on layout overflow.
@@ -56,7 +99,22 @@ Future<(Set<String>, List<String>)> walk(
       '$where: ${d.exceptionAsString().split('\n').first} @ ${where2?.group(0)}',
     );
   };
-  void check() {}
+  // Design rule: never a bordered card inside another bordered card.
+  void check() {
+    if (where.startsWith('admin')) return;
+    for (final e in find.byType(DecoratedBox).evaluate()) {
+      if (!isCard(e)) continue;
+      e.visitAncestorElements((a) {
+        if (a.widget is DecoratedBox && isCard(a)) {
+          final at = describeCard(e);
+          final msg = '$where: card inside a card ($at)';
+          if (!problems.contains(msg)) problems.add(msg);
+          return false;
+        }
+        return true;
+      });
+    }
+  }
 
   Future<void> settle() async {
     await tester.pump(const Duration(milliseconds: 400));
@@ -91,6 +149,9 @@ Future<(Set<String>, List<String>)> walk(
     'frozen-naget',
     'bundle-keluarga',
     'cone-stroberi',
+    'veg-bayam',
+    'staple-beras',
+    'drink-kopi',
   ]) {
     where = 'ProductScreen(productById(id)))';
     await push(ProductScreen(productById(id)));
@@ -103,6 +164,32 @@ Future<(Set<String>, List<String>)> walk(
   await back();
   where = 'const SearchScreen(category: frozen))';
   await push(const SearchScreen(category: 'frozen'));
+  await back();
+  where = 'const SearchScreen(category: icecream))';
+  await push(const SearchScreen(category: 'icecream'));
+  await back();
+  for (final c in ['sayur', 'sembako', 'snack', 'yogurt']) {
+    where = 'SearchScreen(category: $c)';
+    await push(SearchScreen(category: c));
+    await back();
+  }
+  where = 'const MapPickerScreen())';
+  await push(const MapPickerScreen());
+  await tester.tap(find.byKey(const ValueKey('map-my-location')));
+  await settle();
+  await tester.enterText(find.byKey(const ValueKey('map-search')), 'jl');
+  await settle();
+  await tester.enterText(find.byKey(const ValueKey('map-search')), 'zzz');
+  await settle();
+  await tester.tap(find.byKey(const ValueKey('map-zoom-out')));
+  await tester.tap(find.byKey(const ValueKey('map-zoom-out')));
+  await tester.tap(find.byKey(const ValueKey('map-zoom-out')));
+  await settle();
+  await tester.drag(
+    find.byKey(const ValueKey('map-canvas')),
+    const Offset(-600, -600),
+  );
+  await settle(); // far corner: out of delivery area notice
   await back();
   where = 'const MixPackScreen())';
   await push(const MixPackScreen());

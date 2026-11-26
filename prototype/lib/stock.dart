@@ -23,6 +23,13 @@ Map<String, StockInfo> seedStock() {
   m['tub-stroberi'] = StockInfo(28, 10);
   m['cup-matcha'] = StockInfo(40, 20, nearExpiry: true);
   m['stik-cokelat'] = StockInfo(96, 30);
+  // Everyday shelves: fresh greens sell out fast, rice moves in sacks.
+  m['veg-bayam'] = StockInfo(12, 15, nearExpiry: true); // low, near expiry
+  m['veg-tomat'] = StockInfo(34, 15);
+  m['staple-beras'] = StockInfo(26, 10);
+  m['staple-minyak'] = StockInfo(8, 12); // low
+  m['snack-wafer'] = StockInfo(72, 24);
+  m['drink-air'] = StockInfo(140, 48);
   return m;
 }
 
@@ -36,7 +43,7 @@ class ColdAlarm {
 }
 
 List<ColdAlarm> seedColdAlarms() => [
-  ColdAlarm('p0-1', 'Freezer Toko Contoh 2 naik ke -9 °C (contoh)'),
+  ColdAlarm('p0-1', 'Freezer Toko Beku Makmur naik ke -9 °C'),
 ];
 
 class Expense {
@@ -46,10 +53,10 @@ class Expense {
 }
 
 const seedExpenses = <Expense>[
-  Expense('Listrik freezer (contoh)', 1850000),
-  Expense('Bensin kurir (contoh)', 920000),
-  Expense('Es kering dan tas pendingin (contoh)', 640000),
-  Expense('Gaji bulanan (contoh)', 3600000),
+  Expense('Listrik freezer', 1850000),
+  Expense('Bensin kurir', 920000),
+  Expense('Es kering dan tas pendingin', 640000),
+  Expense('Gaji bulanan', 3600000),
 ];
 
 /// Sales from earlier this month that are not in the order list (sample).

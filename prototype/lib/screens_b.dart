@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart' hide Text;
 import 'assistant.dart';
 import 'i18n.dart';
+import 'map_picker.dart';
 import 'format.dart';
 import 'membership.dart';
 import 'payment_ui.dart';
@@ -112,14 +113,13 @@ class _CartTabState extends State<CartTab> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(e.key.name, style: tBold),
+                                  Text(e.key.name, style: tBody),
                                   if (e.key.category == 'mix')
                                     Text(e.key.size, style: tMuted),
+                                  const SizedBox(height: 2),
                                   Text(
                                     rp(e.key.price * e.value),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                                    style: tPrice,
                                   ),
                                 ],
                               ),
@@ -131,7 +131,7 @@ class _CartTabState extends State<CartTab> {
                             ),
                           ],
                         ),
-                        if (e.key != lines.keys.last) const Divider(height: 20),
+                        if (e.key != lines.keys.last) const Divider(height: 24),
                       ],
                     ],
                   ),
@@ -344,7 +344,7 @@ class _Summary extends StatelessWidget {
           child: Text(
             l,
             style: TextStyle(
-              fontWeight: bold ? FontWeight.w800 : FontWeight.w400,
+              fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
               fontSize: bold ? 15 : 14,
             ),
           ),
@@ -352,7 +352,7 @@ class _Summary extends StatelessWidget {
         Text(
           v,
           style: TextStyle(
-            fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w700,
             fontSize: bold ? 15 : 14,
             color: color,
           ),
@@ -420,23 +420,23 @@ class CheckoutScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          const Text('Metode pembayaran', style: tH3),
-          const SizedBox(height: 8),
-          for (final m in paymentOptions)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: OptionTile(
-                selected: s.payment == m.id,
-                title: m.id,
-                subtitle: m.note,
-                trailing: Icon(payIcon(m.id), color: C.muted),
-                onTap: () => s.setPayment(m.id),
-              ),
-            ),
-          const SizedBox(height: 6),
+          const SizedBox(height: Sp.xl),
+          ListGroup(
+            title: 'Metode pembayaran',
+            children: [
+              for (final m in paymentOptions)
+                OptionTile(
+                  icon: payIcon(m.id),
+                  selected: s.payment == m.id,
+                  title: m.id,
+                  subtitle: m.note,
+                  onTap: () => s.setPayment(m.id),
+                ),
+            ],
+          ),
+          const SizedBox(height: Sp.xl),
           Panel(child: _Summary(p)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Sp.m),
           const Notice(
             'Pesanan dikirim dalam tas pendingin supaya tetap beku.',
           ),
@@ -683,7 +683,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   big,
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: st.delivered ? 26 : 46,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
@@ -1077,7 +1077,7 @@ class OrdersTab extends StatelessWidget {
                               ),
                               Text(
                                 o.sample
-                                    ? '20 Nov 2026, ${_hm(o.placedAt)} (contoh)'
+                                    ? '20 Nov 2026, ${_hm(o.placedAt)}'
                                     : 'Baru saja',
                                 style: tMuted,
                               ),
@@ -1090,7 +1090,7 @@ class OrdersTab extends StatelessWidget {
                             Text(
                               rp(o.pricing.total),
                               style: const TextStyle(
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             Ribbon(
@@ -1120,123 +1120,152 @@ class ProfileTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
+    const gap = SizedBox(height: Sp.xl);
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(Sp.l, Sp.s, Sp.l, Sp.xl),
         children: [
           const Text('Profil', style: tH2),
-          const SizedBox(height: 12),
+          const SizedBox(height: Sp.l),
           _ProfileHeader(s),
-          if (s.signedIn) ...[
-            const SizedBox(height: 12),
-            const MemberCardTile(),
-          ],
-          const SizedBox(height: 16),
-          _Group('Akun', [
-            if (s.signedIn)
-              _NavRow(
-                key: const ValueKey('row-member'),
-                icon: Icons.workspace_premium_outlined,
-                title: 'Kartu Member',
-                value: '${pts(s.balance)} Poin',
-                onTap: () => openMember(context),
-              ),
-            _NavRow(
-              icon: Icons.receipt_long_outlined,
-              title: 'Pesanan',
-              onTap: () => tabIndex.value = 2,
-            ),
-          ]),
-          _Group(
-            'Alamat tersimpan',
-            [
-              for (final a in s.saved)
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: OptionTile(
-                          selected: s.address == a,
-                          title: a,
-                          onTap: () => s.setAddress(a),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: tr('Hapus alamat'),
-                      onPressed: () => s.removeAddress(a),
-                      icon: const Icon(Icons.delete_outline),
-                    ),
-                  ],
+          gap,
+          ListGroup(
+            title: 'Akun',
+            children: [
+              if (s.signedIn)
+                ListRow(
+                  key: const ValueKey('row-member'),
+                  icon: Icons.workspace_premium_outlined,
+                  title: 'Kartu Member',
+                  value: '${pts(s.balance)} Poin',
+                  onTap: () => openMember(context),
                 ),
+              ListRow(
+                icon: Icons.receipt_long_outlined,
+                title: 'Pesanan',
+                onTap: () => tabIndex.value = 2,
+              ),
+              ListRow(
+                icon: Icons.notifications_none,
+                title: 'Notifikasi',
+                badge: s.unreadCount,
+                value: s.unreadCount > 0 ? '${s.unreadCount}' : null,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NoticesScreen()),
+                ),
+              ),
             ],
+          ),
+          gap,
+          ListGroup(
+            title: 'Alamat tersimpan',
             action: TextButton(
               onPressed: () => _addAddress(context, s),
               child: const Text('Tambah'),
             ),
+            children: [
+              for (final a in s.saved)
+                ListRow(
+                  icon: s.address == a ? Icons.place : Icons.place_outlined,
+                  title: a,
+                  titleColor: s.address == a ? C.pri : null,
+                  onTap: () => s.setAddress(a),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (s.address == a)
+                        const Icon(Icons.check, color: C.pri, size: 20),
+                      IconButton(
+                        tooltip: tr('Hapus alamat'),
+                        onPressed: () => s.removeAddress(a),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: C.muted,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-          _Group('Cara bayar', [const PaymentRow(boxed: false)]),
-          _Group('Bahasa', [
-            _kv('Bahasa', const LangChips()),
-            _kv('Zona waktu', const Text('Asia/Jakarta (UTC+7)', style: tBold)),
-          ]),
-          _Group('Notifikasi', [
-            _NavRow(
-              icon: Icons.notifications_none,
-              title: 'Notifikasi',
-              badge: s.unreadCount,
-              onTap: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const NoticesScreen())),
-            ),
-          ]),
-          _Group('Bantuan', [
-            _NavRow(
-              key: const ValueKey('contact-sales-tile'),
-              icon: Icons.chat_outlined,
-              title: 'Hubungi sales (WhatsApp)',
-              external: true,
-              onTap: () => contactSalesperson(context),
-            ),
-            _NavRow(
-              icon: Icons.auto_awesome,
-              title: 'Tanya AI',
-              onTap: () => openAssistant(context),
-            ),
-          ]),
-          _Group('Tentang demo ini', [
-            _NavRow(
-              icon: Icons.info_outline,
-              title: 'Tentang demo ini',
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AboutDemoScreen()),
+          gap,
+          const ListGroup(
+            title: 'Cara bayar',
+            children: [PaymentRow(boxed: false, label: false)],
+          ),
+          gap,
+          ListGroup(
+            title: 'Pengaturan',
+            children: [
+              ListRow(
+                icon: Icons.translate,
+                title: 'Bahasa',
+                trailing: const LangChips(),
               ),
+              const ListRow(
+                icon: Icons.schedule,
+                title: 'Zona waktu',
+                value: 'WIB (UTC+7)',
+              ),
+            ],
+          ),
+          gap,
+          ListGroup(
+            title: 'Bantuan',
+            children: [
+              ListRow(
+                key: const ValueKey('contact-sales-tile'),
+                icon: Icons.chat_outlined,
+                title: 'Hubungi sales (WhatsApp)',
+                external: true,
+                onTap: () => contactSalesperson(context),
+              ),
+              ListRow(
+                icon: Icons.auto_awesome_outlined,
+                title: 'Tanya AI',
+                onTap: () => openAssistant(context),
+              ),
+              ListRow(
+                icon: Icons.info_outline,
+                title: 'Tentang demo ini',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AboutDemoScreen()),
+                ),
+              ),
+              ListRow(
+                key: const ValueKey('switch-admin'),
+                icon: Icons.admin_panel_settings_outlined,
+                title: 'Demo: buka tampilan Admin',
+                onTap: () => s.setRole(AppRole.admin),
+              ),
+            ],
+          ),
+          if (s.signedIn) ...[
+            gap,
+            ListGroup(
+              children: [
+                ListRow(
+                  icon: Icons.logout,
+                  title: 'Keluar',
+                  titleColor: C.danger,
+                  chevron: false,
+                  onTap: () async {
+                    if (await confirmAction(
+                      context,
+                      title: 'Keluar dari akun?',
+                      body:
+                          'Keranjangmu tetap ada. Kamu bisa masuk lagi kapan saja.',
+                      yes: 'Keluar',
+                    )) {
+                      s.signOut();
+                    }
+                  },
+                ),
+              ],
             ),
-            _NavRow(
-              key: const ValueKey('switch-admin'),
-              icon: Icons.admin_panel_settings_outlined,
-              title: 'Demo: buka tampilan Admin',
-              onTap: () => s.setRole(AppRole.admin),
-            ),
-          ]),
-          if (s.signedIn)
-            BigButton(
-              'Keluar',
-              secondary: true,
-              onPressed: () async {
-                if (await confirmAction(
-                  context,
-                  title: 'Keluar dari akun?',
-                  body:
-                      'Keranjangmu tetap ada. Kamu bisa masuk lagi kapan saja (contoh).',
-                  yes: 'Keluar',
-                )) {
-                  s.signOut();
-                }
-              },
-            ),
-          const SizedBox(height: 12),
+          ],
+          gap,
           const Center(child: Text(footerText, style: tMuted)),
         ],
       ),
@@ -1244,212 +1273,66 @@ class ProfileTab extends StatelessWidget {
   }
 }
 
-/// Avatar, name, tier badge and points. Tap opens the Member card.
+/// Avatar, name and phone on a plain white page (no card). Signed in: tier
+/// and points under the name, tap opens the Member card. Guest: one line and
+/// a sign-in button.
 class _ProfileHeader extends StatelessWidget {
   final AppState s;
   const _ProfileHeader(this.s);
   @override
   Widget build(BuildContext context) {
-    final name = s.signedIn ? s.customer.name : 'Tamu (contoh)';
+    final name = s.signedIn ? s.customer.name : 'Tamu';
     final t = s.tier;
-    return Container(
-      key: const ValueKey('profile-header'),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [C.pri, C.priDark]),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: Colors.white,
-                child: s.signedIn
-                    ? Text(
-                        name.characters.first.toUpperCase(),
-                        style: const TextStyle(
-                          color: C.pri,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      )
-                    : const Icon(Icons.person, color: C.pri),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      s.signedIn
-                          ? s.customer.phone
-                          : 'Masuk untuk melihat harga spesial & pesananmu.',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (s.signedIn)
-            InkWell(
-              key: const ValueKey('profile-points'),
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => openMember(context),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Text(
-                      tierName(t),
-                      style: TextStyle(
-                        color: tierColor(t),
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      '${pts(s.balance)} Poin',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right, color: Colors.white),
-                ],
+    final avatar = CircleAvatar(
+      radius: 28,
+      backgroundColor: C.tint,
+      child: s.signedIn
+          ? Text(
+              name.characters.first.toUpperCase(),
+              style: const TextStyle(
+                color: C.pri,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
               ),
             )
-          else
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: C.priDark,
-              ),
-              onPressed: () => showSignIn(context),
-              child: const Text('Masuk / Daftar'),
-            ),
-        ],
-      ),
+          : const Icon(Icons.person_outline, color: C.pri, size: 28),
+    );
+    final info = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: tH3.copyWith(fontSize: 18),
+        ),
+        const SizedBox(height: 2),
+        if (s.signedIn)
+          Text(
+            '${s.customer.phone} · ${tierName(t)} · ${pts(s.balance)} Poin',
+            key: const ValueKey('profile-points'),
+            style: tMuted.copyWith(fontSize: 14),
+          )
+        else
+          const Text('Masuk untuk poin dan harga member', style: tMuted),
+      ],
+    );
+    return Row(
+      key: const ValueKey('profile-header'),
+      children: [
+        avatar,
+        const SizedBox(width: Sp.m),
+        Expanded(child: info),
+        if (!s.signedIn)
+          FilledButton(
+            key: const ValueKey('profile-signin'),
+            onPressed: () => showSignIn(context),
+            child: const Text('Masuk'),
+          ),
+      ],
     );
   }
 }
-
-/// A titled card with rows inside.
-class _Group extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-  final Widget? action;
-  const _Group(this.title, this.children, {this.action});
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 14),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 6),
-          child: Row(
-            children: [
-              Expanded(child: Text(title, style: tH3)),
-              if (action != null) action!,
-            ],
-          ),
-        ),
-        Panel(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Column(
-            children: [
-              for (var i = 0; i < children.length; i++) ...[
-                children[i],
-                if (i < children.length - 1) const Divider(height: 1),
-              ],
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-class _NavRow extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? value;
-  final int badge;
-  final bool external;
-  final VoidCallback onTap;
-  const _NavRow({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.value,
-    this.badge = 0,
-    this.external = false,
-  });
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Badge(
-            isLabelVisible: badge > 0,
-            smallSize: 9,
-            child: Icon(icon, color: C.pri),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(title, style: tBold)),
-          if (value != null) ...[
-            Flexible(child: Text(value!, style: tMuted)),
-            const SizedBox(width: 4),
-          ],
-          Icon(
-            external ? Icons.open_in_new : Icons.chevron_right,
-            size: external ? 18 : 24,
-            color: C.muted,
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _kv(String k, Widget v) => Padding(
-  padding: const EdgeInsets.symmetric(vertical: 6),
-  child: Row(
-    children: [
-      Expanded(child: Text(k, style: tMuted)),
-      Flexible(child: v),
-    ],
-  ),
-);
 
 /// Hidden panel for the person running the demo. Opened by a long press on the
 /// wordmark on Home.
@@ -1519,44 +1402,6 @@ void showDemoControls(BuildContext context) {
 }
 
 Future<void> _addAddress(BuildContext context, AppState s) async {
-  final text = await showDialog<String>(
-    context: context,
-    builder: (_) => const _AddAddressDialog(),
-  );
-  if (text != null) s.addAddress(text);
-}
-
-class _AddAddressDialog extends StatefulWidget {
-  const _AddAddressDialog();
-  @override
-  State<_AddAddressDialog> createState() => _AddAddressDialogState();
-}
-
-class _AddAddressDialogState extends State<_AddAddressDialog> {
-  final ctl = TextEditingController();
-  @override
-  void dispose() {
-    ctl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Tambah alamat'),
-    content: TextField(
-      controller: ctl,
-      autofocus: true,
-      decoration: InputDecoration(hintText: tr('Tulis alamat')),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Batal'),
-      ),
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(ctl.text),
-        child: const Text('Simpan'),
-      ),
-    ],
-  );
+  // The map picker saves the address itself.
+  await openMapPicker(context);
 }

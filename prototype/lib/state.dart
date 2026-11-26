@@ -36,9 +36,9 @@ class AppNotice {
 }
 
 List<AppNotice> _seedNotices() => [
-  AppNotice('n1', 'Beli 3 cone, diskon 10% hari ini (contoh).'),
-  AppNotice('n2', 'Pesananmu #AC-0987 sudah tiba (contoh).', read: true),
-  AppNotice('n3', 'Voucher HEMAT10 berlaku sampai akhir pekan (contoh).'),
+  AppNotice('n1', 'Beli 3 cone, diskon 10% hari ini.'),
+  AppNotice('n2', 'Pesananmu #AC-0987 sudah tiba.', read: true),
+  AppNotice('n3', 'Voucher HEMAT10 berlaku sampai akhir pekan.'),
 ];
 
 enum PointKind { earn, redeem, bonus }
@@ -115,7 +115,7 @@ class Order {
     required this.demoSeconds,
     this.sample = false,
     this.customerId = 'guest',
-    this.customerName = 'Tamu (contoh)',
+    this.customerName = 'Tamu',
     this.status = OrderStatus.shipping,
     this.paidAt,
     DateTime? trackStart,
@@ -249,16 +249,27 @@ class AppState extends ChangeNotifier {
     if (c.first.id == customer.id) {
       notices.insert(
         0,
-        AppNotice(
-          'p${o.id}',
-          '+${o.pointsEarn} poin dari pesanan ${o.id} (contoh).',
-        ),
+        AppNotice('p${o.id}', '+${o.pointsEarn} poin dari pesanan ${o.id}.'),
       );
     }
   }
 
+  /// Distance to the store from a pin set on the map, in km. Null when the
+  /// address was typed or picked from the list.
+  double? distanceKm;
+
+  String get storeDistance => distanceKm == null
+      ? store.distance
+      : '${distanceKm!.toStringAsFixed(1).replaceAll('.', ',')} km';
+
   void chooseStore(Store s) {
     store = s;
+    distanceKm = null;
+    notifyListeners();
+  }
+
+  void setDistance(double km) {
+    distanceKm = km;
     notifyListeners();
   }
 
@@ -487,6 +498,7 @@ class AppState extends ChangeNotifier {
     customer = guestCustomer;
     registered.clear();
     store = stores.first;
+    distanceKm = null;
     address = '';
     slot = 'Sekarang';
     payment = 'E-wallet';
@@ -562,7 +574,7 @@ class AppState extends ChangeNotifier {
   Customer register(String name, String phone, String invite) {
     final c = Customer(
       'c-new-${registered.length + 1}',
-      name.trim().isEmpty ? 'Pelanggan Baru (contoh)' : name.trim(),
+      name.trim().isEmpty ? 'Pelanggan Baru' : name.trim(),
       phone.trim(),
       memberNo:
           'ICE-${(100 + registered.length + 4).toString().padLeft(4, '0')}',
@@ -644,7 +656,7 @@ class AppState extends ChangeNotifier {
     if (o.customerId == customer.id) {
       notices.insert(
         0,
-        AppNotice('s${o.id}', 'Pesanan ${o.id} sedang diantar (contoh).'),
+        AppNotice('s${o.id}', 'Pesanan ${o.id} sedang diantar.'),
       );
     }
     notifyListeners();
@@ -732,8 +744,8 @@ List<Order> _seedOrders() {
           OrderLine(e.key.name, e.value, e.key.price, productId: e.key.id),
       ],
       pricing: pr,
-      storeName: 'Toko Contoh 1',
-      address: 'Jl. Sampel No. 5, Kota Contoh',
+      storeName: stores.first.name,
+      address: c.address,
       payment: payment,
       placedAt: placed,
       late: false,
@@ -793,7 +805,7 @@ Order _sampleOrder() => Order(
     OrderLine('Cone Vanila Stroberi', 3, 5000, productId: 'cone-vanila'),
   ],
   pricing: computePricing({productById('cone-vanila'): 3}, null),
-  storeName: 'Toko Contoh 1',
+  storeName: stores.first.name,
   address: savedAddresses.first,
   payment: 'QRIS',
   placedAt: DateTime(2026, 11, 20, 19, 30),

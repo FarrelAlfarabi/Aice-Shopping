@@ -36,27 +36,28 @@ class _PaymentSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Cara bayar', style: tH3),
-            const SizedBox(height: 4),
+            const SizedBox(height: Sp.xs),
             const Text(
               'Contoh saja. Tidak ada uang yang berpindah. Pilihan ini juga jadi cara bayar utama di Profil.',
               style: tMuted,
             ),
-            const SizedBox(height: 10),
-            for (final o in paymentOptions)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: OptionTile(
-                  key: ValueKey('pay-${o.flow.name}-${o.id}'),
-                  selected: s.payment == o.id,
-                  title: o.id,
-                  subtitle: o.note,
-                  trailing: Icon(payIcon(o.id), color: C.muted),
-                  onTap: () {
-                    s.setPayment(o.id);
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
+            const SizedBox(height: Sp.m),
+            ListGroup(
+              children: [
+                for (final o in paymentOptions)
+                  OptionTile(
+                    key: ValueKey('pay-${o.flow.name}-${o.id}'),
+                    icon: payIcon(o.id),
+                    selected: s.payment == o.id,
+                    title: o.id,
+                    subtitle: o.note,
+                    onTap: () {
+                      s.setPayment(o.id);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+              ],
+            ),
           ],
         ),
       ),
@@ -64,42 +65,25 @@ class _PaymentSheet extends StatelessWidget {
   }
 }
 
-/// A row that shows the chosen option and opens the picker.
+/// A row that shows the chosen option and opens the picker. [boxed] puts it
+/// in its own card; leave it false inside a [ListGroup]. [label] adds the
+/// words "Cara bayar"; leave it off under a "Cara bayar" section title so the
+/// words are not shown twice.
 class PaymentRow extends StatelessWidget {
   final bool boxed;
-  const PaymentRow({super.key, this.boxed = true});
+  final bool label;
+  const PaymentRow({super.key, this.boxed = true, this.label = true});
   @override
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
-    final row = InkWell(
+    final row = ListRow(
       key: const ValueKey('payment-row'),
-      borderRadius: BorderRadius.circular(14),
+      icon: payIcon(s.payment),
+      title: label ? 'Cara bayar' : s.payment,
+      value: label ? s.payment : null,
       onTap: () => showPaymentPicker(context),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          children: [
-            Icon(payIcon(s.payment), color: C.pri),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Cara bayar', style: tMuted),
-                  Text(s.payment, style: tBold),
-                ],
-              ),
-            ),
-            const Text(
-              'Ubah',
-              style: TextStyle(color: C.pri, fontWeight: FontWeight.w800),
-            ),
-            const Icon(Icons.chevron_right, color: C.muted),
-          ],
-        ),
-      ),
     );
-    return boxed ? Panel(child: row) : row;
+    return boxed ? ListGroup(children: [row]) : row;
   }
 }
 
@@ -132,7 +116,7 @@ class PayInstructions extends StatelessWidget {
                 const Text(
                   'Terima kasih. Menunggu penjual mengonfirmasi.',
                   key: ValueKey('transfer-claimed'),
-                  style: TextStyle(color: C.good, fontWeight: FontWeight.w800),
+                  style: TextStyle(color: C.good, fontWeight: FontWeight.w700),
                 )
               else
                 BigButton(
